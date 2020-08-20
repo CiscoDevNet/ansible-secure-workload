@@ -10,9 +10,7 @@
     
     - name: "set facts"
       set_fact:
-        api_key: "dfe56b5d02264a92a8a32dd9e8db7656"
         ansible_host: "https://ignwpov.tetrationpreview.com"
-        api_secret: "bc21517fb566eeb9f160df19672a6c724991ccea"
     - name: "Find a user"
       tetration_user:
         provider:
