@@ -1,0 +1,29 @@
+---
+- name: Converge
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: "Include ansible-module"
+      include_role:
+        name: "ansible-module"
+    
+    - name: "set facts"
+      set_fact:
+        api_key: "dfe56b5d02264a92a8a32dd9e8db7656"
+        ansible_host: "https://ignwpov.tetrationpreview.com"
+        api_secret: "bc21517fb566eeb9f160df19672a6c724991ccea"
+    - name: "Find a user"
+      tetration_user:
+        provider:
+          api_key: "{{ api_key }}"
+          api_secret: "{{ api_secret }}"
+          server_endpoint: "{{ ansible_host }}"
+        email: ericj@ignw.io
+        state: query
+      delegate_to: localhost
+      register: output
+    - name: debug
+      debug:
+        var: output
+      
