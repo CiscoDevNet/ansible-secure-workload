@@ -22,6 +22,11 @@ from requests.packages.urllib3 import disable_warnings
 disable_warnings()
 
 
+# Because the cmp() function is not in Python3
+def cmp(a, b):
+    return (a > b) - (a < b)
+
+
 class TetrationApiBase(object):
     ''' Base class for implementing Tetration API '''
     provider_spec = {'provider': dict(
@@ -64,7 +69,7 @@ class TetrationApiModule(TetrationApiBase):
         except Exception as exc:
             self.module.fail_json(msg=to_text(exc))
 
-    def handle_exception(self, method_name, exc):
+    def _handle_exception(self, method_name, exc):
         ''' Handles any exceptions raised
         This method is called when an unexpected response
         code is returned from a Tetration OpenAPI call
@@ -84,7 +89,7 @@ class TetrationApiModule(TetrationApiBase):
             if search_array:
                 query_result = search_array
             else:
-                query_result = self.get(
+                query_result = self._get(
                     target=target, params=params, req_payload=None)
             search_objects = query_result[sub_element] if sub_element and sub_element in query_result else query_result
             for obj in search_objects:
@@ -104,24 +109,23 @@ class TetrationApiModule(TetrationApiBase):
 
     def run_method(self, method_name, target, params=None, req_payload=None):
         methods = {
-            'get': self.get,
-            'post': self.post,
-            'put': self.put,
-            'delete': self.delete
+            'get': self._get,
+            'post': self._post,
+            'put': self._put,
+            'delete': self._delete
         }
         return methods[method_name.lower()](target, params, req_payload)
 
-    def get(self, target, params, req_payload):
+    def _get(self, target, params, req_payload):
         resp = self.rc.get(target, params=params)
-        # import pdb; pdb.set_trace()
         if resp.status_code == 400:
             return None
         elif resp.status_code == 200:
             return resp.json()
         else:
-            self.handle_exception('get', resp)
+            self._handle_exception('get', resp)
 
-    def post(self, target, params, req_payload):
+    def _post(self, target, params, req_payload):
         resp = self.rc.post(target, json_body=json.dumps(req_payload))
         if resp.status_code / 100 == 2:
             try:
@@ -129,9 +133,9 @@ class TetrationApiModule(TetrationApiBase):
             except ValueError:
                 return None
         else:
-            self.handle_exception('post', resp)
+            self._handle_exception('post', resp)
 
-    def put(self, target, params, req_payload):
+    def _put(self, target, params, req_payload):
         resp = self.rc.put(target, json_body=json.dumps(req_payload))
         if resp.status_code / 100 == 2:
             try:
@@ -139,9 +143,9 @@ class TetrationApiModule(TetrationApiBase):
             except ValueError:
                 return None
         else:
-            self.handle_exception('put', resp)
+            self._handle_exception('put', resp)
 
-    def delete(self, target, params, req_payload):
+    def _delete(self, target, params, req_payload):
         resp = self.rc.delete(target, json_body=json.dumps(req_payload))
         if resp.status_code / 100 == 2:
             try:
@@ -149,9 +153,9 @@ class TetrationApiModule(TetrationApiBase):
             except ValueError:
                 return None
         else:
-            self.handle_exception('delete', resp)
+            self._handle_exception('delete', resp)
 
-    def filter_object(self, obj1, obj2, check_only=False):
+    def _filter_object(self, obj1, obj2, check_only=False):
         changed_flag = False
         try:
             for k in list(iterkeys(obj1)):
@@ -170,16 +174,18 @@ class TetrationApiModule(TetrationApiBase):
             changed_flag = True
             return changed_flag
 
-    def compare_keys(self, obj1, obj2):
-        unknown_keys = []
-        for k in list(iterkeys(obj1)):
-            if k not in list(iterkeys(obj2)):
-                unknown_keys.append(k)
-        return unknown_keys
+    # def compare_keys(self, obj1, obj2):
+    #     # Not used, can be deleted???
+    #     unknown_keys = []
+    #     for k in list(iterkeys(obj1)):
+    #         if k not in list(iterkeys(obj2)):
+    #             unknown_keys.append(k)
+    #     return unknown_keys
 
-    def clear_values(self, obj):
-        for k in list(iterkeys(obj)):
-            obj[k] = ''
+    # def clear_values(self, obj):
+    #     # Not used, can be deleted???
+    #     for k in list(iterkeys(obj)):
+    #         obj[k] = ''
 
 
 class MultiPartOption(object):

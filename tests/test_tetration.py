@@ -109,11 +109,17 @@ def test_user_id(rest_client, root_scope):
 
     yield created_user_id
 
-    # Delete the created user
-    user_route = f"{tetration_constants.TETRATION_API_USER}/{created_user_id}"
+    # ###Delete the created user
+
     # Look for any lingering roles and delete them
+    user_route = f"{tetration_constants.TETRATION_API_USER}/{created_user_id}"
+    params = {"include_disabled": "true"}
 
     resp = rest_client.get(user_route)
+    if resp.status_code == 404:
+        # If the user was disabled during testing, reenable for cleanup
+        enable_route = f"{user_route}/enable"
+        resp = rest_client.post(enable_route)
 
     roles = [role for role in resp.json()['role_ids']]
     for role in roles:
@@ -125,8 +131,10 @@ def test_user_id(rest_client, root_scope):
             route, json_body=json.dumps(req_payload))
         assert resp.status_code == 200
 
-    resp = rest_client.delete(user_route)
+    resp = rest_client.put(user_route, json_body=json.dumps(req_payload))
+    assert resp.status_code == 200
 
+    resp = rest_client.delete(user_route)
     assert resp.status_code == 200
 
 
@@ -408,7 +416,82 @@ class TestTetrationApiModule:
         assert isinstance(tet_module, tetration.TetrationApiModule)
 
     def test_obj_get_users(self, tet_client):
-        tet_resp = tet_client.get('/users')
-        print(tet_resp)
+        tet_resp = tet_client.run_method(
+            'GET', tetration_constants.TETRATION_API_USER)
 
-        assert False
+        assert isinstance(tet_resp, list)
+        assert len(tet_resp) > 0
+
+    def test_obj_get_all_users_including_disabled_using_parameter(self, tet_client):
+        params = {'include_disabled': True}
+        tet_resp = tet_client.run_method(
+            'GET', tetration_constants.TETRATION_API_USER, params=params)
+
+        assert isinstance(tet_resp, list)
+        assert len(tet_resp) > 0
+        disabled_users = [user for user in tet_resp if not user['disabled_at']]
+        assert len(disabled_users) > 0
+
+    def test_obj_get_invalid_route(self, tet_client):
+        with pytest.raises(SystemExit):
+            tet_client.run_method('GET', '/fakeroute')
+
+    def test_obj_get_invalid_user(self, tet_client):
+        fake_user_id = '123456'
+        route = f"{tetration_constants.TETRATION_API_USER}/{fake_user_id}"
+        with pytest.raises(SystemExit):
+            tet_client.run_method('GET', route)
+
+    def test_obj_update_last_name(self, tet_client, test_user_id):
+        route = f"{tetration_constants.TETRATION_API_USER}/{test_user_id}"
+
+        req_payload = {
+            "last_name": "Test User",
+        }
+
+        resp = tet_client.run_method('PUT', route, req_payload=req_payload)
+        resp = tet_client.run_method('GET', route)
+
+        assert resp['last_name'] == req_payload['last_name']
+
+    def test_obj_delete_enable_user(self, tet_client, test_user_id):
+        route = f"{tetration_constants.TETRATION_API_USER}/{test_user_id}"
+        enable_route = f"{route}/enable"
+
+        # Get the user info, verify initial state
+        resp = tet_client.run_method('GET', route)
+        assert resp['disabled_at'] is None
+
+        # Mark the user as deleted, get the info and confirm change
+        resp = tet_client.run_method('DELETE', route)
+        assert resp['disabled_at'] is not None
+
+        # Mark the user as enabled, get the info and confirm change
+        resp = tet_client.run_method('POST', enable_route)
+        resp = tet_client.run_method('GET', route)
+        assert resp['disabled_at'] is None
+
+    def test_obj_enable_fake_user(self, tet_client):
+        fake_user_id = '123456'
+        enable_route = f"{tetration_constants.TETRATION_API_USER}/{fake_user_id}/enable"
+
+        with pytest.raises(SystemExit):
+            tet_client.run_method('POST', enable_route)
+
+    def test_obj_update_last_name_invalid_user(self, tet_client):
+        fake_user = '123456'
+        route = f"{tetration_constants.TETRATION_API_USER}/{fake_user}"
+
+        req_payload = {
+            "last_name": "Test User",
+        }
+
+        with pytest.raises(SystemExit):
+            tet_client.run_method('PUT', route, req_payload=req_payload)
+
+    def test_obj_delete_invalid_user(self, tet_client):
+        fake_user = '123456'
+        route = f"{tetration_constants.TETRATION_API_USER}/{fake_user}"
+
+        with pytest.raises(SystemExit):
+            tet_client.run_method('DELETE', route)
