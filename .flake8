@@ -1,2 +1,7 @@
 [pycodestyle]
 ignore = E402
+
+[flake8]
+exclude = .git,venv
+max-line-length = 127
+ignore = E402

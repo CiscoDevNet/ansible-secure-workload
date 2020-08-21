@@ -1,4 +1,3 @@
-import module_utils
 import pytest
 import json
 
@@ -8,11 +7,24 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils import basic
 from ansible.module_utils._text import to_bytes
 
-from . import apikey
+from dotenv import load_dotenv
+import os
 
 
 @pytest.fixture()
-def api_info(api_key=apikey.API_KEY, api_secret=apikey.API_SECRET, endpoint=apikey.ENDPOINT):
+def api_info():
+    # This allows you to put all the environmental variables into a `.env`
+    # file in the repo and will take the contents of the file and push them
+    # into the OS environmental variables.
+    # This allows for testing locally and with github actions
+    load_dotenv()
+    api_key = os.getenv("TETRATION_API_KEY")
+    api_secret = os.getenv("TETRATION_API_SECRET")
+    endpoint = os.getenv("TETRATION_ENDPOINT")
+
+    if not all([api_key, api_secret, endpoint]):
+        assert False
+
     to_yield = {
         'api_key': api_key,
         'api_secret': api_secret,
@@ -112,7 +124,6 @@ def test_user_id(rest_client, root_scope):
 
     # Look for any lingering roles and delete them
     user_route = f"{tetration_constants.TETRATION_API_USER}/{created_user_id}"
-    params = {"include_disabled": "true"}
 
     resp = rest_client.get(user_route)
     if resp.status_code == 404:

@@ -8,13 +8,11 @@ import time
 import warnings
 
 from datetime import datetime
-from functools import partial
+# from functools import partial
 from six.moves.urllib.parse import urljoin
-from ansible.module_utils._text import to_native
+# from ansible.module_utils._text import to_native
 from ansible.module_utils.six import iteritems, iterkeys
 from ansible.module_utils._text import to_text
-#from ansible_collections.joej164.ansible_sample_collection.plugins.module_utils.tetration_constants import TETRATION_PROVIDER_SPEC
-#from ansible_collections.joej164.ansible_sample_collection.plugins.module_utils.tetpyclient import RestClient
 from . import tetration_constants
 from requests.packages.urllib3 import disable_warnings
 
@@ -490,96 +488,96 @@ class RestClient(object):
             http_method='DELETE', uri_path=self.__prefix_path(uri_path),
             args=kwargs)
 
-    def patch(self, uri_path='', **kwargs):
-        """
-        PATCH request to the server. Returns a requests.Response.
+    # def patch(self, uri_path='', **kwargs):
+    #     """
+    #     PATCH request to the server. Returns a requests.Response.
 
-        Args:
-            uri_path: Additional string URI path for query
-            kwargs:
-                json_body: String JSON body
-                timeout: Float of timeout in seconds
+    #     Args:
+    #         uri_path: Additional string URI path for query
+    #         kwargs:
+    #             json_body: String JSON body
+    #             timeout: Float of timeout in seconds
 
-        Returns:
-            requests.Response object for the request
-        """
-        return self.signed_http_request(
-            http_method='PATCH', uri_path=self.__prefix_path(uri_path),
-            args=kwargs)
+    #     Returns:
+    #         requests.Response object for the request
+    #     """
+    #     return self.signed_http_request(
+    #         http_method='PATCH', uri_path=self.__prefix_path(uri_path),
+    #         args=kwargs)
 
-    def download(self, file_path, uri_path, timeout=10):
-        """
-        Makes a GET request to the backend and streams the response body to a
-        file
+    # def download(self, file_path, uri_path, timeout=10):
+    #     """
+    #     Makes a GET request to the backend and streams the response body to a
+    #     file
 
-        Args:
-            file_path: path to save the file
-            uri_path: additional string URI path for query
-            kwargs:
-                timeout: float of timeout in seconds
-        Returns:
-            requests.Response object for the request
-        """
+    #     Args:
+    #         file_path: path to save the file
+    #         uri_path: additional string URI path for query
+    #         kwargs:
+    #             timeout: float of timeout in seconds
+    #     Returns:
+    #         requests.Response object for the request
+    #     """
 
-        unprep_req = requests.Request(
-            'GET',
-            urljoin(self.server_endpoint, self.__prefix_path(uri_path)))
-        req = self.session.prepare_request(unprep_req)
-        self.__add_custom_headers(req, checksum=True)
-        self.__add_auth_header(req)
-        resp = self.session.send(req, timeout=timeout, verify=self.verify,
-                                 stream=True)
-        try:
-            with open(file_path, 'wb') as outputf:
-                for chunk in resp.iter_content(chunk_size=1024):
-                    if chunk:  # filter out keep-alive new chunks
-                        outputf.write(chunk)
-        except Exception as ex:
-            raise Exception('Error saving file. %s' % ex)
-        return resp
+    #     unprep_req = requests.Request(
+    #         'GET',
+    #         urljoin(self.server_endpoint, self.__prefix_path(uri_path)))
+    #     req = self.session.prepare_request(unprep_req)
+    #     self.__add_custom_headers(req, checksum=True)
+    #     self.__add_auth_header(req)
+    #     resp = self.session.send(req, timeout=timeout, verify=self.verify,
+    #                              stream=True)
+    #     try:
+    #         with open(file_path, 'wb') as outputf:
+    #             for chunk in resp.iter_content(chunk_size=1024):
+    #                 if chunk:  # filter out keep-alive new chunks
+    #                     outputf.write(chunk)
+    #     except Exception as ex:
+    #         raise Exception('Error saving file. %s' % ex)
+    #     return resp
 
-    def upload(self, file_path, uri_path, params=None, timeout=10):
-        """
-        Uploads a file to the backend.
+    # def upload(self, file_path, uri_path, params=None, timeout=10):
+    #     """
+    #     Uploads a file to the backend.
 
-        Args:
-            file_path: path to the file
-            uri_path: additional string URI path for query
-            kwargs:
-                timeout: float of timeout in seconds
-                CMDB:
-                keys: list of column names used to construct the record
-                      identifier
-                delete: if true, deletes records from CMDB
-                params: list of parameters of type MultiPartOption
-        Returns:
-            requests.Response object for the request
-        """
-        if (params is not None
-                and (not isinstance(params, list)
-                     or any(not isinstance(param, MultiPartOption)
-                            for param in params))):
-            raise ValueError('"params" should be of type list with items of '
-                             'type "MultiPartOption"')
-        fields = OrderedDict()
-        for param in params or []:
-            val = param.val
-            if not isinstance(val, string_types):
-                val = json.dumps(val)
-            fields[param.key] = val
-        fields[self.__MULTIPART_FILE_ID] = (
-            ('filename', open(file_path, 'rb'), 'text/plain')
-        )
-        encoder = MultipartEncoder(
-            fields=fields,
-            boundary=self.__MULTIPART_BOUNDARY_ID
-        )
-        unprep_req = requests.Request(
-            'POST',
-            urljoin(self.server_endpoint, self.__prefix_path(uri_path)),
-            data=encoder,
-            headers={'Content-Type': encoder.content_type})
-        req = self.session.prepare_request(unprep_req)
-        self.__add_custom_headers(req, checksum=False)
-        self.__add_auth_header(req)
-        return self.session.send(req, timeout=timeout, verify=self.verify)
+    #     Args:
+    #         file_path: path to the file
+    #         uri_path: additional string URI path for query
+    #         kwargs:
+    #             timeout: float of timeout in seconds
+    #             CMDB:
+    #             keys: list of column names used to construct the record
+    #                   identifier
+    #             delete: if true, deletes records from CMDB
+    #             params: list of parameters of type MultiPartOption
+    #     Returns:
+    #         requests.Response object for the request
+    #     """
+    #     if (params is not None
+    #             and (not isinstance(params, list)
+    #                  or any(not isinstance(param, MultiPartOption)
+    #                         for param in params))):
+    #         raise ValueError('"params" should be of type list with items of '
+    #                          'type "MultiPartOption"')
+    #     fields = OrderedDict()
+    #     for param in params or []:
+    #         val = param.val
+    #         if not isinstance(val, string_types):
+    #             val = json.dumps(val)
+    #         fields[param.key] = val
+    #     fields[self.__MULTIPART_FILE_ID] = (
+    #         ('filename', open(file_path, 'rb'), 'text/plain')
+    #     )
+    #     encoder = MultipartEncoder(
+    #         fields=fields,
+    #         boundary=self.__MULTIPART_BOUNDARY_ID
+    #     )
+    #     unprep_req = requests.Request(
+    #         'POST',
+    #         urljoin(self.server_endpoint, self.__prefix_path(uri_path)),
+    #         data=encoder,
+    #         headers={'Content-Type': encoder.content_type})
+    #     req = self.session.prepare_request(unprep_req)
+    #     self.__add_custom_headers(req, checksum=False)
+    #     self.__add_auth_header(req)
+    #     return self.session.send(req, timeout=timeout, verify=self.verify)
