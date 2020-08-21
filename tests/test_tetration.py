@@ -1,7 +1,6 @@
 import module_utils
 import pytest
 import json
-#import requests
 
 from module_utils import tetration
 from module_utils import tetration_constants
@@ -495,3 +494,216 @@ class TestTetrationApiModule:
 
         with pytest.raises(SystemExit):
             tet_client.run_method('DELETE', route)
+
+    def test_get_object_with_passed_in_object(self, tet_client, test_user_id):
+        resp = tet_client.run_method(
+            'GET', tetration_constants.TETRATION_API_USER)
+
+        filter = dict(
+            id=test_user_id
+        )
+
+        filtered_resp = tet_client.get_object(filter, search_array=resp)
+
+        assert filtered_resp['id'] == test_user_id
+
+    def test_get_object_from_server_filter_by_last_name(self, tet_client, test_user_id):
+        route = f"{tetration_constants.TETRATION_API_USER}/{test_user_id}"
+
+        resp = tet_client.run_method('GET', route)
+
+        filter = dict(
+            last_name=resp['last_name']
+        )
+
+        filtered_resp = tet_client.get_object(
+            filter, target=tetration_constants.TETRATION_API_USER)
+
+        assert filtered_resp['id'] == test_user_id
+
+    def test_get_object_from_server_filter_by_last_name_allow_multiple(self, tet_client, test_user_id):
+        route = f"{tetration_constants.TETRATION_API_USER}/{test_user_id}"
+
+        resp = tet_client.run_method('GET', route)
+
+        filter = dict(
+            last_name=resp['last_name']
+        )
+
+        filtered_resp = tet_client.get_object(
+            filter,
+            target=tetration_constants.TETRATION_API_USER,
+            allow_multiple=True)
+
+        assert isinstance(filtered_resp, list)
+        assert filtered_resp[0]['id'] == test_user_id
+
+    def test_filter_object_both_match_check_only(self, tet_client):
+        test_obj1 = {
+            'a': 1,
+            'b': 2,
+            'c': 3
+        }
+
+        test_obj2 = {
+            'a': 1,
+            'b': 2,
+            'c': 3
+        }
+
+        resp = tet_client.filter_object(test_obj1, test_obj2, check_only=True)
+
+        assert resp is False
+
+    def test_filter_object_different_objects_check_only(self, tet_client):
+        test_obj1 = {
+            'a': 1,
+            'b': 2,
+            'c': 3
+        }
+
+        test_obj2 = {
+            'a': 1,
+            'b': 3,
+            'c': 2
+        }
+
+        resp = tet_client.filter_object(test_obj1, test_obj2, check_only=True)
+
+        assert resp is True
+
+    def test_filter_object_both_match_change_enabled(self, tet_client):
+        test_obj1 = {
+            'a': 1,
+            'b': 2,
+            'c': 3
+        }
+
+        test_obj2 = {
+            'a': 1,
+            'b': 2,
+            'c': 3
+        }
+
+        resp = tet_client.filter_object(test_obj1, test_obj2)
+
+        assert resp is False
+
+    def test_filter_object_different_objects_change_enabled(self, tet_client):
+        test_obj1 = {
+            'a': 1,
+            'b': 2,
+            'c': 3
+        }
+
+        test_obj2 = {
+            'a': 1,
+            'b': 3,
+            'c': 2
+        }
+
+        resp = tet_client.filter_object(test_obj1, test_obj2)
+        assert resp is True
+        assert not test_obj1.get('a')
+
+    def test_filter_object_same_with_lists(self, tet_client):
+        test_obj1 = {
+            'a': 1,
+            'b': 2,
+            'c': [3, 4, 5]
+        }
+
+        test_obj2 = {
+            'a': 1,
+            'b': 2,
+            'c': [3, 4, 5]
+        }
+
+        resp = tet_client.filter_object(test_obj1, test_obj2)
+        assert resp is False
+
+    def test_filter_object_same_with_different_lists(self, tet_client):
+        test_obj1 = {
+            'a': 1,
+            'b': 2,
+            'c': [3, 4, 5]
+        }
+
+        test_obj2 = {
+            'a': 1,
+            'b': 2,
+            'c': [3, 4, 5, 6]
+        }
+
+        resp = tet_client.filter_object(test_obj1, test_obj2)
+        assert resp is True
+        assert not test_obj1.get('a')
+        assert not test_obj1.get('b')
+
+    def test_filter_object_same_with_completly_different_objects(self, tet_client):
+        test_obj1 = {
+            'a': 1,
+            'b': 2,
+            'c': [3, 4, 5]
+        }
+
+        test_obj2 = {
+            'd': 1,
+            'e': 2,
+            'f': [3, 4, 5, 6]
+        }
+
+        resp = tet_client.filter_object(test_obj1, test_obj2)
+        assert resp is True
+
+    def test_filter_object_same_with_same_sub_dicts(self, tet_client):
+        test_obj1 = {
+            'a': {
+                'b': 2,
+                'c': 3
+            },
+            'd': 4
+        }
+        test_obj2 = {
+            'a': {
+                'b': 2,
+                'c': 3
+            },
+            'd': 4
+        }
+
+        resp = tet_client.filter_object(test_obj1, test_obj2)
+        assert resp is False
+
+    def test_filter_object_same_with_different_sub_dicts(self, tet_client):
+        test_obj1 = {
+            'a': {
+                'b': 2,
+                'c': 3
+            },
+            'd': 4
+        }
+        test_obj2 = {
+            'a': {
+                'b': 2,
+                'c': 4
+            },
+            'd': 4
+        }
+
+        resp = tet_client.filter_object(test_obj1, test_obj2)
+        assert resp is True
+
+    def test_filter_object_with_same_lists(self, tet_client):
+        test_obj1 = [1, 2, 3]
+        test_obj2 = [1, 2, 3]
+
+        resp = tet_client.filter_object(test_obj1, test_obj2)
+        assert resp is False
+
+    def test_filter_object_with_different_lists(self, tet_client):
+        test_obj1 = [1, 2, 3]
+        test_obj2 = [4, 5, 6]
+
+        resp = tet_client.filter_object(test_obj1, test_obj2)
+        assert resp is True

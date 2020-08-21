@@ -155,7 +155,7 @@ class TetrationApiModule(TetrationApiBase):
         else:
             self._handle_exception('delete', resp)
 
-    def _filter_object(self, obj1, obj2, check_only=False):
+    def filter_object(self, obj1, obj2, check_only=False):
         changed_flag = False
         try:
             for k in list(iterkeys(obj1)):
