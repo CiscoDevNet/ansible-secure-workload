@@ -153,24 +153,28 @@ class TetrationApiModule(TetrationApiBase):
         else:
             self._handle_exception('delete', resp)
 
-    def filter_object(self, obj1, obj2, check_only=False):
-        changed_flag = False
-        try:
-            for k in list(iterkeys(obj1)):
-                if k in list(iterkeys(obj2)):
-                    if type(obj1[k]) is dict:
-                        if cmp(obj1[k], obj2[k]) != 0:
-                            changed_flag = True
-                    elif obj1[k] != obj2[k]:
-                        changed_flag = True
-                    if not changed_flag and not check_only:
-                        del obj1[k]
-                else:
-                    changed_flag = True
-            return changed_flag
-        except AttributeError:
-            changed_flag = True
-            return changed_flag
+    # def filter_object(self, obj1, obj2, check_only=False):
+
+    #     if check_only:
+    #         return obj1 == obj2
+
+    #     changed_flag = False
+    #     try:
+    #         for k in list(iterkeys(obj1)):
+    #             if k in list(iterkeys(obj2)):
+    #                 if type(obj1[k]) is dict:
+    #                     if cmp(obj1[k], obj2[k]) != 0:
+    #                         changed_flag = True
+    #                 elif obj1[k] != obj2[k]:
+    #                     changed_flag = True
+    #                 if not changed_flag and not check_only:
+    #                     del obj1[k]
+    #             else:
+    #                 changed_flag = True
+    #         return changed_flag
+    #     except AttributeError:
+    #         changed_flag = True
+    #         return changed_flag
 
     # def compare_keys(self, obj1, obj2):
     #     # Not used, can be deleted???

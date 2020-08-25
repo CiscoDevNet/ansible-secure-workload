@@ -27,6 +27,17 @@ Including an example of how to use your role (for instance, with variables passe
       roles:
          - { role: username.rolename, x: 42 }
 
+Testing
+-------
+Python Testing is done via Pytest.
+- Create a Virtual Environment
+- Install Dependencies from `requirements.txt`
+- Run the command `pytest --cov=. --cov-report term-missing --cov-fail-under=80 tests/`
+
+Ansible Testing is done via Molecule
+- TBD
+
+
 License
 -------
 
