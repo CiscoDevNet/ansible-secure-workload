@@ -9,6 +9,11 @@ on:
   pull_request:
     branches: [ master ]
 
+  env:
+    TETRATION_API_KEY: ${{ secrets.TETRATION_API_KEY_IGNW_S_F_URS }}
+    TETRATION_API_SECRET: ${{ secrets.TETRATION_API_SECRET_IGNW_S_F_URS }} 
+    TETRATION_SERVER_ENDPOINT: ${{ secrets.TETRATION_ENDPOINT_IGNW_S_F_URS }} 
+
 jobs:
   build:
 
@@ -36,11 +41,6 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Set Environment Variables
-      env:
-        TETRATION_API_KEY: ${{ secrets.TETRATION_API_KEY_IGNW_S_F_URS }}
-        TETRATION_API_SECRET: ${{ secrets.TETRATION_API_SECRET_IGNW_S_F_URS }} 
-        TETRATION_SERVER_ENDPOINT: ${{ secrets.TETRATION_ENDPOINT_IGNW_S_F_URS }} 
     - name: Test with pytest
       run: |
         pytest
