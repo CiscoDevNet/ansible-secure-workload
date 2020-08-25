@@ -1,21 +1,30 @@
 # This workflow will install Python dependencies, run tests and lint with a variety of Python versions
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Python package
+name: Python and Ansible Testing 
 
 on:
   push:
     branches: [ '**' ]
-  pull_request:
-    branches: [ master ]
+
 
 jobs:
   build:
+    env:
+      TETRATION_API_KEY: ${{ secrets.TETRATION_API_KEY_IGNW_S_F_URS }}
+      TETRATION_API_SECRET: ${{ secrets.TETRATION_API_SECRET_IGNW_S_F_URS }} 
+      TETRATION_SERVER_ENDPOINT: ${{ secrets.TETRATION_ENDPOINT_IGNW_S_F_URS }} 
 
     runs-on: ubuntu-latest
+    continue-on-error: true
     strategy:
+      # Need max-parallel as the tests create and tear down 
+      # Resourses in the Tetration Module.  If not run serially
+      # The tests interfere with each other.
+      max-parallel: 1
       matrix:
-        python-version: [3.6, 3.7, 3.8]
+        python-version: [3.8]
+        ansible-version: [2.9.*]
 
     steps:
     - uses: actions/checkout@v2
@@ -27,6 +36,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install flake8 pytest
+        pip install 'ansible==${{ matrix.ansible-version }}'
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Lint with flake8
       run: |
