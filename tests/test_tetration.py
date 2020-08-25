@@ -20,7 +20,7 @@ def api_info():
     load_dotenv()
     api_key = os.getenv("TETRATION_API_KEY")
     api_secret = os.getenv("TETRATION_API_SECRET")
-    endpoint = os.getenv("TETRATION_ENDPOINT")
+    endpoint = os.getenv("TETRATION_SERVER_ENDPOINT")
 
     if not all([api_key, api_secret, endpoint]):
         assert False
@@ -340,14 +340,17 @@ class TestMultiPartOption:
 
 
 class TestTetrationApiModule:
-    def test_create_class_instance_missing_parameters(self):
+    def test_create_class_instance_missing_parameters(self, monkeypatch):
+        # The environment variables were bleeding over from other tests
+        # Ensures at least one required variable is missing for this test
+        monkeypatch.delenv("TETRATION_API_KEY", raising=False)
         module_args = dict(
             name=dict(type='str', required=True),
             email=dict(type='bool', required=False, default=False)
         )
 
         module_values = {
-            'name': 'testname',
+            'name': 'some name',
             'email': False
         }
         set_module_args(module_values)
