@@ -7,6 +7,15 @@ platforms:
   - name: instance
     image: docker.io/pycontribs/centos:8
     pre_build_image: true
+
+# ${PATH} added to the lint block is to fix an issue with molecule 3.0.7
+# https://github.com/ansible-community/molecule/issues/2781
+lint: |
+  set -e
+  PATH=${PATH}
+  yamllint molecule/tetration_user
+  ansible-lint molecule/tetration_user
+  
 provisioner:
   name: ansible
   env:
