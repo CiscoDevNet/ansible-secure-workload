@@ -35,7 +35,14 @@ Python Testing is done via Pytest.
 - Run the command `pytest --cov=. --cov-report term-missing --cov-fail-under=80 tests/`
 
 Ansible Testing is done via Molecule
-- TBD
+- Create a Virtual Environment
+- Install Dependencies from `requirements.txt`
+- Run the command `molecule converge -s users` to run the Users scenario
+- Run the command `molecule converge --all` to run all the scenarios
+
+The scenarios are in the **molecule** folder.  Each scenario is named after the module its tests are written for.  Molecule is designed to do stuff to a VM/Container and then test the state of the container.  Since this is not the case, instead we use the `converge.yml` file to exercize the role.  
+
+Environmental variables are set in the `molecule.yml` file.  If you have an `.env.yml` file set in the project root, when molecule runs, it will set the contents of that file as environmental variables. This way you can test both local and remote.
 
 
 License

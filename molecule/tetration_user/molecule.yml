@@ -9,5 +9,9 @@ platforms:
     pre_build_image: true
 provisioner:
   name: ansible
+  env:
+    TETRATION_API_KEY: ${TETRATION_API_KEY_IGNW_S_F_URS}
+    TETRATION_API_SECRET: ${TETRATION_API_SECRET_IGNW_S_F_URS}
+    TETRATION_SERVER_ENDPOINT: ${TETRATION_ENDPOINT_IGNW_S_F_URS}
 verifier:
   name: ansible

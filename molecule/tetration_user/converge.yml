@@ -1,0 +1,58 @@
+---
+- name: Converge
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: "Include ansible-module"
+      include_role:
+        name: "ansible-module"
+    
+    - name: read variables from the environment that are set in the molecule.yml
+      set_fact:
+        ansible_host: "{{ lookup('env', 'TETRATION_SERVER_ENDPOINT') }}" 
+        api_key: "{{ lookup('env', 'TETRATION_API_KEY') }}" 
+        api_secret: "{{ lookup('env', 'TETRATION_API_SECRET') }}"
+  
+    - name: put the variables in the required format
+      set_fact:
+        provider_info:
+          api_key: "{{ api_key }}"
+          api_secret: "{{ api_secret }}"
+          server_endpoint: "{{ ansible_host }}"
+  
+    - name: Test - Query if a fake user exists
+      tetration_user:
+        provider: "{{ provider_info }}"
+        email: fake@not.real
+        state: query
+      delegate_to: localhost
+      register: output
+    - name: debug
+      debug:
+        var: output
+    - name: test results
+      assert:
+        that:
+          - output is defined 
+          - output.failed is false
+          - output.object == none
+          - output.changed is false
+
+    - name: Test - Query if a real users exists
+      tetration_user:
+        provider: "{{ provider_info }}"
+        email: test_user@test.com
+        state: query
+      delegate_to: localhost
+      register: output
+    - name: debug
+      debug:
+        var: output
+    - name: test results
+      assert:
+        that:
+          - output is defined 
+          - output.failed is false
+          - output.object != none
+          - output.object.last_name == 'CICD User'
