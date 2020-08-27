@@ -10,8 +10,8 @@
 
     - name: read variables from the environment that are set in the molecule.yml
       set_fact:
-        ansible_host: "{{ lookup('env', 'TETRATION_SERVER_ENDPOINT') }}" 
-        api_key: "{{ lookup('env', 'TETRATION_API_KEY') }}" 
+        ansible_host: "{{ lookup('env', 'TETRATION_SERVER_ENDPOINT') }}"
+        api_key: "{{ lookup('env', 'TETRATION_API_KEY') }}"
         api_secret: "{{ lookup('env', 'TETRATION_API_SECRET') }}"
       no_log: true
 
@@ -40,7 +40,7 @@
     - name: test results
       assert:
         that:
-          - output is defined 
+          - output is defined
           - output.failed is false
           - output.object == none
           - output.changed is false
@@ -58,7 +58,7 @@
     - name: test results
       assert:
         that:
-          - output is defined 
+          - output is defined
           - output.failed is false
           - output.object != none
           - output.object.last_name == 'CICD User'
@@ -81,10 +81,10 @@
     - name: test results
       assert:
         that:
-          - output is defined 
+          - output is defined
           - output.failed is true
           - output.msg == expected_msg
-          
+
 
     - name: Test - Attempt to create a user with invalid app scope name
       tetration_user:
@@ -103,12 +103,12 @@
     - name: test results
       assert:
         that:
-          - output is defined 
+          - output is defined
           - output.failed is true
           - output.msg == expected_invalid_parameter_msg
           - output.invalid_parameters.app_scope_name == "invalid app scope name"
-    
-    - name: Test - Attempt to create a user with valid app scope name using check mode 
+
+    - name: Test - Attempt to create a user with valid app scope name using check mode
       tetration_user:
         provider: "{{ provider_info }}"
         email: not_present_test_user@test.com
@@ -127,12 +127,12 @@
     - name: test results
       assert:
         that:
-          - output is defined 
+          - output is defined
           - output.failed is false
           - output.object.first_name == 'not present'
-    
 
-    - name: Test - Attempt to create a user with scope id using check mode 
+
+    - name: Test - Attempt to create a user with scope id using check mode
       tetration_user:
         provider: "{{ provider_info }}"
         email: not_present_test_user@test.com
@@ -151,7 +151,7 @@
     - name: test results
       assert:
         that:
-          - output is defined 
+          - output is defined
           - output.failed is false
           - output.object.app_scope_id == '5f0f2353497d4f1f59bf0aef'
 
@@ -177,12 +177,12 @@
     - name: test results
       assert:
         that:
-          - output is defined 
+          - output is defined
           - output.failed is true
           - output.msg == expected_invalid_parameter_msg
           - output.invalid_parameters.role_names == ['fake_role_name1', 'fake_role_name2']
 
-    - name: Test - Attempt to create a user with a list of role ids in check mode 
+    - name: Test - Attempt to create a user with a list of role ids in check mode
       tetration_user:
         provider: "{{ provider_info }}"
         email: not_present_test_user@test.com
@@ -203,12 +203,12 @@
     - name: test results
       assert:
         that:
-          - output is defined 
+          - output is defined
           - output.failed is false
           - output.object.role_ids == ['5ce7150a755f0267680224b3', '5ce71509497d4f2c23af85cf']
 
 
-    - name: Test - Attempt to create a user with a list of valid role names and app name in check mode 
+    - name: Test - Attempt to create a user with a list of valid role names and app name in check mode
       tetration_user:
         provider: "{{ provider_info }}"
         email: not_present_test_user@test.com
@@ -230,12 +230,12 @@
     - name: test results
       assert:
         that:
-          - output is defined 
+          - output is defined
           - output.failed is false
           - output.object.role_ids == ['5ce7150a755f0267680224b3', '5ce71509497d4f2c23af85cf']
           - output.object.app_scope_id == '5f0f2353497d4f1f59bf0aef'
 
-    - name: Test - delete a user that does not exist 
+    - name: Test - delete a user that does not exist
       tetration_user:
         provider: "{{ provider_info }}"
         email: not_present_test_user@test.com
@@ -245,7 +245,7 @@
         role_names:
           - Enforce
           - Execute
-        state: absent 
+        state: absent
       delegate_to: localhost
       register: output
 
@@ -256,7 +256,7 @@
     - name: test results
       assert:
         that:
-          - output is defined 
+          - output is defined
           - output.failed is false
           - output.changed is false
 
