@@ -100,7 +100,7 @@ def test_user_id(rest_client, root_scope):
         route = f"{tetration_constants.TETRATION_API_USER}?include_disabled=true"
         user_resp = rest_client.get(route)
         user_ids = [user['id']
-                    for user in user_resp.json() if user['last_name'] == "CICD User"]
+                    for user in user_resp.json() if user['email'] == "test_user@test.com"]
         if len(user_ids) != 1:
             print("Found more than one user")
             assert False
