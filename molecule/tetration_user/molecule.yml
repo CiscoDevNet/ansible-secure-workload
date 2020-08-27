@@ -24,3 +24,16 @@ provisioner:
     TETRATION_SERVER_ENDPOINT: ${TETRATION_SERVER_ENDPOINT}
 verifier:
   name: ansible
+
+scenario:
+  test_sequence:
+    - lint
+    - create
+    - converge
+    - destroy
+  converge_sequence:
+    - lint
+    - create
+    - converge
+  check_sequence:
+    - lint
