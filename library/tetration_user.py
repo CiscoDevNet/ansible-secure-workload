@@ -27,13 +27,14 @@ options:
         description: ID of the user scope. Omit this parameter or set
             it to an empty string to create a user not limited to one
             scope (most people will want to do this).
-            Scope ID and scope name are mutually exclusive.
+            C(app_scope_id) and C(app_scope_name) are mutually exclusive.
         type: string
         required: false
     app_scope_name:
-        description: Name of the root scope in which to place the user. Omit this parameter
-            or set it to an empty string to create a user not limited to one scope. Scope
-            ID and scope name are mutually exclusive.
+        description: Name of the root scope in which to place the user.
+            Omit this parameter or set it to an empty string to create
+            a user not limited to one scope.
+            C(app_scope_id) and C(app_scope_name) are mutually exclusive.
         type: string
         required: false
     email:
@@ -50,6 +51,18 @@ options:
             can optionally be used to change the last name of an existing user.
         type: string
         required: false
+    role_ids:
+        description: List of role ID's that should be applied to the user.
+            C(role_ids) and C(role_names) are mutually exclusive.
+        type: list
+        required: false
+        default: []
+    role_names:
+        description: List of role names that should be applied to the user.
+            C(role_ids) and C(role_names) are mutually exclusive.
+        type: list
+        required: false
+        default: []
     state:
         choices: [present, absent, query]
         description: Add, change, remove or search for the user
@@ -146,6 +159,7 @@ from ansible.module_utils.basic import AnsibleModule
 
 from ansible.module_utils.tetration_constants import TETRATION_API_SCOPES
 from ansible.module_utils.tetration_constants import TETRATION_API_USER
+from ansible.module_utils.tetration_constants import TETRATION_API_ROLE
 from ansible.module_utils.tetration_constants import TETRATION_PROVIDER_SPEC
 from ansible.module_utils.tetration import TetrationApiModule
 
@@ -155,6 +169,8 @@ def run_module():
     module_args = dict(
         app_scope_id=dict(type='str', required=False, default=''),
         app_scope_name=dict(type='str', required=False, default=''),
+        role_ids=dict(type='list', required=False, default=[]),
+        role_names=dict(type='list', required=False, default=[]),
         email=dict(type='str', required=True),
         first_name=dict(type='str', required=False, default=''),
         last_name=dict(type='str', required=False, default=''),
@@ -192,57 +208,232 @@ def run_module():
         argument_spec=module_args,
         supports_check_mode=True,
         mutually_exclusive=[
-            ['app_scope_id', 'app_scope_name']
+            ['app_scope_id', 'app_scope_name'],
+            ['role_ids', 'role_names']
         ]
     )
 
     tet_module = TetrationApiModule(module)
 
-    # state = module.params['state']
-    # email = module.params['email']
-    # first_name = module.params['first_name']
-    # last_name = module.params['last_name']
-    # app_scope_id = module.params['app_scope_id']
-    # app_scope_name = module.params['app_scope_name']
+    # Create an App Scope Name to ID Lookup Table
+    all_app_scopes_response = tet_module.run_method('GET', TETRATION_API_SCOPES)
+    all_app_scopes_lookup = {r['name']: r['id'] for r in all_app_scopes_response}
+
+    # Create a Role Name to ID Lookup Table
+    all_roles_response = tet_module.run_method('GET', TETRATION_API_ROLE)
+    all_roles_lookup = {r['name']: r['id'] for r in all_roles_response}
+
+    invalid_parameters = {}
+    # Role and App Scope Validation
+    if module.params['app_scope_id']:
+        scope_id = module.params['app_scope_id']
+        if scope_id not in all_app_scopes_lookup.values():
+            invalid_parameters['app_scope_id'] = scope_id
+    if module.params['app_scope_name']:
+        scope_name = module.params['app_scope_name']
+        if scope_name not in all_app_scopes_lookup.keys():
+            invalid_parameters['app_scope_name'] = scope_name
+    if module.params['role_ids']:
+        invalid_role_ids = [id for id in module.params['role_ids'] if id not in all_roles_lookup.values()]
+        if invalid_role_ids:
+            invalid_parameters['role_ids'] = invalid_role_ids
+    if module.params['role_names']:
+        invalid_role_names = [name for name in module.params['role_names'] if name not in all_roles_lookup.keys()]
+        if invalid_role_names:
+            invalid_parameters['role_names'] = invalid_role_names
+
+    if invalid_parameters:
+        error_message = "Check the `invalid parameters` object for the invalid parameters"
+        module.fail_json(msg=error_message, invalid_parameters=invalid_parameters)
 
     # The first thing we have to do is get the object.
-    returned_object = tet_module.get_object(
+    returned_user_object = tet_module.get_object(
         target=TETRATION_API_USER,
         params=dict(include_disabled='true'),
         filter=dict(email=module.params['email']),
     )
 
-    if returned_object:
-        result_obj['app_scope_id'] = returned_object['app_scope_id']
-        result_obj['created_at'] = returned_object['created_at']
-        result_obj['disabled_at'] = returned_object['disabled_at']
-        result_obj['email'] = returned_object['email']
-        result_obj['first_name'] = returned_object['first_name']
-        result_obj['id'] = returned_object['id']
-        result_obj['last_name'] = returned_object['last_name']
-        result_obj['role_ids'] = returned_object['role_ids']
+    if returned_user_object is not None:
+        # Extracting the reqired info from what was returned from Tetration
+        result_obj['app_scope_id'] = returned_user_object['app_scope_id']
+        result_obj['created_at'] = returned_user_object['created_at']
+        result_obj['disabled_at'] = returned_user_object['disabled_at']
+        result_obj['email'] = returned_user_object['email']
+        result_obj['first_name'] = returned_user_object['first_name']
+        result_obj['id'] = returned_user_object['id']
+        result_obj['last_name'] = returned_user_object['last_name']
+        result_obj['role_ids'] = returned_user_object['role_ids']
 
         result['object'] = result_obj
 
-    # if the user is working with this module in only check mode we do not
-    # want to make any changes to the environment, just return the current
-    # state with no modifications
-    # if module.check_mode:
-    #     module.exit_json(**result)
-
-    # manipulate or modify the state as needed (this is going to be the
-    # part where your module will do what it needs to do)
-
-    # use whatever logic you need to determine whether or not this module
-    # made any modifications to your target
+    # Create the user, update the user, or verify no changes needed
     if module.params['state'] == 'present':
-        result['changed'] = True
+        if returned_user_object is None:
+            # User does not exist, so we're going to create it
+            req_payload = {
+                "first_name": "",
+                "last_name": "",
+                "email": "",
+                "app_scope_id": "",
+                "role_ids": []
+            }
 
-    # during the execution of the module, if there is an exception or a
-    # conditional state that effectively causes a failure, run
-    # AnsibleModule.fail_json() to pass in the message and the result
+            # Check for required parameters when creating a user
+            if not all([module.params['first_name'], module.params['last_name']]):
+                error_message = (
+                    'The first name and last name parameters are required when '
+                    'creating a new user.  '
+                    'First Name: {} '
+                    'Last Name: {}').format(module.params['first_name'], module.params['last_name'])
+                module.fail_json(msg=error_message)
+
+            # Now that we know the required parameters exist, update the request object
+            req_payload['first_name'] = module.params['first_name']
+            req_payload['last_name'] = module.params['last_name']
+            req_payload['email'] = module.params['email']
+
+            # Deal with the `app_scope` parameters
+            if module.params['app_scope_name']:
+                # Convert the name to a scope id
+                app_scope_id = all_app_scopes_lookup.get(module.params['app_scope_name'])
+
+                if app_scope_id is None:
+                    error_message = (
+                        'The provided app_scope_name does not exist.  '
+                        'App Scope Name: {}'.format(module.params['app_scope_name'])
+                    )
+                    module.fail_json(msg=error_message)
+                else:
+                    req_payload['app_scope_id'] = app_scope_id
+
+            elif module.params['app_scope_id']:
+                # If you pass an ID, we're just going to assume it is valid
+                req_payload['app_scope_id'] = module.params['app_scope_id']
+            else:
+                # No data was provided, remove the parameter
+                req_payload.pop('app_scope_id')
+
+            # Deal with the `role` parameters
+            if module.params['role_names']:
+                # Convert the list of names to a lookup dictionary
+
+                for role_name in module.params['role_names']:
+                    role_id = all_roles_lookup.get(role_name)
+
+                    if role_id:
+                        req_payload['role_ids'].append(role_id)
+                    else:
+                        error_message = (
+                            'The provided role name is invalid.  '
+                            'Role Name: {}'
+                        ).format(role_name)
+                        module.fail_json(msg=error_message)
+
+            elif module.params['role_ids']:
+                # If you pass an list of id's, we're just going to assume it is valid
+                req_payload['role_ids'] = module.params['role_ids']
+            else:
+                # No data was provided, remove the parameter
+                req_payload.pop('role_ids')
+
+            if module.check_mode:
+                # We just document what we would have changed
+                result['changed'] = True
+                for k in result_obj.keys():
+                    result_obj[k] = req_payload.get(k)
+                result['object'] = result_obj
+            else:
+                method_results = tet_module.run_method('POST', TETRATION_API_USER, req_payload=req_payload)
+                if method_results:
+                    result['changed'] = True
+                    for k in result_obj.keys():
+                        result_obj[k] = method_results.get(k)
+                    result['object'] = result_obj
+
+        elif returned_user_object is not None:
+            user_id = returned_user_object['id']
+
+            if returned_user_object['disabled_at']:
+                # Re-enable the user if it's disabled
+                enable_route = f'{TETRATION_API_USER}/{user_id}/enable'
+                method_results = tet_module.run_method('POST', enable_route)
+                returned_user_object['disabled_at'] = method_results['disabled_at']
+                result['changed'] = True
+
+            req_payload = {
+                "first_name": "",
+                "last_name": "",
+                "email": "",
+                "app_scope_id": ""
+            }
+
+            if returned_user_object['first_name'] != module.params['first_name']:
+                req_payload['first_name'] = module.params['first_name']
+                result['changed'] = True
+            else:
+                req_payload.pop('first_name')
+
+            if returned_user_object['last_name'] != module.params['last_name']:
+                req_payload['last_name'] = module.params['last_name']
+                result['changed'] = True
+            else:
+                req_payload.pop('last_name')
+
+            if returned_user_object['email'] != module.params['email']:
+                req_payload['email'] = module.params['email']
+                result['changed'] = True
+            else:
+                req_payload.pop('email')
+
+            if module.params['app_scope_id']:
+                if returned_user_object['app_scope_id'] != module.params['app_scope_id']:
+                    req_payload['app_scope_id'] = module.params['app_scope_id']
+                    result['changed'] = True
+                else:
+                    req_payload.pop('app_scope_id')
+            elif module.params['app_scope_name']:
+                app_scope_id = all_app_scopes_lookup.get(module.params['app_scope_id'])
+                if not app_scope_id:
+                    error_message = (
+                        "The provided app scope name is invalid.  "
+                        "App Scope: {}"
+                    ).format(module.params['app_scope_id'])
+                    module.fail_json(msg=error_message)
+                elif returned_user_object['app_scope_id'] != app_scope_id:
+                    req_payload['app_scope_id'] = app_scope_id
+                    result['changed'] = True
+                else:
+                    req_payload.pop('app_scope_id')
+            else:
+                req_payload.pop('app_scope_id')
+
+            user_id = returned_user_object['id']
+            update_route = f'{TETRATION_API_USER}/{user_id}'
+            method_results = tet_module.run_method('PUT', update_route, req_payload=req_payload)
+
+            if module.params['role_ids']:
+                if set(returned_user_object['role_ids']) != set(module.params('role_ids')):
+                    pass
+
+            elif module.params['role_names']:
+                # Verify all roles
+                for name in module.params['role_names']:
+                    pass
+
     if module.params['state'] == 'absent':
-        module.fail_json(msg='You requested this to fail', **result)
+        if returned_user_object and not returned_user_object['disabled_at']:
+            # If the user exists and it's not already disabled, a change will occur
+            result['changed'] = True
+
+            if not module.check_mode:
+                route = f"{TETRATION_API_USER}/{result_obj['id']}"
+                method_results = tet_module.run_method('DELETE', route)
+                if method_results:
+                    for k in result_obj.keys():
+                        result_obj[k] = method_results.get(k)
+                    result['object'] = result_obj
+
+            # module.fail_json(msg='You requested this to fail', **result)
 
     if module.params['state'] == 'query':
         result['changed'] = False
