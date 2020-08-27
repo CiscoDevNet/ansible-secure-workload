@@ -22,7 +22,6 @@ TETRATION_PROVIDER_SPEC = {
     'api_key': dict(type='str', required=True),
     'api_secret': dict(type='str', required=True, no_log=True),
     'verify': dict(type='bool', default=False),
-    'silent_ssl_warnings': dict(type='bool', default=True),
     'timeout': dict(type='int', default=10),
     'max_retries': dict(type='int', default=3),
     'api_version': dict(type='str', default='v1')

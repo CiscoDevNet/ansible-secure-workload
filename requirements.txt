@@ -3,3 +3,4 @@ molecule[docker]
 pytest
 pytest-cov
 python-dotenv
+ansible-lint

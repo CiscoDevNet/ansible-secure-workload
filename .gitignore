@@ -2,4 +2,4 @@ venv
 __pycache__
 .coverage
 .vscode/
-.env
+.env*

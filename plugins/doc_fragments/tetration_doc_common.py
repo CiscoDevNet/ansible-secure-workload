@@ -35,14 +35,14 @@ options:
         default: 'no'
       timeout:
         description:
-          - The amount of time before to wait before receiving a response
+          - The amount of time to wait before receiving a response
           - Value can also be specified using C(TETRATION_TIMEOUT) environment
             variable.
         default: 10
       max_retries:
         description:
           - Configures the number of attempted retries before the connection
-            is declared usable
+            is declared unusable
           - Value can also be specified using C(TETRATION_MAX_RETRIES) environment
             variable.
         type: int
