@@ -13,8 +13,8 @@ platforms:
 lint: |
   set -e
   PATH=${PATH}
-  yamllint molecule/tetration_user
-  ansible-lint molecule/tetration_user
+  yamllint molecule/
+  ansible-lint molecule/
   
 provisioner:
   name: ansible
