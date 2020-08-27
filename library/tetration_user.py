@@ -179,15 +179,11 @@ def run_module():
         provider=dict(type='dict', options=TETRATION_PROVIDER_SPEC)
     )
 
-    # seed the result dict in the object
-    # we primarily care about changed and state
-    # change is if this module effectively modified the target
-    # state will include any data that you want your module to pass back
-    # for consumption, for example, in a subsequent task
-    result = dict(
-        object=None,
-        changed=False,
-    )
+    # Create the objects that will be returned
+    result = {
+        "object": None,
+        "changed": False,
+    }
 
     result_obj = dict(
         app_scope_id=None,
@@ -200,10 +196,7 @@ def run_module():
         role_ids=[]
     )
 
-    # the AnsibleModule object will be our abstraction working with Ansible
-    # this includes instantiation, a couple of common attr would be the
-    # args/params passed to the execution, as well as if the module
-    # supports check mode
+    # Creating the Ansible Module
     module = AnsibleModule(
         argument_spec=module_args,
         supports_check_mode=True,
@@ -223,8 +216,9 @@ def run_module():
     all_roles_response = tet_module.run_method('GET', TETRATION_API_ROLE)
     all_roles_lookup = {r['name']: r['id'] for r in all_roles_response}
 
-    invalid_parameters = {}
     # Role and App Scope Validation
+    # Done here so it does not have to be done elsewhere in the module
+    invalid_parameters = {}
     if module.params['app_scope_id']:
         scope_id = module.params['app_scope_id']
         if scope_id not in all_app_scopes_lookup.values():
@@ -253,18 +247,10 @@ def run_module():
         filter=dict(email=module.params['email']),
     )
 
-    if returned_user_object is not None:
-        # Extracting the reqired info from what was returned from Tetration
-        result_obj['app_scope_id'] = returned_user_object['app_scope_id']
-        result_obj['created_at'] = returned_user_object['created_at']
-        result_obj['disabled_at'] = returned_user_object['disabled_at']
-        result_obj['email'] = returned_user_object['email']
-        result_obj['first_name'] = returned_user_object['first_name']
-        result_obj['id'] = returned_user_object['id']
-        result_obj['last_name'] = returned_user_object['last_name']
-        result_obj['role_ids'] = returned_user_object['role_ids']
-
-        result['object'] = result_obj
+    if returned_user_object:
+        user_id = returned_user_object['id']
+    else:
+        user_id = None
 
     # Create the user, update the user, or verify no changes needed
     if module.params['state'] == 'present':
@@ -296,18 +282,9 @@ def run_module():
             if module.params['app_scope_name']:
                 # Convert the name to a scope id
                 app_scope_id = all_app_scopes_lookup.get(module.params['app_scope_name'])
-
-                if app_scope_id is None:
-                    error_message = (
-                        'The provided app_scope_name does not exist.  '
-                        'App Scope Name: {}'.format(module.params['app_scope_name'])
-                    )
-                    module.fail_json(msg=error_message)
-                else:
-                    req_payload['app_scope_id'] = app_scope_id
+                req_payload['app_scope_id'] = app_scope_id
 
             elif module.params['app_scope_id']:
-                # If you pass an ID, we're just going to assume it is valid
                 req_payload['app_scope_id'] = module.params['app_scope_id']
             else:
                 # No data was provided, remove the parameter
@@ -315,22 +292,12 @@ def run_module():
 
             # Deal with the `role` parameters
             if module.params['role_names']:
-                # Convert the list of names to a lookup dictionary
-
+                # Convert the list of names to a list of id's
                 for role_name in module.params['role_names']:
                     role_id = all_roles_lookup.get(role_name)
-
-                    if role_id:
-                        req_payload['role_ids'].append(role_id)
-                    else:
-                        error_message = (
-                            'The provided role name is invalid.  '
-                            'Role Name: {}'
-                        ).format(role_name)
-                        module.fail_json(msg=error_message)
+                    req_payload['role_ids'].append(role_id)
 
             elif module.params['role_ids']:
-                # If you pass an list of id's, we're just going to assume it is valid
                 req_payload['role_ids'] = module.params['role_ids']
             else:
                 # No data was provided, remove the parameter
@@ -341,23 +308,23 @@ def run_module():
                 result['changed'] = True
                 for k in result_obj.keys():
                     result_obj[k] = req_payload.get(k)
-                result['object'] = result_obj
             else:
                 method_results = tet_module.run_method('POST', TETRATION_API_USER, req_payload=req_payload)
                 if method_results:
                     result['changed'] = True
                     for k in result_obj.keys():
                         result_obj[k] = method_results.get(k)
-                    result['object'] = result_obj
 
         elif returned_user_object is not None:
-            user_id = returned_user_object['id']
 
             if returned_user_object['disabled_at']:
                 # Re-enable the user if it's disabled
                 enable_route = f'{TETRATION_API_USER}/{user_id}/enable'
-                method_results = tet_module.run_method('POST', enable_route)
-                returned_user_object['disabled_at'] = method_results['disabled_at']
+                if not module.check_mode:
+                    method_results = tet_module.run_method('POST', enable_route)
+                    result_obj['disabled_at'] = method_results['disabled_at']
+                else:
+                    result_obj['disabled_at'] = None
                 result['changed'] = True
 
             req_payload = {
@@ -367,58 +334,96 @@ def run_module():
                 "app_scope_id": ""
             }
 
-            if returned_user_object['first_name'] != module.params['first_name']:
+            # Set the request payload object to update the user
+            if module.params['first_name'] and returned_user_object['first_name'] != module.params['first_name']:
                 req_payload['first_name'] = module.params['first_name']
+                result_obj['first_name'] = module.params['first_name']
                 result['changed'] = True
             else:
+                result_obj['first_name'] = returned_user_object['first_name']
                 req_payload.pop('first_name')
 
-            if returned_user_object['last_name'] != module.params['last_name']:
+            if module.params['last_name'] and returned_user_object['last_name'] != module.params['last_name']:
                 req_payload['last_name'] = module.params['last_name']
+                result_obj['last_name'] = module.params['last_name']
                 result['changed'] = True
             else:
+                result_obj['last_name'] = returned_user_object['last_name']
                 req_payload.pop('last_name')
 
-            if returned_user_object['email'] != module.params['email']:
+            if module.params['email'] and returned_user_object['email'] != module.params['email']:
                 req_payload['email'] = module.params['email']
+                result_obj['email'] = module.params['email']
                 result['changed'] = True
             else:
+                result_obj['email'] = returned_user_object['email']
                 req_payload.pop('email')
 
             if module.params['app_scope_id']:
                 if returned_user_object['app_scope_id'] != module.params['app_scope_id']:
                     req_payload['app_scope_id'] = module.params['app_scope_id']
+                    result_obj['app_scope_id'] = module.params['app_scope_id']
                     result['changed'] = True
                 else:
+                    result_obj['app_scope_id'] = returned_user_object['app_scope_id']
                     req_payload.pop('app_scope_id')
             elif module.params['app_scope_name']:
-                app_scope_id = all_app_scopes_lookup.get(module.params['app_scope_id'])
-                if not app_scope_id:
-                    error_message = (
-                        "The provided app scope name is invalid.  "
-                        "App Scope: {}"
-                    ).format(module.params['app_scope_id'])
-                    module.fail_json(msg=error_message)
-                elif returned_user_object['app_scope_id'] != app_scope_id:
+                app_scope_id = all_app_scopes_lookup.get(module.params['app_scope_name'])
+                if returned_user_object['app_scope_id'] != app_scope_id:
                     req_payload['app_scope_id'] = app_scope_id
+                    result_obj['app_scope_id'] = app_scope_id
                     result['changed'] = True
                 else:
+                    result_obj['app_scope_id'] = returned_user_object['app_scope_id']
                     req_payload.pop('app_scope_id')
             else:
+                result_obj['app_scope_id'] = returned_user_object['app_scope_id']
                 req_payload.pop('app_scope_id')
 
-            user_id = returned_user_object['id']
             update_route = f'{TETRATION_API_USER}/{user_id}'
-            method_results = tet_module.run_method('PUT', update_route, req_payload=req_payload)
+            if not module.check_mode:
+                method_results = tet_module.run_method('PUT', update_route, req_payload=req_payload)
+
+            roles_to_add = []
+            roles_to_delete = []
 
             if module.params['role_ids']:
-                if set(returned_user_object['role_ids']) != set(module.params('role_ids')):
-                    pass
+                current_state = set(returned_user_object['role_ids'])
+                desired_state = set(module.params['role_ids'])
+
+                roles_to_add = list(desired_state.difference(current_state))
+                roles_to_delete = list(current_state.difference(desired_state))
 
             elif module.params['role_names']:
-                # Verify all roles
+                current_state = set(returned_user_object['role_ids'])
+                desired_state = []
                 for name in module.params['role_names']:
-                    pass
+                    desired_state.append(all_roles_lookup[name])
+                desired_state = set(desired_state)
+
+                roles_to_add = list(desired_state.difference(current_state))
+                roles_to_delete = list(current_state.difference(desired_state))
+
+            # Set the results equal to what it is currently
+            result_obj['role_ids'] = returned_user_object['role_ids']
+
+            req_payload = {
+                "role_id": None,
+            }
+            for role in roles_to_add:
+                add_role_route = f"{TETRATION_API_USER}/{user_id}/add_role"
+                req_payload['role_id'] = role
+                result_obj['role_ids'].append(role)
+                if not module.check_mode:
+                    method_results = tet_module.run_method('PUT', add_role_route, req_payload=req_payload)
+                result['changed'] = True
+            for role in roles_to_delete:
+                req_payload['role_id'] = role
+                result_obj['role_ids'] = [r for r in result_obj['role_ids'] if r != role]
+                remove_role_route = f"{TETRATION_API_USER}/{user_id}/remove_role"
+                if not module.check_mode:
+                    method_results = tet_module.run_method('DELETE', remove_role_route, req_payload=req_payload)
+                result['changed'] = True
 
     if module.params['state'] == 'absent':
         if returned_user_object and not returned_user_object['disabled_at']:
@@ -426,18 +431,36 @@ def run_module():
             result['changed'] = True
 
             if not module.check_mode:
-                route = f"{TETRATION_API_USER}/{result_obj['id']}"
+                route = f"{TETRATION_API_USER}/{user_id}"
                 method_results = tet_module.run_method('DELETE', route)
                 if method_results:
                     for k in result_obj.keys():
                         result_obj[k] = method_results.get(k)
-                    result['object'] = result_obj
-
-            # module.fail_json(msg='You requested this to fail', **result)
+            else:
+                # Extracting the reqired info from what was returned from Tetration
+                result_obj['app_scope_id'] = returned_user_object['app_scope_id']
+                result_obj['created_at'] = returned_user_object['created_at']
+                result_obj['disabled_at'] = returned_user_object['disabled_at']
+                result_obj['email'] = returned_user_object['email']
+                result_obj['first_name'] = returned_user_object['first_name']
+                result_obj['id'] = returned_user_object['id']
+                result_obj['last_name'] = returned_user_object['last_name']
+                result_obj['role_ids'] = returned_user_object['role_ids']
 
     if module.params['state'] == 'query':
         result['changed'] = False
+        if returned_user_object is not None:
+            # Extracting the reqired info from what was returned from Tetration
+            result_obj['app_scope_id'] = returned_user_object['app_scope_id']
+            result_obj['created_at'] = returned_user_object['created_at']
+            result_obj['disabled_at'] = returned_user_object['disabled_at']
+            result_obj['email'] = returned_user_object['email']
+            result_obj['first_name'] = returned_user_object['first_name']
+            result_obj['id'] = returned_user_object['id']
+            result_obj['last_name'] = returned_user_object['last_name']
+            result_obj['role_ids'] = returned_user_object['role_ids']
 
+    result['object'] = result_obj
     # in the event of a successful module execution, you will want to
     # simple AnsibleModule.exit_json(), passing the key/value results
     module.exit_json(**result)
