@@ -20,7 +20,11 @@ version_added: "2.8"
 description:
     - "Enables management of Cisco Tetration user accounts."
     - "Enables creation, modification, and deletion of accounts."
-    - "Capabilities can be added to the user account, but they cannot be deleted."
+    - "Roles can be added and removed"
+    - "Names can be modified"
+
+notes:
+- Supports check mode
 
 options:
     app_scope_id:
@@ -72,7 +76,8 @@ options:
 extends_documentation_fragment: tetration_doc_common
 
 author:
-    - Your Name (@joej164 and @dchosnek)
+    - Doron Chosnek (@dchosnek)
+    - Joe Jacobs (@joej164)
 '''
 
 EXAMPLES = '''
