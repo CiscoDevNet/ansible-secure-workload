@@ -1,0 +1,396 @@
+---
+- name: Converge
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: "Include ansible-module"
+      include_role:
+        name: "ansible-module"
+
+    - name: read variables from the environment that are set in the molecule.yml
+      set_fact:
+        ansible_host: "{{ lookup('env', 'TETRATION_SERVER_ENDPOINT') }}"
+        api_key: "{{ lookup('env', 'TETRATION_API_KEY') }}"
+        api_secret: "{{ lookup('env', 'TETRATION_API_SECRET') }}"
+      no_log: True 
+
+    - name: put the variables in the required format
+      set_fact:
+        provider_info:
+          api_key: "{{ api_key }}"
+          api_secret: "{{ api_secret }}"
+          server_endpoint: "{{ ansible_host }}"
+      no_log: True 
+
+    - name: Test - Verify the Role works when passing no required parameters to it
+      tetration_role:
+        state: query
+        provider: "{{ provider_info }}"
+      delegate_to: localhost
+      ignore_errors: True
+      register: output
+
+    - name: Output - Verify the Role works when passing no required parameters to it
+      debug:
+        var: output
+    
+    - name: Expected Output - Verify the Role works when passing no required parameters to it
+      set_fact:
+        expected_output: >-
+          one of the following is required: id, name
+
+    - name: Verify - Verify the Role works when passing no required parameters to it
+      assert:
+        that:
+          - output is defined
+          - output.msg == expected_output 
+          - output.failed is true 
+
+    - name: Test - Verify module fails when passing an invalid id 
+      tetration_role:
+        name: Test
+        app_scope_id: fake_id
+        state: query
+        provider: "{{ provider_info }}"
+      delegate_to: localhost
+      ignore_errors: True
+      register: output
+
+    - name: Output - Verify module fails when passing an invalid id 
+      debug:
+        var: output
+    
+    - name: Verify - Verify module fails when passing an invalid id
+      assert:
+        that:
+          - output is defined
+          - output.failed is true
+          - output.invalid_parameters.app_scope_id == 'fake_id'
+
+    - name: Test - Verify module fails when passing name without app_scope_id
+      tetration_role:
+        name: Test
+        state: query
+        provider: "{{ provider_info }}"
+      delegate_to: localhost
+      ignore_errors: True
+      register: output
+
+    - name: Output - Verify module fails when passing name without app_scope_id
+      debug:
+        var: output
+
+    - name: Expected Output - Verify the Role works when passing no required parameters to it
+      set_fact:
+        expected_output: >-
+          missing parameter(s) required by 'name': app_scope_id
+
+    - name: Verify - Verify module fails when passing name without app_scope_id
+      assert:
+        that:
+          - output is defined
+          - output.failed is true
+          - output.msg == expected_output
+
+    - name: Test - Verify module fails when not passing both capability parameters together
+      tetration_role:
+        name: Test
+        app_scope_id: 1234abc
+        capability_ability: SCOPE_READ
+        state: query
+        provider: "{{ provider_info }}"
+      delegate_to: localhost
+      ignore_errors: True
+      register: output
+
+    - name: Output - Verify module fails when not passing both capability parameters together
+      debug:
+        var: output
+
+    - name: Expected Output - Verify module fails when not passing both capability parameters together
+      set_fact:
+        expected_output: >-
+          parameters are required together: capability_app_scope_id, capability_ability
+
+    - name: Verify - Verify module fails when not passing both capability parameters together
+      assert:
+        that:
+          - output is defined
+          - output.failed is true
+          - output.msg == expected_output
+
+
+    - name: Test - Verify module fails when passing id and name together 
+      tetration_role:
+        id: 5ebc6c9c755f0240ae4bd922 
+        name: Test
+        app_scope_id: 5ce71503497d4f2c23af85b7
+        state: query
+        provider: "{{ provider_info }}"
+      delegate_to: localhost
+      ignore_errors: True
+      register: output
+
+    - name: Output - Verify module fails when passing id and name together 
+      debug:
+        var: output
+
+    - name: Expected Output - Verify module fails when passing id and name together 
+      set_fact:
+        expected_output: >-
+          Cannot search for 2 parameters at the same time, specify either `name` or `id`
+
+    - name: Verify - Verify module fails when not passing both capability parameters together
+      assert:
+        that:
+          - output is defined
+          - output.failed is true
+          - output.msg == expected_output
+
+    - name: Test - Query Roles by Role ID and confirm correct response 
+      tetration_role:
+        id: 5ebc6c9c755f0240ae4bd922
+        state: query
+        provider: "{{ provider_info }}"
+      delegate_to: localhost
+      register: output
+
+    - name: Output - Query Roles by Role ID and confirm correct response 
+      debug:
+        var: output
+
+    - name: Verify - Query Roles by Role ID and confirm correct response 
+      assert:
+        that:
+          - output is defined
+          - output.failed is false
+          - output.object.app_scope_id == '5ce71503497d4f2c23af85b7'
+          - output.object.name == 'GoSDKTest 1589406876487773000'
+
+    - name: Test - Query Roles by Name and App Scope and confirm correct response 
+      tetration_role:
+        name: "GoSDKTest 1589406876487773000"
+        app_scope_id: 5ce71503497d4f2c23af85b7
+        state: query
+        provider: "{{ provider_info }}"
+      delegate_to: localhost
+      register: output
+
+    - name: Output - Query Roles by Name and App Scope and confirm correct response 
+      debug:
+        var: output
+
+    - name: Verify - Query Roles by Name and App Scope and confirm correct response 
+      assert:
+        that:
+          - output is defined
+          - output.failed is false
+          - output.object.id == '5ebc6c9c755f0240ae4bd922'
+
+    - name: Test - Create a new Role by Name and App Scope ID
+      tetration_role:
+        name: "Molecule Test Role"
+        app_scope_id: 5ce71503497d4f2c23af85b7
+        description: "Molecule Test Description"
+        state: present 
+        provider: "{{ provider_info }}"
+      delegate_to: localhost
+      register: output
+
+    - name: Output - Create a new Role by Name and App Scope ID
+      debug:
+        var: output
+
+    - name: Store Output - Create a new Role by Name and App Scope ID
+      set_fact:
+        new_role_id: "{{ output.object.id }}"
+
+    - name: Verify - Create a new Role by Name and App Scope ID
+      assert:
+        that:
+          - output is defined
+          - output.failed is false
+          - output.changed is true
+          - output.object.name == "Molecule Test Role"
+          - output.object.description == "Molecule Test Description"
+
+    - name: Test - Delete a new Role by ID
+      tetration_role:
+        id: "{{ new_role_id }}"
+        state: absent
+        provider: "{{ provider_info }}"
+      delegate_to: localhost
+      register: output
+
+    - name: Output - Delete a new Role by ID
+      debug:
+        var: output
+
+    - name: Verify - Create a new Role by ID
+      assert:
+        that:
+          - output is defined
+          - output.failed is false
+          - output.changed is true
+          - output.object.success == true
+
+
+    - name: Test - Create a new Role by Name and App Scope ID to Delete by Name
+      tetration_role:
+        name: "Molecule Test Role 2"
+        app_scope_id: 5ce71503497d4f2c23af85b7
+        description: "Molecule Test Description 2"
+        state: present 
+        provider: "{{ provider_info }}"
+      delegate_to: localhost
+      register: output
+
+    - name: Output - Create a new Role by Name and App Scope ID to Delete by Name
+      debug:
+        var: output
+
+    - name: Verify - Create a new Role by Name and App Scope ID to Delete by Name
+      assert:
+        that:
+          - output is defined
+          - output.failed is false
+          - output.changed is true
+          - output.object.name == "Molecule Test Role 2"
+          - output.object.description == "Molecule Test Description 2"
+
+    - name: Test - Delete a new Role by Name and App Scope ID
+      tetration_role:
+        name: "Molecule Test Role 2"
+        app_scope_id: 5ce71503497d4f2c23af85b7
+        state: absent
+        provider: "{{ provider_info }}"
+      delegate_to: localhost
+      register: output
+
+    - name: Output - Delete a new Role by Name and App Scope ID
+      debug:
+        var: output
+
+    - name: Verify - Delete a new Role by Name and App Scope ID
+      assert:
+        that:
+          - output is defined
+          - output.failed is false
+          - output.changed is true
+          - output.object.success == true 
+
+    - name: Test - Delete a Role that does not exist 
+      tetration_role:
+        name: "Role Not Exist"
+        app_scope_id: 5ce71503497d4f2c23af85b7
+        state: absent
+        provider: "{{ provider_info }}"
+      delegate_to: localhost
+      register: output
+
+    - name: Output - Delete a new Role by Name and App Scope ID
+      debug:
+        var: output
+
+    - name: Verify - Delete a new Role by Name and App Scope ID
+      assert:
+        that:
+          - output is defined
+          - output.failed is false
+          - output.changed is false 
+          - output.msg == "That role does not exist in the system."
+          - output.object.success == true
+
+# ------------------------------------------------------------------
+    - name: Create Test Vars - Update Role Name and Description
+      set_fact:
+        test_name: "New Mol Test Role"
+        test_description: "New Molecule Test Description"
+
+    - name: Test - Update Role Name and Description
+      tetration_role:
+        name: "{{ test_name }}" 
+        description: "{{ test_description }}"
+        app_scope_id: 5ce71503497d4f2c23af85b7
+        state: present 
+        provider: "{{ provider_info }}"
+      delegate_to: localhost
+      register: output
+
+    - name: Verify - Update Role Name and Description
+      assert:
+        that:
+          output.changed == true
+
+    - name: Store Output - Update Role Name and Description
+      set_fact:
+        new_role_id: "{{ output.object.id }}"
+
+    - name: Get Created Entries - Update Role Name and Description
+      tetration_role:
+        id: "{{ new_role_id }}"
+        state: present 
+        provider: "{{ provider_info }}"
+      delegate_to: localhost
+      register: output
+
+    - name: Verify Initial Entries - Update Role Name and Description
+      assert:
+        that:
+          - output.object.name == test_name
+          - output.object.description == test_description
+    
+    - name: Test - Update Role Name and Description with no change
+      tetration_role:
+        id: "{{ new_role_id }}"
+        name: "{{ test_name }}" 
+        description: "{{ test_description }}"
+        app_scope_id: 5ce71503497d4f2c23af85b7
+        state: present 
+        provider: "{{ provider_info }}"
+      delegate_to: localhost
+      register: output
+
+    - name: Verify no Change occured - Update Role Name and Description with no change
+      assert:
+        that:
+          - output.changed == false
+          - output.object.name == test_name
+          - output.object.description == test_description
+
+    - name: Test - Update Role Name and Description with a change
+      tetration_role:
+        id: "{{ new_role_id }}"
+        name: "Updated Role Name" 
+        description: "Updated Description"
+        app_scope_id: 5ce71503497d4f2c23af85b7
+        state: present 
+        provider: "{{ provider_info }}"
+      delegate_to: localhost
+      register: output
+
+    - name: Output - Update Role Name and Description with a change
+      debug:
+        var: output
+
+    - name: Verify - Update Role Name and Description with a change
+      assert:
+        that:
+          - output.changed == true
+          - output.object.name == "Updated Role Name"
+          - output.object.description == "Updated Description"
+
+    - name: Test - Update Role Name and Description with a change
+      tetration_role:
+        id: "{{ new_role_id }}"
+        description: "Updated Description"
+        state: absent
+        provider: "{{ provider_info }}"
+      delegate_to: localhost
+      register: output
+        
+    - assert:
+        that:
+          - output.changed == true
+          - output.object.success == true

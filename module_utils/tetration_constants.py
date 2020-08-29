@@ -16,6 +16,8 @@ TETRATION_API_AGENT_CONFIG_PROFILES = '/inventory_config/profiles'
 TETRATION_API_AGENT_CONFIG_INTENTS = '/inventory_config/intents'
 TETRATION_COLUMN_NAMES = '/assets/cmdb/attributenames'
 TETRATION_API_EXT_ORCHESTRATORS = '/orchestrator'
+TETRATION_API_APP_SCOPE_CAPABILITIES = ['SCOPE_READ', 'SCOPE_WRITE', 'EXECUTE',
+                                        'ENFORCE', 'SCOPE_OWNER', 'DEVELOPER']
 
 TETRATION_PROVIDER_SPEC = {
     'server_endpoint': dict(type='str', required=True, aliases=['endpoint', 'host']),
