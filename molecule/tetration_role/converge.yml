@@ -394,3 +394,44 @@
         that:
           - output.changed == true
           - output.object.success == true
+
+
+
+    - name: Test - Update Role Name and Description with a change
+      tetration_role:
+        name: "Updated Role Name" 
+        description: "Updated Description"
+        app_scope_id: 5ce71503497d4f2c23af85b7
+        capability_app_scope_id: 5f0f2353497d4f1f59bf0aef 
+        capability_ability: SCOPE_READ
+        state: present 
+        provider: "{{ provider_info }}"
+      delegate_to: localhost
+      register: output
+
+    - name: Store Output - Update Role Name and Description
+      set_fact:
+        new_role_id: "{{ output.object.id }}"
+
+    - name: Output - Update Role Name and Description with a change
+      debug:
+        var: output
+
+    - name: Verify - Update Role Name and Description with a change
+      assert:
+        that:
+          - output.changed == true
+          - output.object.name == 'Updated Role Name' 
+          - output.object.capabilities | length == 1
+
+    - name: Cleanup - Update Role Name and Description with a change
+      tetration_role:
+        name: "Updated Role Name" 
+        description: "Updated Description"
+        app_scope_id: 5ce71503497d4f2c23af85b7
+        capability_app_scope_id: 5f0f2353497d4f1f59bf0aef 
+        capability_ability: SCOPE_READ
+        state: absent
+        provider: "{{ provider_info }}"
+      delegate_to: localhost
+      register: output

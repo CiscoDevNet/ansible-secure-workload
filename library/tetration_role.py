@@ -222,6 +222,10 @@ def run_module():
         role_id = module.params['id']
         if role_id not in all_roles_lookup_by_name_app_id.values():
             invalid_parameters['id'] = role_id
+    if module.params['capability_app_scope_id']:
+        capability_app_id = module.params['capability_app_scope_id']
+        if capability_app_id not in all_app_scopes_lookup.values():
+            invalid_parameters['capability_app_scope_id'] = capability_app_id
 
     if invalid_parameters:
         error_message = "Check the `invalid parameters` object for the invalid parameters"
@@ -240,8 +244,10 @@ def run_module():
                 'app_scope_id': module.params['app_scope_id']
             }
             response = tet_module.run_method('POST', TETRATION_API_ROLE, req_payload=req_payload)
+            all_roles_lookup_by_name_app_id[name_scope_id] = response['id']
             result_obj = response
             result['changed'] = True
+
         else:
             # The Role exists, lets update it
             if role_id:
@@ -249,9 +255,7 @@ def run_module():
             else:
                 looked_up_role_id = all_roles_lookup_by_name_app_id[name_scope_id]
                 route = f'{TETRATION_API_ROLE}/{looked_up_role_id}'
-
             response = tet_module.run_method('GET', route)
-
             req_payload = {
                 'name': module.params['name'],
                 'description': module.params['description'],
@@ -272,7 +276,36 @@ def run_module():
 
         if module.params['capability_app_scope_id']:
             # Check to see if any capabilities can be added
-            pass
+            if role_id:
+                route = f'{TETRATION_API_ROLE}/{role_id}'
+            else:
+                looked_up_role_id = all_roles_lookup_by_name_app_id[name_scope_id]
+                route = f'{TETRATION_API_ROLE}/{looked_up_role_id}'
+
+            response = tet_module.run_method('GET', route)
+            desired_to_add = set([(module.params['capability_app_scope_id'], module.params['capability_ability'])])
+
+            current_capabilities = []
+
+            # Create a set of tuples to determine if I need to the capability
+            for c in response['capabilities']:
+                curr_cap = c['app_scope_id'], c['ability']
+                current_capabilities.append(curr_cap)
+            current_capabilities = set(current_capabilities)
+
+            to_add = desired_to_add.difference(current_capabilities)
+
+            response['cap'] = str(to_add)
+
+            if to_add:
+                req_payload = {
+                    'app_scope_id': module.params['capability_app_scope_id'],
+                    'ability': module.params['capability_ability']
+                }
+                capability_route = f'{route}/capabilities'
+                response = tet_module.run_method('POST', capability_route, req_payload=req_payload)
+                result_obj['capabilities'].append(response)
+                result['changed'] = True
 
     if module.params['state'] == 'absent':
         if module.params['id'] and module.params['name']:
