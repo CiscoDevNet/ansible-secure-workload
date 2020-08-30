@@ -381,7 +381,7 @@
           - output.object.name == "Updated Role Name"
           - output.object.description == "Updated Description"
 
-    - name: Test - Update Role Name and Description with a change
+    - name: Cleanup - Update Role Name and Description with a change
       tetration_role:
         id: "{{ new_role_id }}"
         description: "Updated Description"
@@ -390,14 +390,13 @@
       delegate_to: localhost
       register: output
         
-    - assert:
+    - name: Verify Cleanup - Update Role Name and Description with a change
+      assert:
         that:
           - output.changed == true
           - output.object.success == true
 
-
-
-    - name: Test - Update Role Name and Description with a change
+    - name: Test - Update Role with a capability
       tetration_role:
         name: "Updated Role Name" 
         description: "Updated Description"
@@ -409,22 +408,22 @@
       delegate_to: localhost
       register: output
 
-    - name: Store Output - Update Role Name and Description
+    - name: Store Output - Update Role with a capability
       set_fact:
         new_role_id: "{{ output.object.id }}"
 
-    - name: Output - Update Role Name and Description with a change
+    - name: Output - Update Role with a capability
       debug:
         var: output
 
-    - name: Verify - Update Role Name and Description with a change
+    - name: Verify - Update Role with a capability
       assert:
         that:
           - output.changed == true
           - output.object.name == 'Updated Role Name' 
           - output.object.capabilities | length == 1
 
-    - name: Cleanup - Update Role Name and Description with a change
+    - name: Cleanup - Update Role with a capability
       tetration_role:
         name: "Updated Role Name" 
         description: "Updated Description"

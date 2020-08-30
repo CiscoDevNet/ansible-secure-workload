@@ -208,8 +208,9 @@ def run_module():
 
     # Create a Role Name - App Scope ID to Role ID Lookup Table
     # A role is uniquely identified by its name and app scope
+    # Create a dict of tuples, key to look up an ID
     all_roles_response = tet_module.run_method('GET', TETRATION_API_ROLE)
-    all_roles_lookup_by_name_app_id = {f"{r['name']}-{r['app_scope_id']}": r['id'] for r in all_roles_response}
+    all_roles_lookup_by_name_app_id = {(r['name'], r['app_scope_id']): r['id'] for r in all_roles_response}
 
     # Role and App Scope Validation
     # Done here so it does not have to be done elsewhere in the module
@@ -233,7 +234,7 @@ def run_module():
 
     # One of these is the unique ID for the role
     role_id = module.params['id']
-    name_scope_id = f"{module.params['name']}-{module.params['app_scope_id']}"
+    name_scope_id = module.params['name'], module.params['app_scope_id']
 
     if module.params['state'] == 'present':
         if not role_id and name_scope_id not in all_roles_lookup_by_name_app_id.keys():
