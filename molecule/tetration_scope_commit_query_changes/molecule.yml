@@ -1,0 +1,34 @@
+---
+dependency:
+  name: galaxy
+platforms:
+  - name: instance
+    image: docker.io/pycontribs/centos:8
+    pre_build_image: true
+
+# ${PATH} added to the lint block is to fix an issue with molecule 3.0.7
+# https://github.com/ansible-community/molecule/issues/2781
+lint: |
+  set -e
+  PATH=${PATH}
+  yamllint molecule/
+  ansible-lint molecule/
+  
+provisioner:
+  name: ansible
+  env:
+    TETRATION_API_KEY: ${TETRATION_API_KEY}
+    TETRATION_API_SECRET: ${TETRATION_API_SECRET}
+    TETRATION_SERVER_ENDPOINT: ${TETRATION_SERVER_ENDPOINT}
+verifier:
+  name: ansible
+
+scenario:
+  test_sequence:
+    - lint
+    - converge
+  converge_sequence:
+    - lint
+    - converge
+  check_sequence:
+    - lint

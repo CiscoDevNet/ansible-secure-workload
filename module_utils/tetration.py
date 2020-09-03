@@ -125,7 +125,7 @@ class TetrationApiModule(TetrationApiBase):
 
     def _post(self, target, params, req_payload):
         resp = self.rc.post(target, json_body=json.dumps(req_payload))
-        if resp.status_code / 100 == 2:
+        if resp.status_code in tetration_constants.TETRATION_API_SUCCESS_CODES:
             try:
                 return resp.json()
             except ValueError:
@@ -135,7 +135,7 @@ class TetrationApiModule(TetrationApiBase):
 
     def _put(self, target, params, req_payload):
         resp = self.rc.put(target, json_body=json.dumps(req_payload))
-        if resp.status_code / 100 == 2:
+        if resp.status_code in tetration_constants.TETRATION_API_SUCCESS_CODES:
             try:
                 return resp.json()
             except ValueError:
