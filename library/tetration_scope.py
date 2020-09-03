@@ -17,10 +17,9 @@ version_added: '2.8'
 description:
 - Enables management of Cisco Tetration scopes
 - Enables creation, modification, deletion of scopes
-- For updates of C(short_query) parameter requires calling for `tetration_scope_update_apply` module after all shory query updates are done.
+- For updates of C(short_query) parameter requires calling for `tetration_scope_commit_query_changes` module after all shory query updates are done.
 
 notes:
-- Supports check mode
 - If the ID is set, uses the C(short_name) field as if you were going to update the object
 - If you pass in an ID that does not exist, the module will error out
 
