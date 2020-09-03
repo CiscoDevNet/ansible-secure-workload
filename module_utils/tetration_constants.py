@@ -19,6 +19,11 @@ TETRATION_API_EXT_ORCHESTRATORS = '/orchestrator'
 TETRATION_API_APP_SCOPE_CAPABILITIES = ['SCOPE_READ', 'SCOPE_WRITE', 'EXECUTE',
                                         'ENFORCE', 'SCOPE_OWNER', 'DEVELOPER']
 
+TETRATION_API_SUCCESS_CODES = [200, 202]
+
+# 422 is for the SCOPE Delete API
+TETRATION_API_FAILURE_CODES_THAT_RETURN_DATA = [422]
+
 TETRATION_PROVIDER_SPEC = {
     'server_endpoint': dict(type='str', required=True, aliases=['endpoint', 'host']),
     'api_key': dict(type='str', required=True),
