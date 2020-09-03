@@ -16,7 +16,7 @@ jobs:
       TETRATION_SERVER_ENDPOINT: ${{ secrets.TETRATION_ENDPOINT_IGNW_S_F_URS }} 
 
     runs-on: ubuntu-latest
-    continue-on-error: true
+    continue-on-error: false
     strategy:
       # Need max-parallel as the tests create and tear down 
       # Resourses in the Tetration Module.  If not run serially

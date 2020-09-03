@@ -28,12 +28,9 @@ verifier:
 scenario:
   test_sequence:
     - lint
-    - create
     - converge
-    - destroy
   converge_sequence:
     - lint
-    - create
     - converge
   check_sequence:
     - lint

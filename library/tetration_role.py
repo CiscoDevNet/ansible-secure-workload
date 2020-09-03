@@ -20,7 +20,7 @@ description:
 - Can add capabilities to a role, but cannot modify or delete capabilities.
 
 notes:
-- Supports check mode.
+- Does not support check mode.
 
 options:
   app_scope_id:

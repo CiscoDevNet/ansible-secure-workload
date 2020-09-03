@@ -145,7 +145,12 @@ class TetrationApiModule(TetrationApiBase):
 
     def _delete(self, target, params, req_payload):
         resp = self.rc.delete(target, json_body=json.dumps(req_payload))
-        if resp.status_code / 100 == 2:
+        if resp.status_code in tetration_constants.TETRATION_API_SUCCESS_CODES:
+            try:
+                return resp.json()
+            except ValueError:
+                return None
+        elif resp.status_code in tetration_constants.TETRATION_API_FAILURE_CODES_THAT_RETURN_DATA:
             try:
                 return resp.json()
             except ValueError:
