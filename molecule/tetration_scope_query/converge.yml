@@ -1,0 +1,181 @@
+---
+- name: Converge
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: "Include ansible-module"
+      include_role:
+        name: "ansible-module"
+
+    - name: read variables from the environment that are set in the molecule.yml
+      set_fact:
+        ansible_host: "{{ lookup('env', 'TETRATION_SERVER_ENDPOINT') }}"
+        api_key: "{{ lookup('env', 'TETRATION_API_KEY') }}"
+        api_secret: "{{ lookup('env', 'TETRATION_API_SECRET') }}"
+      no_log: True 
+
+    - name: put the variables in the required format
+      set_fact:
+        provider_info:
+          api_key: "{{ api_key }}"
+          api_secret: "{{ api_secret }}"
+          server_endpoint: "{{ ansible_host }}"
+      no_log: True 
+
+    - name: set test variables
+      set_fact:
+        root_scope_id: 5ce71503497d4f2c23af85b7
+# -----
+
+    - name: Test - Module errors if missing required parameter
+      tetration_scope_query:
+        provider: "{{ provider_info }}"
+      ignore_errors: true
+      register: output
+
+    - name: Output - Module errors if missing required parameter
+      debug:
+        var: output
+
+    - name: Expected Output - Module errors if missing required parameter
+      set_fact:
+        expected_output: >-
+          one of the following is required: fully_qualified_name, scope_id, short_name
+
+    - name: Verify - Module errors if missing required parameter
+      assert:
+        that:
+          - output.failed == true
+          - output.msg == expected_output
+# -----
+
+    - name: Test - Module errors if multiple mutually exclusive parameters present 
+      tetration_scope_query:
+        scope_id: fake_id
+        short_name: fake_name
+        provider: "{{ provider_info }}"
+      ignore_errors: true
+      register: output
+
+    - name: Output - Module errors if multiple mutually exclusive parameters present 
+      debug:
+        var: output
+
+    - name: Expected Output - Module errors if multiple mutually exclusive parameters present 
+      set_fact:
+        expected_output: >-
+          parameters are mutually exclusive: fully_qualified_name|scope_id|short_name
+
+    - name: Verify - Module errors if multiple mutually exclusive parameters present 
+      assert:
+        that:
+          - output.failed == true
+          - output.msg == expected_output
+# -----
+
+    - name: Test - Search for the root scope 
+      tetration_scope_query:
+        scope_id: "{{ root_scope_id }}"
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Search for the root scope 
+      debug:
+        var: output
+
+    - name: Store Variables - Search for the root scope 
+      set_fact:
+        found_name: "{{ output.object.name }}"
+        found_short_name: "{{ output.object.short_name }}"
+
+    - name: Verify - Search for the root scope 
+      assert:
+        that:
+          - output.objects|length == 1
+          - output.qty_found == 1
+
+    - name: Test - Find root scope by Fully Qualified Name
+      tetration_scope_query:
+        fully_qualified_name: "{{ found_name }}"
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Find root scope by Fully Qualified Name
+      debug:
+        var: output
+
+    - name: Verify - Find root scope by Fully Qualified Name
+      assert:
+        that:
+          - output.objects|length == 1
+          - output.qty_found == 1
+          - output.object.id == root_scope_id
+
+    - name: Test - Find scopes by Short Name
+      tetration_scope_query:
+        short_name: "{{ found_short_name }}"
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Find scopes by Short Name
+      debug:
+        var: output
+
+    - name: Verify - Find scopes by Short Name
+      assert:
+        that:
+          - output.objects|length >= 1
+          - output.qty_found >= 1
+# -----
+
+    - name: Test - Create a scope then update to filter dirty
+      tetration_scope:
+        short_name: Ignwpov 
+        parent_app_scope_id: "{{ root_scope_id }}"
+        short_query:
+          type: eq
+          field: ip
+          value: "1.0.0.0"
+        provider: "{{ provider_info }}"
+        state: present
+      register: output
+    
+    - name: Store Variables - Create a scope then update to filter dirty
+      set_fact:
+        new_scope_id: "{{ output.object.id}}"
+
+    - name: Update - Create a scope then update to filter dirty
+      tetration_scope:
+        scope_id: "{{ new_scope_id }}"
+        short_query:
+          type: eq
+          field: ip
+          value: "2.0.0.0"
+        provider: "{{ provider_info }}"
+        state: present
+      register: output
+
+    - name: Query - Create a scope then update to filter dirty
+      tetration_scope_query:
+        short_name: Ignwpov 
+        only_dirty: true
+        provider: "{{ provider_info }}"
+      register: output
+    
+    - name: Output - Create a scope then update to filter dirty
+      debug:
+        var: output
+
+    - name: Verify - Create a scope then update to filter dirty
+      assert:
+        that:
+          - output.objects|length == 2 
+          - output.qty_found == 2
+    
+    - name: Cleanup - Create a scope then update to filter dirty
+      tetration_scope:
+        scope_id: "{{ new_scope_id }}"
+        provider: "{{ provider_info }}"
+        state: absent 
+      register: output
