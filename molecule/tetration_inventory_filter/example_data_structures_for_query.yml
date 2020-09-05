@@ -1,0 +1,74 @@
+---
+- name: Converge
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: "Include ansible-module"
+      include_role:
+        name: "ansible-module"
+
+    - name: read variables from the environment that are set in the molecule.yml
+      set_fact:
+        ansible_host: "{{ lookup('env', 'TETRATION_SERVER_ENDPOINT') }}"
+        api_key: "{{ lookup('env', 'TETRATION_API_KEY') }}"
+        api_secret: "{{ lookup('env', 'TETRATION_API_SECRET') }}"
+      no_log: True 
+
+    - name: put the variables in the required format
+      set_fact:
+        provider_info:
+          api_key: "{{ api_key }}"
+          api_secret: "{{ api_secret }}"
+          server_endpoint: "{{ ansible_host }}"
+      no_log: True 
+
+    - name: set test variables
+      set_fact:
+        root_scope_id: 5ce71503497d4f2c23af85b7
+# -----
+
+    - name: Query - Create a scope then update to filter dirty
+      tetration_scope_query:
+        short_name: CICD Test Scope 
+        provider: "{{ provider_info }}"
+      register: output
+    
+    - debug:
+        var: output
+
+    - tetration_inventory_filter:
+        name: hello
+        query_single:
+          field: goodbye
+          type: hello
+          value: my value
+        query_filter:
+          filters:
+            - field: field1
+              type: type1 
+              value: value1
+            - field: field2
+              type: type2
+              value: value2
+          type: blah1
+        query_nested:
+          filters:
+            - field: field1
+              type: type1 
+              value: value1
+            - field: field2
+              type: type2
+              value: value2
+            - filters:
+                - field: field3
+                  type: type3
+                  value: value3
+              type: blah3
+          type: blah2
+        provider: "{{ provider_info }}"
+        state: present 
+      register: output
+
+    - debug:
+        var: output
