@@ -74,3 +74,154 @@
         that:
           - output.items_found > 100
 # -----
+
+    - name: Test - Can find an IPv4 Address
+      tetration_software_agent_query:
+        interface_ip_is_exactly: '10.138.0.21'
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Can find an IPv4 Address
+      debug:
+        var: output.items_found
+
+    - name: Verify - Can find an IPv4 Address
+      assert:
+        that:
+          - output.items_found == 1
+# -----
+
+    - name: Test - Can find an IPv6 Address
+      tetration_software_agent_query:
+        interface_ip_is_exactly: 'fe80::4001:aff:fe8a:e'
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Can find an IPv6 Address
+      debug:
+        var: output.items_found
+
+    - name: Verify - Can find an IPv6 Address
+      assert:
+        that:
+          - output.items_found == 1
+# -----
+
+    - name: Test - Error on invalid IPv4 address 
+      tetration_software_agent_query:
+        interface_ip_is_exactly: '10.138.0.257'
+        provider: "{{ provider_info }}"
+      ignore_errors: true
+      register: output
+
+    - name: Output - Error on invalid IPv4 address 
+      debug:
+        var: output
+    
+    - name: Expected Output - Error on invalid IPv4 address
+      set_fact:
+        expected_output: >-
+          Invalid IPv4 or IPv6 Address entered.  Value entered: 10.138.0.257
+
+    - name: Verify - Error on invalid IPv4 address 
+      assert:
+        that:
+          - output.msg == expected_output 
+# -----
+
+    - name: Test - Test error on invalid IPv6 Address 
+      tetration_software_agent_query:
+        interface_ip_is_exactly: 'fe80::4001:gff:fe8a:e'
+        provider: "{{ provider_info }}"
+      ignore_errors: true
+      register: output
+
+    - name: Verify - Test error on invalid IPv6 Address 
+      debug:
+        var: output
+
+    - name: Expected Output - Error on invalid IPv6 address
+      set_fact:
+        expected_output: >-
+          Invalid IPv4 or IPv6 Address entered.  Value entered: fe80::4001:gff:fe8a:e
+
+    - name: Output - Test error on invalid IPv6 Address 
+      assert:
+        that:
+          - output.msg == expected_output
+# -----
+
+    - name: Test - Can find devices in IPv4 Network
+      tetration_software_agent_query:
+        interface_ip_in_network: '10.138.0.21/24'
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Can find devices in IPv4 Network
+      debug:
+        var: output.items_found
+
+    - name: Verify - Can find devices in IPv4 Network
+      assert:
+        that:
+          - output.items_found == 9
+# -----
+
+    - name: Test - Can find devices in IPv6 Network
+      tetration_software_agent_query:
+        interface_ip_in_network: 'fe80::4001:aff:fe8a:e/125'
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Can find devices in IPv6 Network
+      debug:
+        var: output.items_found
+
+    - name: Verify - Can find devices in IPv6 Network
+      assert:
+        that:
+          - output.items_found == 2 
+# -----
+
+    - name: Test - Error on invalid IPv4 Network
+      tetration_software_agent_query:
+        interface_ip_in_network: '10.138.0.257'
+        provider: "{{ provider_info }}"
+      ignore_errors: true
+      register: output
+
+    - name: Output - Error on invalid IPv4 Network
+      debug:
+        var: output
+    
+    - name: Expected Output - Error on invalid IPv4 Network
+      set_fact:
+        expected_output: >-
+          Invalid IPv4 or IPv6 Network entered.  Value entered: 10.138.0.257
+
+    - name: Verify - Error on invalid IPv4 Network
+      assert:
+        that:
+          - output.msg == expected_output 
+# -----
+
+    - name: Test - Error on invalid IPv6 Network
+      tetration_software_agent_query:
+        interface_ip_in_network: 'fe80::4001:ffg:fe8a:e'
+        provider: "{{ provider_info }}"
+      ignore_errors: true
+      register: output
+
+    - name: Output - Error on invalid IPv6 Network
+      debug:
+        var: output
+
+    - name: Expected Output - Error on invalid IPv6 Network
+      set_fact:
+        expected_output: >-
+          Invalid IPv4 or IPv6 Network entered.  Value entered: fe80::4001:ffg:fe8a:e
+
+    - name: Verify - Error on invalid IPv6 Network
+      assert:
+        that:
+          - output.msg == expected_output

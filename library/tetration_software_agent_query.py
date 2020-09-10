@@ -13,7 +13,7 @@ DOCUMENTATION = '''
 ---
 module: tetration_software_agent_query
 
-short_description: Allows for searching software agents based on desired filters 
+short_description: Allows for searching software agents based on desired filters
 
 version_added: '2.8'
 
@@ -30,18 +30,30 @@ options:
     description: Searches for all software agents whos name includes the string
     type: string
   host_name_is_exactly:
-    description: Searches for all software agents whos name matches exactly 
+    description: Searches for all software agents whos name matches exactly
+    type: string
+  interface_ip_is_exactly:
+    description:
+    - Searches for all software agents whos IP address matches
+    - Can enter IPv4 or IPv6 address
+    type: string
+  interface_in_subnet:
+    description:
+    - Searches for all software agents whos IP addresses fall in entered IP Network
+    - Can enter IPv4 or IPv6 network
+    - Does not have to be an exact, can put in an IP and the subnet and will convert to the appropriate network
+    - See examples for exact format
     type: string
 
 extends_documentation_fragment: tetration_doc_common
 
-author: 
+author:
   - Brandon Beck (@techbeck03)
   - Joe Jacobs(@joej164)
 '''
 
 EXAMPLES = '''
-# Find an agent by exact name 
+# Find an agent by exact name
 tetration_software_agent_query:
     host_name_is_exactly: student-867-0
     provider:
@@ -49,18 +61,50 @@ tetration_software_agent_query:
       api_key: 1234567890QWERTY
       api_secret: 1234567890QWERTY
 
-# Find an agent whos name contains a string 
+# Find an agent whos name contains a string
 tetration_software_agent_query:
     host_name_contains: student
     provider:
-      host: "tetration-cluster@company.com"
+      host: "https://tetration-cluster.company.com"
       api_key: 1234567890QWERTY
       api_secret: 1234567890QWERTY
 
-# Find all agents 
+# Find all agents
 tetration_software_agent_query:
     provider:
-      host: "tetration-cluster@company.com"
+      host: "https://tetration-cluster.company.com"
+      api_key: 1234567890QWERTY
+      api_secret: 1234567890QWERTY
+
+# Find an agent by IPv4 address
+tetration_software_agent_query:
+    interface_ip_is_exactly: '10.138.0.21'
+    provider:
+      host: "https://tetration-cluster.company.com"
+      api_key: 1234567890QWERTY
+      api_secret: 1234567890QWERTY
+
+# Find an agent by IPv6 address
+tetration_software_agent_query:
+    interface_ip_is_exactly: 'fe80::4001:aff:fe8a:e'
+    provider:
+      host: "https://tetration-cluster.company.com"
+      api_key: 1234567890QWERTY
+      api_secret: 1234567890QWERTY
+
+# Find agents in an IPv4 network
+tetration_software_agent_query:
+    interface_ip_in_network: '10.138.0.0/24'
+    provider:
+      host: "https://tetration-cluster.company.com"
+      api_key: 1234567890QWERTY
+      api_secret: 1234567890QWERTY
+
+# Find agents in an IPv6 network
+tetration_software_agent_query:
+    interface_ip_in_network: 'fe80::4001:aff:fe8a:e/96'
+    provider:
+      host: "https://tetration-cluster.company.com"
       api_key: 1234567890QWERTY
       api_secret: 1234567890QWERTY
 
@@ -146,7 +190,7 @@ object:
       type: string
     uuid:
       description: UUID of the registered software agent
-      returned: when matching value found 
+      returned: when matching value found
       sample: d322189839fb70b2f4569f3657eea58f096c0686
       type: int
   ]
@@ -154,6 +198,8 @@ object:
   returned: always
   type: list
 '''
+
+import ipaddress
 
 from ansible.module_utils.basic import AnsibleModule
 
@@ -167,6 +213,8 @@ def run_module():
     module_args = dict(
         host_name_contains=dict(type='str'),
         host_name_is_exactly=dict(type='str'),
+        interface_ip_is_exactly=dict(type='str'),
+        interface_ip_in_network=dict(type='str'),
         provider=dict(type='dict', options=TETRATION_PROVIDER_SPEC)
     )
 
@@ -182,16 +230,63 @@ def run_module():
 
     tet_module = TetrationApiModule(module)
 
-    response = tet_module.run_method('GET', TETRATION_API_SENSORS)
+    # Verify a valid IP address was passed in
+    if module.params['interface_ip_is_exactly']:
+        try:
+            ip_to_validate = ipaddress.ip_address(module.params['interface_ip_is_exactly'])
+        except ValueError:
+            error_message = f"Invalid IPv4 or IPv6 Address entered.  Value entered: {module.params['interface_ip_is_exactly']}"
+            module.fail_json(msg=error_message)
 
-    for s in response['results']:
+    # Verify a valid IP network was passed in
+    if module.params['interface_ip_in_network']:
+        try:
+            network_to_validate = ipaddress.ip_network(module.params['interface_ip_in_network'], strict=False)
+            result['net_to_validate'] = str(network_to_validate)
+        except ValueError:
+            error_message = f"Invalid IPv4 or IPv6 Network entered.  Value entered: {module.params['interface_ip_in_network']}"
+            module.fail_json(msg=error_message)
+
+    response = tet_module.run_method_paginated('GET', TETRATION_API_SENSORS)
+
+    for s in response:
         if 'deleted_at' not in s.keys():
             to_append = s
-
             if module.params['host_name_contains'] and module.params['host_name_contains'] not in s['host_name']:
                 to_append = None
+                continue
             if module.params['host_name_is_exactly'] and module.params['host_name_is_exactly'] != s['host_name']:
                 to_append = None
+                continue
+            if module.params['interface_ip_is_exactly']:
+                ip_in_interface = False
+                for i in s['interfaces']:
+                    try:
+                        iface_addr = ipaddress.ip_address(i['ip'])
+                    except ValueError:
+                        iface_addr = None
+                    if iface_addr == ip_to_validate:
+                        ip_in_interface = True
+
+                if not ip_in_interface:
+                    to_append = None
+                    continue
+            if module.params['interface_ip_in_network']:
+                ip_in_network = False
+                for i in s['interfaces']:
+                    try:
+                        iface_addr = ipaddress.ip_address(i['ip'])
+                    except ValueError:
+                        iface_addr = None
+
+                    if iface_addr in network_to_validate:
+                        ip_in_network = True
+                        # Once I find a match, no need to keep searching
+                        break
+
+                if not ip_in_network:
+                    to_append = None
+                    continue
 
             if to_append is not None:
                 result['object'].append(to_append)

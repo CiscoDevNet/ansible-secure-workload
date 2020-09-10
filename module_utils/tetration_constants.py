@@ -24,6 +24,8 @@ TETRATION_API_SUCCESS_CODES = [200, 202]
 # 422 is for the SCOPE Delete API
 TETRATION_API_FAILURE_CODES_THAT_RETURN_DATA = [422]
 
+TETRATION_API_PAGINATION_SIZE = 100
+
 TETRATION_PROVIDER_SPEC = {
     'server_endpoint': dict(type='str', required=True, aliases=['endpoint', 'host']),
     'api_key': dict(type='str', required=True),

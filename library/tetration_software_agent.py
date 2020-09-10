@@ -22,8 +22,6 @@ description:
 - Searching by C(uuid) returns all parameters from the API
 - Marking as absent deletes the 
 
-notes:
-- Supports check mode.
 options:
   uuid:
     description: UUID of target agent
@@ -58,7 +56,7 @@ tetration_software_agent:
     uuid: 4b35fa6001339e5313af5e34bd88012381a9aaaa
     state: query
     provider:
-      host: "tetration-cluster@company.com"
+      host: "https://tetration-cluster.company.com"
       api_key: 1234567890QWERTY
       api_secret: 1234567890QWERTY
 '''
