@@ -1,0 +1,76 @@
+---
+- name: Converge
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: "Include ansible-module"
+      include_role:
+        name: "ansible-module"
+
+    - name: read variables from the environment that are set in the molecule.yml
+      set_fact:
+        ansible_host: "{{ lookup('env', 'TETRATION_SERVER_ENDPOINT') }}"
+        api_key: "{{ lookup('env', 'TETRATION_API_KEY') }}"
+        api_secret: "{{ lookup('env', 'TETRATION_API_SECRET') }}"
+      no_log: True 
+
+    - name: put the variables in the required format
+      set_fact:
+        provider_info:
+          api_key: "{{ api_key }}"
+          api_secret: "{{ api_secret }}"
+          server_endpoint: "{{ ansible_host }}"
+      no_log: True 
+
+    - name: set test variables
+      set_fact:
+        root_scope_id: 5ce71503497d4f2c23af85b7
+# -----
+
+    - name: Test - Can find matching hostnames
+      tetration_software_agent_query:
+        host_name_contains: student
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Can find matching hostnames
+      debug:
+        var: output
+    
+    - name: Verify - Can find matching hostnames
+      assert:
+        that:
+          - output.items_found == 10
+# -----
+
+    - name: Test - Can find exact hostname
+      tetration_software_agent_query:
+        host_name_is_exactly: student-867-0
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Can find exact hostname
+      debug:
+        var: output
+
+    - name: Verify - Can find exact hostname
+      assert:
+        that:
+          - output.items_found == 1
+# -----
+
+    - name: Test - Can find all agents 
+      tetration_software_agent_query:
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Can find all agents 
+      debug:
+        var: output.items_found
+
+    - name: Verify - Can find all agents 
+      assert:
+        that:
+          - output.items_found > 100
+# -----
