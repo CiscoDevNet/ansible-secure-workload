@@ -24,7 +24,7 @@ notes:
 
 options:
   method:
-    choices: '[delete, get, post, put]'
+    choices: [delete, get, post, put]
     description: REST method
     required: true
     type: string
