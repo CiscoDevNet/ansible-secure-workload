@@ -435,6 +435,14 @@ class TestTetrationApiModule:
         assert isinstance(tet_resp, list)
         assert len(tet_resp) > 0
 
+    def test_obj_get_sensors_paginated(self, tet_client):
+        tetration_constants.TETRATION_API_PAGINATION_SIZE = 10
+
+        tet_resp = tet_client.run_method_paginated(
+            'GET', tetration_constants.TETRATION_API_SENSORS)
+        assert isinstance(tet_resp, list)
+        assert len(tet_resp) > 0
+
     def test_obj_get_all_users_including_disabled_using_parameter(self, tet_client):
         params = {'include_disabled': True}
         tet_resp = tet_client.run_method(

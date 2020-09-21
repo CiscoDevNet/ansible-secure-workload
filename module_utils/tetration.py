@@ -114,6 +114,35 @@ class TetrationApiModule(TetrationApiBase):
         }
         return methods[method_name.lower()](target, params, req_payload)
 
+    def run_method_paginated(self, method_name, target, params=None, req_payload=None, offset=None):
+        methods = {
+            'get': self._get,
+            'post': self._post,
+            'put': self._put,
+            'delete': self._delete
+        }
+        if params is None:
+            params = {
+                'limit': tetration_constants.TETRATION_API_PAGINATION_SIZE,
+                'offset': offset
+            }
+        else:
+            params['limit'] = tetration_constants.TETRATION_API_PAGINATION_SIZE
+            params['offset'] = offset
+
+        keep_searching = True
+        all_results = []
+        while keep_searching:
+            results = methods[method_name.lower()](target, params, req_payload)
+
+            all_results.extend(results['results'])
+            if 'offset' in results.keys():
+                params['offset'] = results['offset']
+            else:
+                keep_searching = False
+
+        return all_results
+
     def _get(self, target, params, req_payload):
         resp = self.rc.get(target, params=params)
         if resp.status_code == 400:
