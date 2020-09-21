@@ -1,0 +1,522 @@
+---
+- name: Converge
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: "Include ansible-module"
+      include_role:
+        name: "ansible-module"
+
+    - name: read variables from the environment that are set in the molecule.yml
+      set_fact:
+        ansible_host: "{{ lookup('env', 'TETRATION_SERVER_ENDPOINT') }}"
+        api_key: "{{ lookup('env', 'TETRATION_API_KEY') }}"
+        api_secret: "{{ lookup('env', 'TETRATION_API_SECRET') }}"
+      no_log: True 
+
+    - name: put the variables in the required format
+      set_fact:
+        provider_info:
+          api_key: "{{ api_key }}"
+          api_secret: "{{ api_secret }}"
+          server_endpoint: "{{ ansible_host }}"
+      no_log: True 
+
+    - name: set test variables
+      set_fact:
+        root_scope_id: 5ce71503497d4f2c23af85b7
+# -----
+
+    - name: Test - Verify error when not passing name or id
+      tetration_inventory_filter:
+        provider: "{{ provider_info }}"
+        state: query 
+      ignore_errors: true
+      register: output
+
+    - name: Output - Verify error when not passing name or id
+      debug:
+        var: output
+
+    - name: Expected Output - Verify error when not passing name or id
+      set_fact:
+        expected_output: >-
+          one of the following is required: name, id
+
+    - name: Verify - Verify error when not passing name or id
+      assert:
+        that:
+          - output.failed == true
+          - output.msg == expected_output
+# -----
+
+    - name: Test - Verify error when passing name but not app_scope_id
+      tetration_inventory_filter:
+        name: Test Inventory Filter
+        provider: "{{ provider_info }}"
+        state: query 
+      ignore_errors: true
+      register: output
+
+    - name: Output - Verify error when passing name but not app_scope_id
+      debug:
+        var: output
+
+    - name: Expected Output - Verify error when passing name but not app_scope_id
+      set_fact:
+        expected_output: >-
+          missing parameter(s) required by 'name': app_scope_id
+
+    - name: Verify - Verify error when passing name but not app_scope_id
+      assert:
+        that:
+          - output.failed == true
+          - output.msg == expected_output
+# -----
+
+    - name: Test - Verify error when passing more than one query parameter 
+      tetration_inventory_filter:
+        name: Test Inventory Filter
+        app_scope_id: "{{ root_scope_id }}"
+        provider: "{{ provider_info }}"
+        query_single:
+          field: hello
+          type: goodbye
+          value: greeting
+        query_filter:
+          filters:
+            - field: hello
+              type: goodbye
+              value: greeting
+          type: wassup
+        state: query 
+      ignore_errors: true
+      register: output
+
+    - name: Output - Verify error when passing more than one query parameter 
+      debug:
+        var: output
+
+    - name: Expected Output - Verify error when passing more than one query parameter 
+      set_fact:
+        expected_output: >-
+          parameters are mutually exclusive: query_filter|query_nested|query_single
+
+    - name: Verify - Verify error when passing more than one query parameter 
+      assert:
+        that:
+          - output.failed == true
+          - output.msg == expected_output
+# -----
+
+    - name: Test - Verify invalid structure caught for `query_single` 
+      tetration_inventory_filter:
+        name: Test Inventory Filter
+        app_scope_id: "{{ root_scope_id }}"
+        provider: "{{ provider_info }}"
+        query_single:
+          field: hello
+          type: greeting
+        state: query 
+      ignore_errors: true
+      register: output
+
+    - name: Output - Verify invalid structure caught for `query_single` 
+      debug:
+        var: output
+
+    - name: Expected Output - Verify invalid structure caught for `query_single` 
+      set_fact:
+        expected_output: >-
+          missing required arguments: value found in query_single
+
+    - name: Verify - Verify invalid structure caught for `query_single` 
+      assert:
+        that:
+          - output.failed == true
+          - output.msg == expected_output
+# -----
+
+    - name: Test - Verify invalid structure caught for `query_filter` 
+      tetration_inventory_filter:
+        name: Test Inventory Filter
+        app_scope_id: "{{ root_scope_id }}"
+        provider: "{{ provider_info }}"
+        query_filter:
+          filters:
+            - field: host_tags_cvss3
+              type: gt
+              value: 8
+            - field: host_tags_cvss2
+              value: 8
+          type: greeting
+        state: query 
+      ignore_errors: true
+      register: output
+
+    - name: Output - Verify invalid structure caught for `query_filter` 
+      debug:
+        var: output
+
+    - name: Expected Output - Verify invalid structure caught for `query_filter` 
+      set_fact:
+        expected_output: >-
+          missing required arguments: type found in query_filter -> filters
+
+    - name: Verify - Verify invalid structure caught for `query_filter` 
+      assert:
+        that:
+          - output.failed == true
+          - output.msg == expected_output
+# -----
+
+    - name: Test - Verify invalid structure caught for `query_nested` 
+      tetration_inventory_filter:
+        name: Test Inventory Filter
+        app_scope_id: "{{ root_scope_id }}"
+        provider: "{{ provider_info }}"
+        query_nested:
+          filters:
+            - field: host_tags_cvss3
+              type: gt
+              value: 8
+            - field: host_tags_cvss2
+              value: 8
+        state: query 
+      ignore_errors: true
+      register: output
+
+    - name: Output - Verify invalid structure caught for `query_nested` 
+      debug:
+        var: output
+
+    - name: Expected Output - Verify invalid structure caught for `query_nested` 
+      set_fact:
+        expected_output: >-
+          missing required arguments: type found in query_nested
+
+    - name: Verify - Verify invalid structure caught for `query_nested` 
+      assert:
+        that:
+          - output.failed == true
+          - output.msg == expected_output
+# -----
+
+    - name: Test - Add a new inventory filter
+      tetration_inventory_filter:
+        name: Test Inventory Filter
+        app_scope_id: "{{ root_scope_id }}"
+        provider: "{{ provider_info }}"
+        query_single:
+          field: os
+          type: contains
+          value: linux
+        state: present 
+      register: output
+
+    - name: Output - Add a new inventory filter
+      debug:
+        var: output
+
+    - name: Store - Add a new inventory filter
+      set_fact:
+        new_inv_filter_id: "{{ output.object.id }}"
+
+    - name: Verify - Add a new inventory filter
+      assert:
+        that:
+          - output.failed == false
+          - output.object.name == 'Test Inventory Filter'
+          - output.changed == true
+
+# -----
+
+    - name: Test - Assert an inventory filter no changes
+      tetration_inventory_filter:
+        id: "{{ new_inv_filter_id }}"
+        provider: "{{ provider_info }}"
+        query_single:
+          field: os
+          type: contains
+          value: linux
+        state: present 
+      register: output
+
+    - name: Output - Assert an inventory filter no changes
+      debug:
+        var: output
+
+    - name: Verify - Assert an inventory filter no changes
+      assert:
+        that:
+          - output.failed == false
+          - output.object.name == 'Test Inventory Filter'
+          - output.changed == false
+# -----
+
+    - name: Test - Update inventory using query_filter
+      tetration_inventory_filter:
+        id: "{{ new_inv_filter_id }}"
+        name: New Inv Filter
+        app_scope_id: "{{ root_scope_id }}" 
+        provider: "{{ provider_info }}"
+        query_filter:
+          filters:
+            - field: os
+              type: contains
+              value: linux
+            - field: os
+              type: contains
+              value: window
+          type: or
+        state: present 
+      register: output
+
+    - name: Output - Update inventory using query_filter
+      debug:
+        var: output
+
+    - name: Verify - Update inventory using query_filter
+      assert:
+        that:
+          - output.failed == false
+          - output.object.name == 'New Inv Filter'
+          - output.changed == true
+# -----
+
+    - name: Test - Update inventory using query_filter no change
+      tetration_inventory_filter:
+        id: "{{ new_inv_filter_id }}"
+        provider: "{{ provider_info }}"
+        query_filter:
+          filters:
+            - field: os
+              type: contains
+              value: linux
+            - field: os
+              type: contains
+              value: window
+          type: or
+        state: present 
+      register: output
+
+    - name: Output - Update inventory using query_filter no change
+      debug:
+        var: output
+
+    - name: Verify - Update inventory using query_filter no change
+      assert:
+        that:
+          - output.failed == false
+          - output.object.name == 'New Inv Filter'
+          - output.changed == false
+# -----
+
+    - name: Test - Update inventory using query_nested
+      tetration_inventory_filter:
+        name: New Inv Filter
+        app_scope_id: "{{ root_scope_id }}"
+        provider: "{{ provider_info }}"
+        query_nested:
+          filters:
+            - field: os
+              type: contains
+              value: linux
+            - field: os
+              type: contains
+              value: window
+            - filters:
+                - field: os
+                  type: contains
+                  value: linux
+                - field: os
+                  type: contains
+                  value: linux
+              type: and
+          type: or
+        state: present 
+      register: output
+
+    - name: Output - Update inventory using query_nested
+      debug:
+        var: output
+
+    - name: Verify - Update inventory using query_nested
+      assert:
+        that:
+          - output.failed == false
+          - output.object.name == 'New Inv Filter'
+          - output.changed == true
+# -----
+
+    - name: Test - Update inventory using query_nested no change
+      tetration_inventory_filter:
+        id: "{{ new_inv_filter_id }}"
+        provider: "{{ provider_info }}"
+        query_nested:
+          filters:
+            - field: os
+              type: contains
+              value: linux
+            - field: os
+              type: contains
+              value: window
+            - filters:
+                - field: os
+                  type: contains
+                  value: linux
+                - field: os
+                  type: contains
+                  value: linux
+              type: and
+          type: or
+        state: present 
+      register: output
+
+    - name: Output - Update inventory using query_nested no change
+      debug:
+        var: output
+
+    - name: Verify - Update inventory using query_nested no change
+      assert:
+        that:
+          - output.failed == false
+          - output.object.name == 'New Inv Filter'
+          - output.changed == false
+# -----
+
+    - name: Test - Delete a new inventory filter
+      tetration_inventory_filter:
+        name: New Inv Filter 
+        app_scope_id: "{{ root_scope_id }}"
+        provider: "{{ provider_info }}"
+        query_single:
+          field: os
+          type: contains
+          value: linux
+        state: absent 
+      register: output
+
+    - name: Output - Delete a new inventory filter
+      debug:
+        var: output
+
+    - name: Verify - Delete a new inventory filter
+      assert:
+        that:
+          - output.failed == false
+          - output.changed == true 
+          - output.object.name == 'New Inv Filter'
+# -----
+
+    - name: Test - Add a new filter with other options
+      tetration_inventory_filter:
+        name: A New Test Inventory Filter
+        app_scope_id: "{{ root_scope_id }}"
+        provider: "{{ provider_info }}"
+        primary: true
+        public: true
+        query_single:
+          field: os
+          type: contains
+          value: linux
+        state: present 
+      register: output
+
+    - name: Output - Add a new filter with other options
+      debug:
+        var: output
+
+    - name: Store - Add a new filter with other options
+      set_fact:
+        a_new_inv_filter_id: "{{ output.object.id }}"
+
+    - name: Verify - Add a new filter with other options
+      assert:
+        that:
+          - output.failed == false
+          - output.object.name == 'A New Test Inventory Filter'
+          - output.object.primary == true 
+          - output.object.public == true 
+          - output.changed == true
+# -----
+
+    - name: Test - Update a new filter with other options
+      tetration_inventory_filter:
+        id: "{{ a_new_inv_filter_id }}"
+        name: Different 
+        app_scope_id: "{{ root_scope_id }}"
+        provider: "{{ provider_info }}"
+        primary: false 
+        public: false 
+        query_single:
+          field: os
+          type: contains
+          value: linux
+        state: present 
+      register: output
+
+    - name: Output - Update a new filter with other options
+      debug:
+        var: output
+
+    - name: Verify - Update a new inventory filter with other options
+      assert:
+        that:
+          - output.failed == false
+          - output.object.name == 'Different'
+          - output.object.primary == false
+          - output.object.public == false 
+          - output.changed == true
+# -----
+
+    - name: Test - Query a filter using ID 
+      tetration_inventory_filter:
+        id: "{{ a_new_inv_filter_id }}"
+        provider: "{{ provider_info }}"
+        state: query
+      register: output
+
+    - name: Output - Query a filter using ID 
+      debug:
+        var: output
+
+    - name: Verify - Query a filter using ID 
+      assert:
+        that:
+          - output.failed == false
+          - output.object.name == 'Different'
+          - output.object.primary == false
+          - output.object.public == false
+          - output.changed == false 
+# -----
+
+    - name: Test - Query a filter using Name
+      tetration_inventory_filter:
+        name: Different 
+        app_scope_id: "{{ root_scope_id }}"
+        provider: "{{ provider_info }}"
+        state: query
+      register: output
+
+    - name: Output - Query a filter using Name
+      debug:
+        var: output
+
+    - name: Verify - Query a filter using Name
+      assert:
+        that:
+          - output.failed == false
+          - output.object.name == 'Different'
+          - output.object.primary == false
+          - output.object.public == false
+          - output.changed == false 
+# -----
+
+    - name: Cleanup - Query a filter using Name
+      tetration_inventory_filter:
+        id: "{{ a_new_inv_filter_id }}"
+        provider: "{{ provider_info }}"
+        state: absent 
+      register: output

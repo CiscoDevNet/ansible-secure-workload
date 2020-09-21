@@ -6,7 +6,7 @@ ANSIBLE_METADATA = {
     'supported_by': 'community'
 }
 
-DOCUMENTATION = r'''
+DOCUMENTATION = '''
 ---
 module: tetration_scope
 
@@ -61,7 +61,7 @@ author:
     - Joe Jacobs (@joej164)
 '''
 
-EXAMPLES = r'''
+EXAMPLES = '''
 # Add or Modify scope
 tetration_scope:
     short_name: Application
@@ -88,7 +88,7 @@ tetration_scope:
       api_secret: 1234567890QWERTY
 '''
 
-RETURN = r'''
+RETURN = '''
 ---
 object:
   contains:
@@ -257,7 +257,7 @@ def run_module():
     # Implment changes as defined in the module
     if module.params['state'] == 'present':
         if module.params['scope_id'] or unique_scope_name in all_scopes_lookup.keys():
-            # User exists, doing an update
+            # Object exists, doing an update
             if module.params['scope_id']:
                 scope_id_to_update = module.params['scope_id']
             else:
