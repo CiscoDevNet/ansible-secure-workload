@@ -81,7 +81,7 @@
 
     - name: Test - Verify can commit short query changes
       tetration_scope:
-        short_name: CICD Test Scope
+        short_name: Scope Query CICD Test Scope
         parent_app_scope_id: "{{ root_scope_id }}"
         short_query:
           type: subnet
@@ -101,7 +101,7 @@
 
     - name: Test - Make short query dirty 
       tetration_scope:
-        short_name: CICD Test Scope
+        short_name: Scope Query CICD Test Scope
         parent_app_scope_id: "{{ root_scope_id }}"
         short_query:
           type: subnet
@@ -123,6 +123,7 @@
       tetration_scope_commit_query_changes:
         root_app_scope_id: "{{ root_scope_id }}" 
         provider: "{{ provider_info }}"
+        sync: true
       register: output 
     
     - name: Verify - Commit short query changes
@@ -131,7 +132,7 @@
 
     - name: Test - Check if scope not dirty 
       tetration_scope:
-        short_name: CICD Test Scope
+        short_name: Scope Query CICD Test Scope
         parent_app_scope_id: "{{ root_scope_id }}"
         short_query:
           type: subnet
@@ -147,7 +148,7 @@
 
     - name: Cleanup - Check if scope not dirty 
       tetration_scope:
-        short_name: CICD Test Scope
+        short_name: Scope Query CICD Test Scope
         parent_app_scope_id: "{{ root_scope_id }}"
         provider: "{{ provider_info }}"
         state: absent 
