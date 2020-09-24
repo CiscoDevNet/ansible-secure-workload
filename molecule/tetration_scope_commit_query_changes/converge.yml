@@ -79,11 +79,11 @@
           - output.object.success == true 
 # -----
 
-    - name: Test - Verify can commit short query changes
+    - name: Test - Verify can commit query single changes 
       tetration_scope:
         short_name: Scope Query CICD Test Scope
         parent_app_scope_id: "{{ root_scope_id }}"
-        short_query:
+        query_single:
           type: subnet
           field: ip
           value: "10.0.0.0/16"
@@ -91,7 +91,7 @@
         state: present
       register: output
 
-    - name: Output - Verify can commit short query changes
+    - name: Output - Verify can commit query single changes 
       debug:
         var: output
 
@@ -99,11 +99,11 @@
       assert:
         that: output.object.dirty == false
 
-    - name: Test - Make short query dirty 
+    - name: Test - Make query single dirty 
       tetration_scope:
         short_name: Scope Query CICD Test Scope
         parent_app_scope_id: "{{ root_scope_id }}"
-        short_query:
+        query_single:
           type: subnet
           field: ip
           value: "11.0.0.0/16"
@@ -111,11 +111,11 @@
         state: present
       register: output
 
-    - name: Output - Make short query dirty 
+    - name: Output - Make query single dirty 
       debug:
         var: output
 
-    - name: Verify - Make short query dirty 
+    - name: Verify - Make query single dirty 
       assert:
         that: output.object.dirty == true 
 
@@ -134,7 +134,7 @@
       tetration_scope:
         short_name: Scope Query CICD Test Scope
         parent_app_scope_id: "{{ root_scope_id }}"
-        short_query:
+        query_single:
           type: subnet
           field: ip
           value: "11.0.0.0/16"

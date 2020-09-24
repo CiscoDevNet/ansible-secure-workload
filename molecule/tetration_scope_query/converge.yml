@@ -133,7 +133,7 @@
       tetration_scope:
         short_name: Ignwpov 
         parent_app_scope_id: "{{ root_scope_id }}"
-        short_query:
+        query_single:
           type: eq
           field: ip
           value: "1.0.0.0"
@@ -148,7 +148,7 @@
     - name: Update - Create a scope then update to filter dirty
       tetration_scope:
         scope_id: "{{ new_scope_id }}"
-        short_query:
+        query_single:
           type: eq
           field: ip
           value: "2.0.0.0"
