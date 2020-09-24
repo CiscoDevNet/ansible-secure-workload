@@ -128,7 +128,7 @@
           - output.msg == expected_output
 # ----- 
 
-    - name: Test - Verify errors when short_query is missing
+    - name: Test - Verify errors when query_single is missing
       tetration_scope:
         short_name: CICD_Test_Scope
         parent_app_scope_id: "{{ root_scope_id }}"
@@ -137,16 +137,16 @@
       ignore_errors: true
       register: output
 
-    - name: Output - Verify errors when short_query is missing
+    - name: Output - Verify errors when query_single is missing
       debug:
         var: output
 
-    - name: Expected Output - Verify errors when short_query is missing
+    - name: Expected Output - Verify errors when query_single is missing
       set_fact:
         expected_output: >-
-          In order to create a new `scope` you must also add a `short_query` parameter.
+          In order to create a new `scope` you must also add a query parameter.
     
-    - name: Verify - Verify errors when short_query is missing
+    - name: Verify - Verify errors when query_single is missing
       assert:
         that:
           - output is defined
@@ -158,7 +158,7 @@
       tetration_scope:
         short_name: CICD_Test_Scope
         parent_app_scope_id: "{{ root_scope_id }}"
-        short_query: "my_short_query"
+        query_single: "my_short_query"
         state: present
         provider: "{{ provider_info }}"
       ignore_errors: true
@@ -176,34 +176,49 @@
           - output.msg == 'Failure when processing no_log parameters. Module invocation will be hidden. dictionary requested, could not parse JSON or key=value'
 # -----
 
-    - name: Test - Verify error when not specifying all required short query parameters 
+    - name: Test - Verify error when not specifying all required query single parameters 
       tetration_scope:
         short_name: CICD_Test_Scope
         parent_app_scope_id: "{{ root_scope_id }}"
-        short_query:
+        query_single:
           type: eq 
         state: present
         provider: "{{ provider_info }}"
       ignore_errors: true
       register: output
 
-    - name: Output - Verify error when not specifying all required short query parameters 
+    - name: Output - Verify error when not specifying all required query single parameters 
       debug:
         var: output
+    
+    - name: Expected Output - Verify error when not specifying all required query single parameters 
+      set_fact:
+        expected_output: >-
+          missing required arguments: field, value found in query_single
+ 
+    - name: debug
+      debug:
+        var:
+          output.msg
 
-    - name: Verify - Verify error when not specifying all required short query parameters 
+    - name: debug
+      debug:
+        var:
+          expected_output
+
+    - name: Verify - Verify error when not specifying all required query single parameters 
       assert:
         that:
           - output is defined
           - output.failed is true
-          - output.msg == 'All sub values are required when you define the short query dictionary'
+          - output.msg == expected_output 
 # -----
 
     - name: Test - Verify can create a scope 
       tetration_scope:
         short_name: CICD_Test_Scope
         parent_app_scope_id: "{{ root_scope_id }}"
-        short_query:
+        query_single:
           type: eq
           field: ip
           value: "1.0.0.0"
@@ -249,7 +264,7 @@
       tetration_scope:
         short_name: CICD_Test_Scope
         parent_app_scope_id: "{{ root_scope_id }}"
-        short_query:
+        query_single:
           type: eq
           field: ip
           value: "1.0.0.0"
@@ -268,7 +283,7 @@
       tetration_scope:
         short_name: CICD_Test_Scope
         parent_app_scope_id: "{{ root_scope_id }}"
-        short_query:
+        query_single:
           type: eq
           field: ip
           value: "1.0.0.0"
@@ -308,7 +323,7 @@
       tetration_scope:
         scope_id: "{{ new_scope_id }}"
         provider: "{{ provider_info }}"
-        short_query:
+        query_single:
           type: subnet
           field: ip
           value: "1.0.0.0/8"
@@ -351,7 +366,7 @@
       tetration_scope:
         short_name: CICD_Test_Scope
         parent_app_scope_id: "{{ root_scope_id }}"
-        short_query:
+        query_single:
           type: eq
           field: ip
           value: "1.0.0.0"
@@ -367,7 +382,7 @@
       tetration_scope:
         short_name: CICD_Test_Sub_Scope
         parent_app_scope_id: "{{ new_scope_id }}"
-        short_query:
+        query_single:
           type: subnet
           field: ip
           value: "10.0.0.0/16"
@@ -422,3 +437,256 @@
         provider: "{{ provider_info }}"
         state: absent 
       register: output
+# -----
+
+    - name: Test - Verify invalid structure caught for `query_multiple` 
+      tetration_scope:
+        short_name: CICD_Test_Sub_Scope
+        parent_app_scope_id: "{{ root_scope_id }}"
+        provider: "{{ provider_info }}"
+        query_multiple:
+          filters:
+            - field: host_tags_cvss3
+              type: gt
+              value: 8
+            - field: host_tags_cvss2
+              value: 8
+          type: greeting
+        state: absent 
+      ignore_errors: true
+      register: output
+
+    - name: Output - Verify invalid structure caught for `query_multiple` 
+      debug:
+        var: output
+
+    - name: Expected Output - Verify invalid structure caught for `query_multiple` 
+      set_fact:
+        expected_output: >-
+          missing required arguments: type found in query_multiple -> filters
+
+    - name: Verify - Verify invalid structure caught for `query_multiple` 
+      assert:
+        that:
+          - output.failed == true
+          - output.msg == expected_output
+# -----
+
+    - name: Test - Verify invalid structure caught for `query_single` 
+      tetration_scope:
+        short_name: CICD_Test_Sub_Scope
+        parent_app_scope_id: "{{ root_scope_id }}"
+        provider: "{{ provider_info }}"
+        query_single:
+          field: host_tags_cvss3
+          value: 8
+        state: absent 
+      ignore_errors: true
+      register: output
+
+    - name: Output - Verify invalid structure caught for `query_single` 
+      debug:
+        var: output
+
+    - name: Expected Output - Verify invalid structure caught for `query_single` 
+      set_fact:
+        expected_output: >-
+          missing required arguments: type found in query_single
+
+    - name: Verify - Verify invalid structure caught for `query_single` 
+      assert:
+        that:
+          - output.failed == true
+          - output.msg == expected_output
+# -----
+
+    - name: Test - Verify invalid structure caught for `query_raw` 
+      tetration_scope:
+        short_name: CICD_Test_Sub_Scope
+        parent_app_scope_id: "{{ root_scope_id }}"
+        provider: "{{ provider_info }}"
+        query_raw:
+          filters:
+            - field: host_tags_cvss3
+              type: gt
+              value: 8
+            - field: host_tags_cvss2
+              value: 
+        state: absent 
+      ignore_errors: true
+      register: output
+
+    - name: Output - Verify invalid structure caught for `query_raw` 
+      debug:
+        var: output
+
+    - name: Expected Output - Verify invalid structure caught for `query_raw` 
+      set_fact:
+        expected_output: >-
+          missing required arguments: type found in query_raw
+
+    - name: Verify - Verify invalid structure caught for `query_raw` 
+      assert:
+        that:
+          - output.failed == true
+          - output.msg == expected_output
+# -----
+    - name: Set Value - Verify can create a scope `query_multiple`
+      set_fact:
+        filter:
+            - field: os
+              type: contains
+              value: linux
+            - field: os
+              type: contains
+              value: window
+
+    - name: Test - Verify can create a scope `query_multiple`
+      tetration_scope:
+        short_name: CICD_Test_Scope
+        parent_app_scope_id: "{{ root_scope_id }}"
+        query_multiple:
+          filters: "{{ filter }}"
+          type: or
+        provider: "{{ provider_info }}"
+        state: present
+      register: output
+
+    - name: Output - Verify can create a scope `query_multiple`
+      debug:
+        var: output
+
+    - name: Verify - Verify can create a scope `query_multiple`
+      assert:
+        that:
+          - output is defined
+          - output.failed is false 
+          - output.changed is true
+          - output.object is not none 
+          - output.object.short_query.filters == filter
+# -----
+    - name: Set Value - Verify can update a scope no changes `query_multiple`
+      set_fact:
+        filter:
+            - field: os
+              type: contains
+              value: linux
+            - field: os
+              type: contains
+              value: window
+
+    - name: Test - Verify can update a scope no changes `query_multiple`
+      tetration_scope:
+        short_name: CICD_Test_Scope
+        parent_app_scope_id: "{{ root_scope_id }}"
+        query_multiple:
+          filters: "{{ filter }}"
+          type: or
+        provider: "{{ provider_info }}"
+        state: present
+      register: output
+
+    - name: Output - Verify can update a scope no changes `query_multiple`
+      debug:
+        var: output
+
+    - name: Verify - Verify can update a scope no changes `query_multiple`
+      assert:
+        that:
+          - output is defined
+          - output.failed is false 
+          - output.changed is false 
+          - output.object is not none 
+          - output.object.short_query.filters == filter
+# -----
+    - name: Set Value - Verify can update a scope `query_multiple`
+      set_fact:
+        filter:
+          field: os
+          type: contains
+          value: linux
+
+    - name: Test - Verify can update a scope `query_multiple`
+      tetration_scope:
+        short_name: CICD_Test_Scope
+        parent_app_scope_id: "{{ root_scope_id }}"
+        query_single: "{{ filter }}"
+        provider: "{{ provider_info }}"
+        state: present
+      register: output
+
+    - name: Output - Verify can update a scope `query_multiple`
+      debug:
+        var: output
+
+    - name: Verify - Verify can update a scope `query_multiple`
+      assert:
+        that:
+          - output is defined
+          - output.failed is false 
+          - output.changed is true
+          - output.object is not none
+          - output.object.dirty_short_query == filter
+# -----
+    - name: Set Value - Verify can update a scope `query_raw`
+      set_fact:
+        filter:
+          - field: os
+            type: contains
+            value: linux
+          - field: os
+            type: contains
+            value: window
+          - filters:
+              - field: os
+                type: contains
+                value: linux
+              - field: os
+                type: contains
+                value: linux
+            type: and
+
+    - name: Test - Verify can update a scope `query_raw`
+      tetration_scope:
+        short_name: CICD_Test_Scope
+        parent_app_scope_id: "{{ root_scope_id }}"
+        query_raw:
+          filters: "{{ filter }}"
+          type: or
+        provider: "{{ provider_info }}"
+        state: present
+      register: output
+
+    - name: Output - Verify can update a scope `query_raw`
+      debug:
+        var: output
+
+    - name: Verify - Verify can update a scope `query_raw`
+      assert:
+        that:
+          - output is defined
+          - output.failed is false 
+          - output.changed is true
+          - output.object is not none 
+          - output.object.dirty_short_query.filters == filter
+# -----
+
+    - name: Test - Delete a scope - cleanup 
+      tetration_scope:
+        short_name: CICD_Test_Scope
+        parent_app_scope_id: "{{ root_scope_id }}"
+        state: absent
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Verify can delete a scope 
+      debug:
+        var: output
+
+    - name: Verify - Verify can delete a scope 
+      assert:
+        that:
+          - output is defined
+          - output.failed is false 
+          - output.changed is true
+          - output.object.success is true

@@ -43,10 +43,26 @@ options:
     description:
     - User specified name of the scope
     type: string
-  short_query:
+  query_single:
     description:
-    - Filter (or match criteria) associated with the scope
-    - Required if creating a new scope
+    - Match Criteria associated with the scope
+    - Supports only a single filter
+    - Provides input validation
+    - Mutually exclusive with [C(query_filter), C(query_nested)]
+    type: dict
+  query_multiple:
+    description:
+    - Simple filter associated with the scope
+    - Supports a single list of filters with one logical operator
+    - Provides input validation
+    - Mutually exclusive with [C(query_single), C(query_nested)]
+    type: dict
+  query_raw:
+    description:
+    - Complex filter associated with the scope
+    - Supports deeply nested filter structures
+    - Provides only top level input validation
+    - Mutually exclusive with [C(query_single), C(query_filter)]
     type: dict
   state:
     choices: [present, absent]
@@ -62,12 +78,12 @@ author:
 '''
 
 EXAMPLES = '''
-# Add or Modify scope
+# Add or Modify scope with a single filter
 tetration_scope:
     short_name: Application
     parent_app_scope_id: abcd1234
     description: Scope for ACME example application
-    short_query:
+    query_single:
         type: subnet
         field: ip
         value: 172.16.0.0/12
@@ -76,6 +92,58 @@ tetration_scope:
       host: "https://tetration-cluster.company.com"
       api_key: 1234567890QWERTY
       api_secret: 1234567890QWERTY
+
+# Add or Modify scope with multiple filters
+tetration_scope:
+    short_name: Application
+    parent_app_scope_id: abcd1234
+    description: Scope for ACME example application
+    query_multiple:
+      filter:
+        - field: os 
+          type: contains 
+          value: linux 
+        - field: os 
+          type: contains 
+          value: windows
+        - field: os 
+          type: contains 
+          value: mac
+      type: or
+    state: present
+    provider:
+      host: "https://tetration-cluster.company.com"
+      api_key: 1234567890QWERTY
+      api_secret: 1234567890QWERTY
+
+# Add or Modify scope with multiple nested filters 
+tetration_scope:
+    short_name: Application
+    parent_app_scope_id: abcd1234
+    description: Scope for ACME example application
+    query_raw:
+      filters:
+        - field: os
+          type: contains
+          value: linux
+        - field: os
+          type: contains
+          value: windows 
+        - filters:
+            - field: host_tags_cvss3
+              type: gt
+              value: 8
+            - field: host_tags_cvss2
+              type: gt
+              value: 8
+          type: or
+      type: or
+    state: present
+    provider:
+      host: "https://tetration-cluster.company.com"
+      api_key: 1234567890QWERTY
+      api_secret: 1234567890QWERTY
+
 
 # Delete scope
 tetration_scope:
@@ -152,7 +220,7 @@ object:
       returned: when C(state) is present 
       sample: Application
       type: string
-    short_query:
+    query_single:
       description: Filter (or match criteria) associated with the scope
       returned: when C(state) is present 
       sample: JSON Filter (short)
@@ -180,17 +248,29 @@ from ansible.module_utils.tetration import TetrationApiModule
 
 def run_module():
     # define available arguments/parameters a user can pass to the module
-    short_query_args = dict(
-        type=dict(type='str', required=False),
-        field=dict(type='str', required=False),
-        value=dict(type='str', required=False)
+    single_filter = dict(
+        field=dict(type='str', required=True),
+        type=dict(type='str', required=True),
+        value=dict(type='str', required=True)
+    )
+
+    query_filter_structure = dict(
+        filters=dict(type='list', elements='dict', options=single_filter, required=True),
+        type=dict(type='str', required=True)
+    )
+
+    nested_query_filter_structure = dict(
+        filters=dict(type='list', elements='dict', required=True),
+        type=dict(type='str', required=True)
     )
 
     module_args = dict(
         scope_id=dict(type='str', required=False),
         short_name=dict(type='str', required=False),
         description=dict(type='str', required=False),
-        short_query=dict(type='dict', options=short_query_args, required=False),
+        query_multiple=dict(type='dict', options=query_filter_structure, required=False),
+        query_raw=dict(type='dict', options=nested_query_filter_structure, required=False),
+        query_single=dict(type='dict', options=single_filter, reqired=False),
         parent_app_scope_id=dict(type='str', required=False),
         policy_priority=dict(type='int', required=False),
         state=dict(choices=['present', 'absent'], required=True),
@@ -226,6 +306,9 @@ def run_module():
         required_one_of=[
             ['scope_id', 'short_name'],
         ],
+        mutually_exclusive=[
+            ['query_multiple', 'query_raw', 'query_single']
+        ],
         required_by={
             'short_name': ['parent_app_scope_id']
         },
@@ -247,12 +330,13 @@ def run_module():
         error_message = "`parent_app_scope_id` passed into the module does not exist."
         module.fail_json(msg=error_message)
 
-    if module.params['short_query']:
-        short_query_data = module.params['short_query']
-
-        if not all([short_query_data['type'], short_query_data['field'], short_query_data['value']]):
-            error_message = 'All sub values are required when you define the short query dictionary'
-            module.fail_json(msg=error_message)
+    # Since the query parameter data all goes into one field eventually, just extract it into
+    # A value here for use later on in the module
+    query_parameters = ['query_multiple', 'query_raw', 'query_single']
+    extracted_query_filter = {}
+    for query in query_parameters:
+        if module.params[query]:
+            extracted_query_filter = module.params[query]
 
     # Implment changes as defined in the module
     if module.params['state'] == 'present':
@@ -268,20 +352,25 @@ def run_module():
 
             req_payload = {
                 'short_name': None,
-                'short_query': None,
+                'short_query': {},
                 'description': None,
                 'parent_app_scope_id': None,
                 'policy_priority': None
             }
-            payload_keys = [k for k in req_payload.keys()]
 
-            # Updating the Update Object
+            payload_keys = [k for k in req_payload.keys()]
             for key in payload_keys:
-                if module.params[key] and module.params[key] != response[key]:
+                if module.params.get(key) != None and module.params[key] != response[key]:
                     req_payload[key] = module.params[key]
+                elif key == 'short_query':
+                    if extracted_query_filter and extracted_query_filter != response['short_query']:
+                        req_payload[key] = extracted_query_filter
+                    else:
+                        req_payload.pop(key)
                 else:
                     req_payload.pop(key)
 
+            # Updating the Update Object
             if req_payload:
                 update_response = tet_module.run_method('PUT', route, req_payload=req_payload)
                 result['changed'] = True
@@ -291,15 +380,15 @@ def run_module():
 
         elif unique_scope_name not in all_scopes_lookup.keys():
             # Creating a new object
-            if not module.params['short_query']:
+            if not extracted_query_filter:
                 error_message = (
-                    'In order to create a new `scope` you must also add a `short_query` parameter.'
+                    'In order to create a new `scope` you must also add a query parameter.'
                 )
                 module.fail_json(msg=error_message)
 
             req_payload = {
                 'short_name': module.params['short_name'],
-                'short_query': module.params['short_query'],
+                'short_query': extracted_query_filter,
                 'description': module.params['description'],
                 'parent_app_scope_id': module.params['parent_app_scope_id'],
                 'policy_priority': module.params['policy_priority']
