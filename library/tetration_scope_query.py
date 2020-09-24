@@ -41,7 +41,7 @@ options:
     only_dirty:
         description:
             - Filter out non dirty objects if set to true
-            - If set to false, 
+            - If set to false will return all matches
         type: bool
         default: False
 
@@ -49,7 +49,7 @@ options:
 extends_documentation_fragment: tetration_doc_common
 
 author:
-    - Your Name (@yourhandle)
+    - Your Name (@joej164)
 '''
 
 EXAMPLES = '''

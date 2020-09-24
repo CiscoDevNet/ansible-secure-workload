@@ -84,7 +84,7 @@
           field: hello
           type: goodbye
           value: greeting
-        query_filter:
+        query_multiple:
           filters:
             - field: hello
               type: goodbye
@@ -101,7 +101,7 @@
     - name: Expected Output - Verify error when passing more than one query parameter 
       set_fact:
         expected_output: >-
-          parameters are mutually exclusive: query_filter|query_nested|query_single
+          parameters are mutually exclusive: query_multiple|query_raw|query_single
 
     - name: Verify - Verify error when passing more than one query parameter 
       assert:
@@ -138,12 +138,12 @@
           - output.msg == expected_output
 # -----
 
-    - name: Test - Verify invalid structure caught for `query_filter` 
+    - name: Test - Verify invalid structure caught for `query_multiple` 
       tetration_inventory_filter:
         name: Test Inventory Filter
         app_scope_id: "{{ root_scope_id }}"
         provider: "{{ provider_info }}"
-        query_filter:
+        query_multiple:
           filters:
             - field: host_tags_cvss3
               type: gt
@@ -155,28 +155,28 @@
       ignore_errors: true
       register: output
 
-    - name: Output - Verify invalid structure caught for `query_filter` 
+    - name: Output - Verify invalid structure caught for `query_multiple` 
       debug:
         var: output
 
-    - name: Expected Output - Verify invalid structure caught for `query_filter` 
+    - name: Expected Output - Verify invalid structure caught for `query_multiple` 
       set_fact:
         expected_output: >-
-          missing required arguments: type found in query_filter -> filters
+          missing required arguments: type found in query_multiple -> filters
 
-    - name: Verify - Verify invalid structure caught for `query_filter` 
+    - name: Verify - Verify invalid structure caught for `query_multiple` 
       assert:
         that:
           - output.failed == true
           - output.msg == expected_output
 # -----
 
-    - name: Test - Verify invalid structure caught for `query_nested` 
+    - name: Test - Verify invalid structure caught for `query_raw` 
       tetration_inventory_filter:
         name: Test Inventory Filter
         app_scope_id: "{{ root_scope_id }}"
         provider: "{{ provider_info }}"
-        query_nested:
+        query_raw:
           filters:
             - field: host_tags_cvss3
               type: gt
@@ -187,16 +187,16 @@
       ignore_errors: true
       register: output
 
-    - name: Output - Verify invalid structure caught for `query_nested` 
+    - name: Output - Verify invalid structure caught for `query_raw` 
       debug:
         var: output
 
-    - name: Expected Output - Verify invalid structure caught for `query_nested` 
+    - name: Expected Output - Verify invalid structure caught for `query_raw` 
       set_fact:
         expected_output: >-
-          missing required arguments: type found in query_nested
+          missing required arguments: type found in query_raw
 
-    - name: Verify - Verify invalid structure caught for `query_nested` 
+    - name: Verify - Verify invalid structure caught for `query_raw` 
       assert:
         that:
           - output.failed == true
@@ -255,13 +255,13 @@
           - output.changed == false
 # -----
 
-    - name: Test - Update inventory using query_filter
+    - name: Test - Update inventory using query_multiple
       tetration_inventory_filter:
         id: "{{ new_inv_filter_id }}"
         name: New Inv Filter
         app_scope_id: "{{ root_scope_id }}" 
         provider: "{{ provider_info }}"
-        query_filter:
+        query_multiple:
           filters:
             - field: os
               type: contains
@@ -273,11 +273,11 @@
         state: present 
       register: output
 
-    - name: Output - Update inventory using query_filter
+    - name: Output - Update inventory using query_multiple
       debug:
         var: output
 
-    - name: Verify - Update inventory using query_filter
+    - name: Verify - Update inventory using query_multiple
       assert:
         that:
           - output.failed == false
@@ -285,11 +285,11 @@
           - output.changed == true
 # -----
 
-    - name: Test - Update inventory using query_filter no change
+    - name: Test - Update inventory using query_multiple no change
       tetration_inventory_filter:
         id: "{{ new_inv_filter_id }}"
         provider: "{{ provider_info }}"
-        query_filter:
+        query_multiple:
           filters:
             - field: os
               type: contains
@@ -301,11 +301,11 @@
         state: present 
       register: output
 
-    - name: Output - Update inventory using query_filter no change
+    - name: Output - Update inventory using query_multiple no change
       debug:
         var: output
 
-    - name: Verify - Update inventory using query_filter no change
+    - name: Verify - Update inventory using query_multiple no change
       assert:
         that:
           - output.failed == false
@@ -313,12 +313,12 @@
           - output.changed == false
 # -----
 
-    - name: Test - Update inventory using query_nested
+    - name: Test - Update inventory using query_raw
       tetration_inventory_filter:
         name: New Inv Filter
         app_scope_id: "{{ root_scope_id }}"
         provider: "{{ provider_info }}"
-        query_nested:
+        query_raw:
           filters:
             - field: os
               type: contains
@@ -338,11 +338,11 @@
         state: present 
       register: output
 
-    - name: Output - Update inventory using query_nested
+    - name: Output - Update inventory using query_raw
       debug:
         var: output
 
-    - name: Verify - Update inventory using query_nested
+    - name: Verify - Update inventory using query_raw
       assert:
         that:
           - output.failed == false
@@ -350,11 +350,11 @@
           - output.changed == true
 # -----
 
-    - name: Test - Update inventory using query_nested no change
+    - name: Test - Update inventory using query_raw no change
       tetration_inventory_filter:
         id: "{{ new_inv_filter_id }}"
         provider: "{{ provider_info }}"
-        query_nested:
+        query_raw:
           filters:
             - field: os
               type: contains
@@ -374,11 +374,11 @@
         state: present 
       register: output
 
-    - name: Output - Update inventory using query_nested no change
+    - name: Output - Update inventory using query_raw no change
       debug:
         var: output
 
-    - name: Verify - Update inventory using query_nested no change
+    - name: Verify - Update inventory using query_raw no change
       assert:
         that:
           - output.failed == false

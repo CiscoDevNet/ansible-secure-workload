@@ -49,14 +49,14 @@ options:
     - Provides input validation
     - Mutually exclusive with [C(query_filter), C(query_nested)]
     type: dict
-  query_filter:
+  query_multiple:
     description:
     - Simple filter associated with the scope
     - Supports a single list of filters with one logical operator
     - Provides input validation
     - Mutually exclusive with [C(query_single), C(query_nested)]
     type: dict
-  query_nested:
+  query_raw:
     description:
     - Complex filter associated with the scope
     - Supports deeply nested filter structures
@@ -153,7 +153,7 @@ EXAMPLES = '''
     name: Various types of Operating Systems
     app_scope_id: 5ce71503497d4f2c23af8aaa
     state: present
-    query_filter:
+    query_multiple:
       filter:
         - field: os 
           type: contains 
@@ -174,7 +174,7 @@ EXAMPLES = '''
     state: present
     public: true
     primary: true
-    query_nested:
+    query_raw:
       filters:
         - field: os
           type: contains
@@ -279,8 +279,8 @@ def run_module():
     module_args = dict(
         name=dict(type='str', required=False),
         id=dict(type='str', required=False),
-        query_filter=dict(type='dict', options=query_filter_structure, required=False),
-        query_nested=dict(type='dict', options=nested_query_filter_structure, required=False),
+        query_multiple=dict(type='dict', options=query_filter_structure, required=False),
+        query_raw=dict(type='dict', options=nested_query_filter_structure, required=False),
         query_single=dict(type='dict', options=single_filter, reqired=False),
         app_scope_id=dict(type='str', required=False),
         primary=dict(type='bool', required=False, default=False),
@@ -302,7 +302,7 @@ def run_module():
             ['name', 'id'],
         ],
         mutually_exclusive=[
-            ['query_filter', 'query_nested', 'query_single']
+            ['query_multiple', 'query_raw', 'query_single']
         ],
         required_by={
             'name': ['app_scope_id']
@@ -322,7 +322,7 @@ def run_module():
 
     # Since the query parameter data all goes into one field eventually, just extract it into
     # A value here for use later on in the module
-    query_parameters = ['query_filter', 'query_nested', 'query_single']
+    query_parameters = ['query_multiple', 'query_raw', 'query_single']
     extracted_query_filter = {}
     for query in query_parameters:
         if module.params[query]:
