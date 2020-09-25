@@ -44,6 +44,45 @@ The scenarios are in the **molecule** folder.  Each scenario is named after the 
 
 Environmental variables are set in the `molecule.yml` file.  If you have an `.env.yml` file set in the project root, when molecule runs, it will set the contents of that file as environmental variables. This way you can test both local and remote.
 
+Installing From GitHub
+----------------------
+This is the process to install this role directly from GitHub into ansible
+
+- Install Ansible (ideally in a python virtual environment).  The commands for linux are below
+  - `python3 -m venv venv`
+  - `source venv/bin/activate`
+  - `pip install --upgrade pip`
+  - `pip install 'ansible==2.9.13'`
+  - `pip install requests`
+- If the Repo is Private, create a Personal Access Token or be prepared to enter your username and password into Ansible Galaxy
+- Clone the repo using `ansible-galaxy`
+  - `ansible-galaxy install git+https://<your github userid>:<your github token>@github.com/tetration-exchange/ansible-module.git`
+- Set environmental variables required for the sample plays to run
+  - TETRATION_SERVER_ENDPOINT
+  - TETRATION_API_KEY
+  - TETRATION_API_SECRET
+- Use the modules in plays
+  - See the examples folder for an example of using the module when installed from Galaxy
+
+Storing Environmental Variables in a File
+-----------------------------------------
+An option to setting an environmental variable is to use `dotenv` to load them at run time.  You can create a `.env` file that can be excluded from source control.  This section covers how to install and use it.
+
+- An option to using environmental variables is you can install python dotenv
+  - `pip install "python-dotenv[cli]"`
+- Then you can put the environmental variables into a file called `.env` at the root of the repo that looks like
+
+.env
+```
+TETRATION_API_KEY="my api key"
+TETRATION_API_SECRET="my apy password"
+TETRATION_SERVER_ENDPOINT="https://ignwpov.tetrationpreview.com"
+```
+- Run the sample plays as follows
+  - `dotenv run ansible-playbook sample_play.yml`
+
+
+
 
 License
 -------
