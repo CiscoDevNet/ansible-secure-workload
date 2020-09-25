@@ -72,6 +72,12 @@ options:
 
 extends_documentation_fragment: tetration_doc_common
 
+notes:
+- Requires the `requests` Python module.
+
+requirements: 
+- requests 
+
 author:
     - Brandon Beck (@techbeck03)
     - Joe Jacobs (@joej164)

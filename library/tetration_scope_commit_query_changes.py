@@ -17,9 +17,6 @@ description:
     - "This modules allows you to commit the changes.  "
     - "Supported options are to do it now or to queue the job"
 
-notes:
-    - "If the command successfully runs, always returns as changed even if no short queries need updating"
-
 options:
     root_app_scope_id:
         description:
@@ -35,6 +32,13 @@ options:
         type: bool
 
 extends_documentation_fragment: tetration_doc_common
+
+notes:
+- If the command successfully runs, always returns as changed even if no short queries need updating
+- Requires the `requests` Python module.
+
+requirements: 
+- requests 
 
 author:
     - Joe Jacobs (@joej164)

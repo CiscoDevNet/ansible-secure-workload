@@ -48,6 +48,12 @@ options:
 
 extends_documentation_fragment: tetration_doc_common
 
+notes:
+- Requires the `requests` Python module.
+
+requirements: 
+- requests 
+
 author:
     - Your Name (@joej164)
 '''
