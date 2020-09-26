@@ -146,3 +146,24 @@
           - output.changed is false
           - output.items_found > 0
           - output.object.primary is false
+# -----
+
+    - name: Test - Search by is primary and get details
+      tetration_application_query:
+        is_primary: false
+        return_details: true
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Search by is primary and get details
+      debug:
+        var: output
+    
+    - name: Verify - Search by is primary and get details
+      assert:
+        that:
+          - output.failed is false
+          - output.changed is false
+          - output.items_found > 0
+          - output.object.primary is false
+          - output.object.absolute_policies

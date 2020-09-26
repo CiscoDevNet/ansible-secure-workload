@@ -196,7 +196,13 @@ def run_module():
                 continue
             if module.params['is_enforcing'] is not None and module.params['is_enforcing'] != app['enforement_enabled']:
                 continue
-            result['objects'].append(app)
+
+            if module.params['return_details']:
+                route = f"{TETRATION_API_APPLICATIONS}/{app['id']}/details"
+                details = tet_module.run_method('GET', route)
+                result['objects'].append(details)
+            else:
+                result['objects'].append(app)
 
         result['items_found'] = len(result['objects'])
         if result['objects']:
