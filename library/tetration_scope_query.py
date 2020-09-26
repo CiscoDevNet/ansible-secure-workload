@@ -59,11 +59,6 @@ author:
 '''
 
 EXAMPLES = '''
-# Pass in a message
-- name: Test with a message
-  my_test:
-    name: hello world
-
 # pass in a message and have changed true
 - name: Search for dirty scope objects by scope name
   tetration_scope_query:

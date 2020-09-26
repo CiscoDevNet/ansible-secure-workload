@@ -1,0 +1,148 @@
+---
+- name: Converge
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: "Include ansible-module"
+      include_role:
+        name: "ansible-module"
+
+    - name: read variables from the environment that are set in the molecule.yml
+      set_fact:
+        ansible_host: "{{ lookup('env', 'TETRATION_SERVER_ENDPOINT') }}"
+        api_key: "{{ lookup('env', 'TETRATION_API_KEY') }}"
+        api_secret: "{{ lookup('env', 'TETRATION_API_SECRET') }}"
+      no_log: True 
+
+    - name: put the variables in the required format
+      set_fact:
+        provider_info:
+          api_key: "{{ api_key }}"
+          api_secret: "{{ api_secret }}"
+          server_endpoint: "{{ ansible_host }}"
+      no_log: True 
+
+    - name: set test variables
+      set_fact:
+        root_scope_id: 5ce71503497d4f2c23af85b7
+        test_app_id: 5ed69642755f027a324bd922
+# -----
+
+    - name: Test - Get all app scopes 
+      tetration_application_query:
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Get all app scopes 
+      debug:
+        var: output
+    
+    - name: Verify - Get all app scopes 
+      assert:
+        that:
+          - output.failed is false
+          - output.changed is false
+          - output.items_found > 0
+# -----
+
+    - name: Test - Get single application
+      tetration_application_query:
+        app_id: "{{ test_app_id }}" 
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Get single application
+      debug:
+        var: output
+    
+    - name: Verify - Get single application
+      assert:
+        that:
+          - output.failed is false
+          - output.changed is false
+          - output.items_found == 1
+# # -----
+
+#     - name: Test - Get single application details
+#       tetration_application_query:
+#         app_id: "{{ test_app_id }}"
+#         return_details: true 
+#         provider: "{{ provider_info }}"
+#       register: output
+
+#     - name: Output - Get single application details
+#       debug:
+#         var: output
+    
+#     - name: Verify - Get single application details
+#       assert:
+#         that:
+#           - output.failed is false
+#           - output.changed is false
+#           - output.items_found == 1
+#           - output.object.absolute_policies
+
+# -----
+
+    - name: Test - Search by name 
+      tetration_application_query:
+        app_name: Pet
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Search by name 
+      debug:
+        var: output
+    
+    - name: Verify - Search by name 
+      assert:
+        that:
+          - output.failed is false
+          - output.changed is false
+          - output.items_found == 1
+# -----
+
+    - name: Test - Searching by App ID is mutually exclusive with other options
+      tetration_application_query:
+        app_id: "{{ test_app_id }}" 
+        app_name: Pet
+        is_primary: false
+        is_enforcing: false
+        provider: "{{ provider_info }}"
+      register: output
+      ignore_errors: true
+
+    - name: Output - Searching by App ID is mutually exclusive with other options
+      debug:
+        var: output
+
+    - name: Output - Searching by App ID is mutually exclusive with other options
+      set_fact:
+        expected_output: >-
+          parameters are mutually exclusive: app_id|app_name, app_id|is_primary, app_id|is_enforcing
+    
+    - name: Verify - Searching by App ID is mutually exclusive with other options
+      assert:
+        that:
+          - output.failed is true
+          - output.msg == expected_output
+# -----
+
+    - name: Test - Search by is primary
+      tetration_application_query:
+        is_primary: false
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Search by is primary
+      debug:
+        var: output
+    
+    - name: Verify - Search by is primary
+      assert:
+        that:
+          - output.failed is false
+          - output.changed is false
+          - output.items_found > 0
+          - output.object.primary is false

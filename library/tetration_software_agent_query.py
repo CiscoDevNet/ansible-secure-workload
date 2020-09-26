@@ -201,6 +201,10 @@ object:
   description: the changed or modified object(s)
   returned: always
   type: list
+items_found:
+  description: the number of items found
+  returned: always
+  type: int
 '''
 
 import ipaddress
@@ -225,7 +229,8 @@ def run_module():
     # Create the return object
     result = {
         'object': [],
-        'changed': False
+        'changed': False,
+        'items_found': 0
     }
 
     module = AnsibleModule(
