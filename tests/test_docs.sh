@@ -2,6 +2,10 @@
 # This script is used to run the ansible-doc command and verify that the 
 # doc string will render.  If it does, great, if not, it will exit with error code 1
 
+export ANSIBLE_LIBRARY=./
+export ANSIBLE_MODULE_UTILS=./module_utils
+export ANSIBLE_DOC_FRAGMENT_PLUGINS=./plugins/doc_fragments
+
 declare -a arr=("tetration_application"
                 "tetration_inventory_filter"
                 "tetration_rest"
