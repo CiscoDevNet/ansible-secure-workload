@@ -66,7 +66,6 @@ extends_documentation_fragment: tetration_doc_common
 notes:
 - Requires the requests Python module.
 - Only the fields C(app_name), C(description), C(primary) can be updated on an existing application
-- Supports check mode.
 
 requirements: 
 - requests 
@@ -183,7 +182,7 @@ def main():
         strict_validation=dict(type='bool', required=False, default=False),
         primary=dict(type='bool', required=False),
         state=dict(required=True, choices=['present', 'absent']),
-        provider=dict(type='dict', options=TETRATION_PROVIDER_SPEC)
+        provider=dict(type='dict', required=True, options=TETRATION_PROVIDER_SPEC)
     )
 
     module = AnsibleModule(
