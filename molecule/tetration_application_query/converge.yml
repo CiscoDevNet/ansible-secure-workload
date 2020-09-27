@@ -62,27 +62,26 @@
           - output.failed is false
           - output.changed is false
           - output.items_found == 1
-# # -----
+# -----
 
-#     - name: Test - Get single application details
-#       tetration_application_query:
-#         app_id: "{{ test_app_id }}"
-#         return_details: true 
-#         provider: "{{ provider_info }}"
-#       register: output
+    - name: Test - Get single application details
+      tetration_application_query:
+        app_id: "{{ test_app_id }}"
+        return_details: true 
+        provider: "{{ provider_info }}"
+      register: output
 
-#     - name: Output - Get single application details
-#       debug:
-#         var: output
+    - name: Output - Get single application details
+      debug:
+        var: output
     
-#     - name: Verify - Get single application details
-#       assert:
-#         that:
-#           - output.failed is false
-#           - output.changed is false
-#           - output.items_found == 1
-#           - output.object.absolute_policies
-
+    - name: Verify - Get single application details
+      assert:
+        that:
+          - output.failed is false
+          - output.changed is false
+          - output.items_found == 1
+          - output.object.absolute_policies
 # -----
 
     - name: Test - Search by name 

@@ -46,35 +46,26 @@ options:
   description:
     description: User specified description of the application
     type: string
-  force:
-    description: If set to True will allow removing workspace with enforcement enabled
+  strict_validation:
+    description:
+    - Will return an error if there are unknown keys/attributes in the uploaded data.
+    - Useful for catching misspelled keys.
+    - Default value is false.
     type: bool
   primary:
     description: Indicates if the application is primary for its scope
     type: bool
-  query_level:
-    choices: '[top, details]'
-    default: top
-    description: The level of detail of returned query data
-    type: string
-  query_type:
-    choices: '[single, scope, tenant]'
-    default: single
-    description: Options for expanding query search
-    type: string
   state:
-    choices: '[present, absent, query]'
+    choices: '[present, absent]'
     description: Add, change, remove or query for application
     required: true
     type: string
-  strict_validation:
-    description: Unix timestamp of when the application was created (Epoch Timestamp)
-    type: bool
 
 extends_documentation_fragment: tetration_doc_common
 
 notes:
 - Requires the requests Python module.
+- Only the fields C(app_name), C(description), C(primary) can be updated on an existing application
 - Supports check mode.
 
 requirements: 
@@ -94,7 +85,7 @@ tetration_application:
     primary: yes
     state: present
     provider:
-      host: "tetration-cluster@company.com"
+      host: "https://tetration-cluster.company.com"
       api_key: 1234567890QWERTY
       api_secret: 1234567890QWERTY
 
@@ -105,19 +96,7 @@ tetration_application:
     primary: yes
     state: absent
     provider:
-      host: "tetration-cluster@company.com"
-      api_key: 1234567890QWERTY
-      api_secret: 1234567890QWERTY
-
-# Query for application details
-tetration_application:
-    app_name: ACME InfoSec Policies
-    app_scope_name: ACME:Example:Application
-    query_type: single
-    query_level: details
-    state: query
-    provider:
-      host: "tetration-cluster@company.com"
+      host: "https://tetration-cluster.company.com"
       api_key: 1234567890QWERTY
       api_secret: 1234567890QWERTY
 '''
@@ -187,18 +166,14 @@ object:
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.tetration.api import TetrationApiModule
-from ansible.module_utils.tetration.api import TETRATION_API_APPLICATIONS
-from ansible.module_utils.tetration.api import TETRATION_API_SCOPES
-
-from ansible.utils.display import Display
-display = Display()
-
-from time import sleep
+from ansible.module_utils.tetration import TetrationApiModule
+from ansible.module_utils.tetration_constants import TETRATION_API_APPLICATIONS
+from ansible.module_utils.tetration_constants import TETRATION_API_SCOPES
+from ansible.module_utils.tetration_constants import TETRATION_PROVIDER_SPEC
 
 
 def main():
-    tetration_spec = dict(
+    module_args = dict(
         app_name=dict(type='str', required=False),
         app_id=dict(type='str', required=False),
         app_scope_id=dict(type='str', required=False),
@@ -206,237 +181,133 @@ def main():
         description=dict(type='str', required=False),
         alternate_query_mode=dict(type='bool', required=False, default=False),
         strict_validation=dict(type='bool', required=False, default=False),
-        primary=dict(type='bool', required=False, default=True),
-        force=dict(type='bool', required=False, default=False),
-        query_type=dict(type='str', required=False, choices=['single', 'scope', 'tenant'], default='single'),
-        query_level=dict(type='str', choices=['top', 'details'], default='top')
+        primary=dict(type='bool', required=False),
+        state=dict(required=True, choices=['present', 'absent']),
+        provider=dict(type='dict', options=TETRATION_PROVIDER_SPEC)
     )
-
-    argument_spec = dict(
-        provider=dict(required=True),
-        state=dict(required=True, choices=['present', 'absent', 'query'])
-    )
-
-    argument_spec.update(tetration_spec)
-    argument_spec.update(TetrationApiModule.provider_spec)
 
     module = AnsibleModule(
-        argument_spec=argument_spec,
-        supports_check_mode=True,
+        argument_spec=module_args,
         mutually_exclusive=[
-            ['app_scope_name', 'app_scope_id'],
+            ['app_scope_name', 'app_scope_id']
         ],
         required_one_of=[
-            # ['app_name', 'app_id'],
-            ['app_scope_name', 'app_scope_id'],
+            ['app_name', 'app_id'],
         ],
     )
 
     tet_module = TetrationApiModule(module)
 
     # These are all elements we put in our return JSON object for clarity
-    result = dict(
-        changed=False,
-        object=None,
-    )
-
-    state = module.params['state']
-    app_name = module.params['app_name']
-    app_id = module.params['app_id']
-    app_scope_name = module.params['app_scope_name']
-    app_scope_id = module.params['app_scope_id']
-    description = module.params['description']
-    alternate_query_mode = module.params['alternate_query_mode']
-    strict_validation = module.params['strict_validation']
-    primary = module.params['primary']
-    force = module.params['force']
-    query_type = module.params['query_type']
-    query_level = module.params['query_level']
-    existing_app = None
-    existing_app_scope = None
+    result = {
+        'changed': False,
+        'object': None,
+    }
 
     # =========================================================================
-    # Get current state of the object
-    if app_scope_id:
-        existing_app_scope = tet_module.run_method(
-            method_name='get',
-            target='%s/%s' % (TETRATION_API_SCOPES, app_scope_id)
-        )
-    elif not app_scope_id:
-        existing_app_scope = tet_module.get_object(
-            target=TETRATION_API_SCOPES,
-            filter=dict(name=app_scope_name)
-        )
+    # Verify passed in data is accurate.
+    existing_app_scope = {}
+    if module.params['app_scope_id']:
+        app_scope_route = f"{TETRATION_API_SCOPES}/{module.params['app_scope_id']}"
+        existing_app_scope = tet_module.run_method('GET', app_scope_route)
+        if not existing_app_scope:
+            module.fail_json(msg=f"Unable to find existing app with the id of: {module.params['app_scope_id']}")
+    elif module.params['app_scope_name']:
+        all_scopes = tet_module.run_method('GET', TETRATION_API_SCOPES)
+        found_app_scopes = [scope for scope in all_scopes if scope['name'] == module.params['app_scope_name']]
+        if len(found_app_scopes) == 0:
+            module.fail_json(
+                msg=f"There were no app scopes that matched the name entered.  Searched for: {module.params['app_scope_name']}")
+        elif len(found_app_scopes) > 1:
+            module.fail_json(
+                msg=f"There were too many app scopes that matched the name entered.  Searched for: {module.params['app_scope_name']}")
+        existing_app_scope = found_app_scopes[0]
 
-    if not existing_app_scope:
-        module.fail_json(msg='Unable to find existing app scope named: %s' % app_scope_name)
+    existing_app = {}
+    if module.params['app_id']:
+        app_route = f"{TETRATION_API_APPLICATIONS}/{module.params['app_id']}"
+        existing_app = tet_module.run_method('GET', app_route)
+        if not existing_app:
+            module.fail_json(msg=f"The App ID entered is not in the system.  Searched for: {module.params['app_id']}")
+    elif module.params['app_name']:
+        # If we have an app_id, and it's valid, we don't care about searching for the app_id by name
+        # If we don't have an app_id, then we need to find an app, but it's ok if one doesn't exist
+        # because we'll then make it, or we could be verifying it's absent
+        apps = tet_module.run_method('GET', TETRATION_API_APPLICATIONS)
+        found_apps = [found for found in apps if found['name'] == module.params['app_name']]
+        if len(found_apps) > 1:
+            module.fail_json(
+                msg=f"There were too many apps that matched the name entered.  Searched for: {module.params['app_name']}")
+        elif len(found_apps) == 1:
+            existing_app = found_apps[0]
 
-    if app_id:
-        existing_app = tet_module.run_method(
-            method_name='get',
-            target='%s/%s' % (TETRATION_API_APPLICATIONS, app_id)
-        )
-    elif not app_id:
-        existing_app = tet_module.get_object(
-            target=TETRATION_API_APPLICATIONS,
-            filter=dict(name=app_name, app_scope_id=existing_app_scope['id'])
-        )
+    app_route = ""
+    if existing_app:
+        app_route = f"{TETRATION_API_APPLICATIONS}/{existing_app['id']}"
+
     # =========================================================================
-    # Now enforce the desired state (present, absent, query)
+    # Now enforce the desired state (present, absent)
 
     # ---------------------------------
     # STATE == 'present'
     # ---------------------------------
-    if state == 'present':
+    if module.params['state'] == 'present':
+        # if the object does not exist at all, create it but verify we have all needed data first
+        if not existing_app and not existing_app_scope:
+            module.fail_json(msg="The application does not exist.  Must provide a Scope ID or Scope Name to create a new scope.")
 
-        # if the object does not exist at all, create it
-        new_object = dict(
-            app_scope_id=existing_app_scope['id'],
-            name=app_name,
-            description=description,
-            alternate_query_mode=alternate_query_mode,
-            primary=primary,
-        )
+        if not existing_app and not module.params['primary']:
+            module.fail_json(
+                msg="The application does not exist.  Must provide info on if the scope is primary or not when creating a scope.")
+
         if existing_app:
-            new_object['id'] = existing_app['id']
-            result['changed'] = tet_module.filter_object(new_object, existing_app, check_only=True)
-            if result['changed']:
-                if not module.check_mode:
-                    del new_object['id']
-                    tet_module.run_method(
-                        method_name='put',
-                        target='%s/%s' % (TETRATION_API_APPLICATIONS, existing_app['id']),
-                        req_payload=dict(
-                            name=app_name,
-                            description=description,
-                            primary=primary
-                        )
-                    )
-                else:
-                    result['object'] = new_object
-        else:
-            if not module.check_mode:
-                new_object['strict_validation'] = strict_validation,
-                app_object = tet_module.run_method(
-                    method_name='post',
-                    target=TETRATION_API_APPLICATIONS,
-                    req_payload=new_object
-                )
-                existing_app = dict(id=app_object['id'])
-            result['changed'] = True
+            updated_app = {
+                'name': module.params['app_name'],
+                'description': module.params['description'],
+                'primary': module.params['primary']
+            }
+            if not module.params['app_name']:
+                updated_app.pop('name')
+            if module.params['description'] is None:
+                updated_app.pop('description')
+            if module.params['primary'] is None:
+                updated_app.pop('primary')
 
-        # if the object does exist, check to see if any part of it should be
-        # changed
-        if result['changed']:
-            if not module.check_mode:
-                result['object'] = tet_module.run_method(
-                    method_name='get',
-                    target='%s/%s' % (TETRATION_API_APPLICATIONS, existing_app['id'])
-                )
+            is_subset = tet_module.is_subset(updated_app, existing_app)
+
+            if not is_subset:
+                result['object'] = tet_module.run_method('PUT', app_route, req_payload=updated_app)
+                result['changed'] = True
             else:
-                result['object'] = new_object
+                result['object'] = existing_app
         else:
-            result['changed'] = False
-            result['object'] = existing_app
+            new_app = {
+                'app_scope_id': existing_app_scope['id'],
+                'name': module.params['app_name'],
+                'description': module.params['description'],
+                'alternate_query_mode': module.params['alternate_query_mode'],
+                'strict_validation': module.params['strict_validation'],
+                'primary': module.params['primary']
+            }
+
+            result['object'] = tet_module.run_method("POST", TETRATION_API_APPLICATIONS, req_payload=new_app)
+            result['changed'] = True
 
     # ---------------------------------
     # STATE == 'absent'
     # ---------------------------------
 
-    elif state == 'absent':
+    elif module.params['state'] == 'absent':
         if existing_app:
-            if existing_app['enforcement_enabled'] and not force:
+            if existing_app['enforcement_enabled']:
                 module.fail_json(
-                    msg='Cannot delete workspace with enforcement.  Try disabling enforcement or use the force option')
-            elif existing_app['primary'] and not force:
+                    msg='Cannot delete workspace with enforcement enabled.  Disable enforcement before deleting')
+            elif existing_app['primary']:
                 module.fail_json(
-                    msg='Cannot delete primary application.  Try making application secondary or use the force option')
-            elif existing_app['primary'] and force:
-                if existing_app['enforcement_enabled']:
-                    tet_module.run_method(
-                        method_name='post',
-                        target='%s/%s/disable_enforce' % (TETRATION_API_APPLICATIONS, existing_app['id'])
-                    )
-                    sleep(10)
-                tet_module.run_method(
-                    method_name='put',
-                    target='%s/%s' % (TETRATION_API_APPLICATIONS, existing_app['id']),
-                    req_payload=dict(
-                        name=app_name,
-                        description=description,
-                        primary=False
-                    )
-                )
-                sleep(2)
+                    msg='Cannot delete primary application.  Try making application secondary before deleting')
+
+            result['object'] = tet_module.run_method('DELETE', app_route)
             result['changed'] = True
-            if not module.check_mode:
-                tet_module.run_method(
-                    method_name='delete',
-                    target='%s/%s' % (TETRATION_API_APPLICATIONS, existing_app['id'])
-                )
-
-    # ---------------------------------
-    # STATE == 'query'
-    # ---------------------------------
-
-    elif state == 'query':
-        if query_type == 'tenant':
-            if existing_app_scope['id'] != existing_app_scope['root_app_scope_id']:
-                module.fail_json(msg='query_type `tenant` is only allowed on root scopes')
-            app_scopes = tet_module.get_object(
-                target=TETRATION_API_SCOPES,
-                filter=dict(root_app_scope_id=existing_app_scope['root_app_scope_id']),
-                allow_multiple=True
-            )
-            scope_ids = [scope['id'] for scope in app_scopes]
-            applications = tet_module.run_method(
-                method_name='get',
-                target=TETRATION_API_APPLICATIONS
-            )
-            if applications:
-                applications = [valid_item for valid_item in applications if valid_item['app_scope_id'] in scope_ids]
-            if query_level == 'details':
-                app_details = []
-                for application in applications:
-                    app_details.append(
-                        tet_module.run_method(
-                            method_name='get',
-                            target='%s/%s/details' % (TETRATION_API_APPLICATIONS, application['id'])
-                        )
-                    )
-                result['object'] = app_details
-            else:
-                result['object'] = applications if applications else []
-        elif query_type == 'scope':
-            applications = tet_module.run_method(
-                method_name='get',
-                target=TETRATION_API_APPLICATIONS,
-            )
-            if applications:
-                applications = [valid_item for valid_item in applications if valid_item['app_scope_id']
-                                == existing_app_scope['id']]
-            if query_level == 'details':
-                app_details = []
-                for application in applications:
-                    app_details.append(
-                        tet_module.run_method(
-                            method_name='get',
-                            target='%s/%s/details' % (TETRATION_API_APPLICATIONS, application['id'])
-                        )
-                    )
-                result['object'] = app_details
-            else:
-                result['object'] = applications if applications else []
-        else:
-            if query_level == 'details':
-                existin_app = []
-                app_details = tet_module.run_method(
-                    method_name='get',
-                    target='%s/%s/details' % (TETRATION_API_APPLICATIONS, application['id'])
-                )
-                result['object'] = app_details
-            else:
-                result['object'] = existing_app
 
     # Return result
     module.exit_json(**result)

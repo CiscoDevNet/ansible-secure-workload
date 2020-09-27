@@ -560,172 +560,218 @@ class TestTetrationApiModule:
         assert isinstance(filtered_resp, list)
         assert filtered_resp[0]['id'] == test_user_id
 
-    # def test_filter_object_both_match_check_only(self, tet_client):
-    #     test_obj1 = {
-    #         'a': 1,
-    #         'b': 2,
-    #         'c': 3
-    #     }
+    def test_is_subset_both_match_check_only(self, tet_client):
+        test_obj1 = {
+            'a': 1,
+            'b': 2,
+            'c': 3
+        }
 
-    #     test_obj2 = {
-    #         'a': 1,
-    #         'b': 2,
-    #         'c': 3
-    #     }
+        test_obj2 = {
+            'a': 1,
+            'b': 2,
+            'c': 3
+        }
 
-    #     resp = tet_client.filter_object(test_obj1, test_obj2, check_only=True)
+        resp = tet_client.is_subset(test_obj1, test_obj2)
 
-    #     assert resp is False
+        assert resp is True
 
-    # def test_filter_object_different_objects_check_only(self, tet_client):
-    #     test_obj1 = {
-    #         'a': 1,
-    #         'b': 2,
-    #         'c': 3
-    #     }
+    def test_is_subset_different_objects_check_only(self, tet_client):
+        test_obj1 = {
+            'a': 1,
+            'b': 2,
+            'c': 3
+        }
 
-    #     test_obj2 = {
-    #         'a': 1,
-    #         'b': 3,
-    #         'c': 2
-    #     }
+        test_obj2 = {
+            'a': 1,
+            'b': 3,
+            'c': 2
+        }
 
-    #     resp = tet_client.filter_object(test_obj1, test_obj2, check_only=True)
+        resp = tet_client.is_subset(test_obj1, test_obj2)
 
-    #     assert resp is True
+        assert resp is False
 
-    # def test_filter_object_both_match_change_enabled(self, tet_client):
-    #     test_obj1 = {
-    #         'a': 1,
-    #         'b': 2,
-    #         'c': 3
-    #     }
+    def test_is_subset_obj1_smaller(self, tet_client):
+        test_obj1 = {
+            'a': 1,
+        }
 
-    #     test_obj2 = {
-    #         'a': 1,
-    #         'b': 2,
-    #         'c': 3
-    #     }
+        test_obj2 = {
+            'a': 1,
+            'b': 2,
+            'c': 3
+        }
 
-    #     resp = tet_client.filter_object(test_obj1, test_obj2)
+        resp = tet_client.is_subset(test_obj1, test_obj2)
 
-    #     assert resp is False
+        assert resp is True
 
-    # def test_filter_object_different_objects_change_enabled(self, tet_client):
-    #     test_obj1 = {
-    #         'a': 1,
-    #         'b': 2,
-    #         'c': 3
-    #     }
+    def test_is_subset_obj_2_bigger(self, tet_client):
+        test_obj1 = {
+            'a': 1,
+            'b': 2,
+            'c': 3,
+            'd': 4
+        }
 
-    #     test_obj2 = {
-    #         'a': 1,
-    #         'b': 3,
-    #         'c': 2
-    #     }
+        test_obj2 = {
+            'a': 1,
+            'b': 2,
+            'c': 3
+        }
 
-    #     resp = tet_client.filter_object(test_obj1, test_obj2)
-    #     assert resp is True
-    #     assert not test_obj1.get('a')
+        resp = tet_client.is_subset(test_obj1, test_obj2)
 
-    # def test_filter_object_same_with_lists(self, tet_client):
-    #     test_obj1 = {
-    #         'a': 1,
-    #         'b': 2,
-    #         'c': [3, 4, 5]
-    #     }
+        assert resp is False
 
-    #     test_obj2 = {
-    #         'a': 1,
-    #         'b': 2,
-    #         'c': [3, 4, 5]
-    #     }
+    def test_is_subset_obj1_not_in_obj2(self, tet_client):
+        test_obj1 = {
+            'd': 1,
+        }
 
-    #     resp = tet_client.filter_object(test_obj1, test_obj2)
-    #     assert resp is False
+        test_obj2 = {
+            'a': 1,
+            'b': 2,
+            'c': 3
+        }
 
-    # def test_filter_object_same_with_different_lists(self, tet_client):
-    #     test_obj1 = {
-    #         'a': 1,
-    #         'b': 2,
-    #         'c': [3, 4, 5]
-    #     }
+        resp = tet_client.is_subset(test_obj1, test_obj2)
 
-    #     test_obj2 = {
-    #         'a': 1,
-    #         'b': 2,
-    #         'c': [3, 4, 5, 6]
-    #     }
+        assert resp is False
 
-    #     resp = tet_client.filter_object(test_obj1, test_obj2)
-    #     assert resp is True
-    #     assert not test_obj1.get('a')
-    #     assert not test_obj1.get('b')
+    def test_is_subset_obj_2_deeply_nested(self, tet_client):
+        test_obj1 = {
+            'd': 1,
+        }
 
-    # def test_filter_object_same_with_completly_different_objects(self, tet_client):
-    #     test_obj1 = {
-    #         'a': 1,
-    #         'b': 2,
-    #         'c': [3, 4, 5]
-    #     }
+        test_obj2 = {
+            'a': 1,
+            'b': 2,
+            'c': False,
+            'd': {
+                'e': [4, 5, 6],
+                'f': {
+                    'g': 7
+                }
+            }
+        }
 
-    #     test_obj2 = {
-    #         'd': 1,
-    #         'e': 2,
-    #         'f': [3, 4, 5, 6]
-    #     }
+        resp = tet_client.is_subset(test_obj1, test_obj2)
 
-    #     resp = tet_client.filter_object(test_obj1, test_obj2)
-    #     assert resp is True
+        assert resp is False
 
-    # def test_filter_object_same_with_same_sub_dicts(self, tet_client):
-    #     test_obj1 = {
-    #         'a': {
-    #             'b': 2,
-    #             'c': 3
-    #         },
-    #         'd': 4
-    #     }
-    #     test_obj2 = {
-    #         'a': {
-    #             'b': 2,
-    #             'c': 3
-    #         },
-    #         'd': 4
-    #     }
+    def test_is_subset_object_same_with_lists(self, tet_client):
+        test_obj1 = {
+            'a': 1,
+            'b': 2,
+            'c': [3, 4, 5]
+        }
 
-    #     resp = tet_client.filter_object(test_obj1, test_obj2)
-    #     assert resp is False
+        test_obj2 = {
+            'a': 1,
+            'b': 2,
+            'c': [3, 4, 5]
+        }
 
-    # def test_filter_object_same_with_different_sub_dicts(self, tet_client):
-    #     test_obj1 = {
-    #         'a': {
-    #             'b': 2,
-    #             'c': 3
-    #         },
-    #         'd': 4
-    #     }
-    #     test_obj2 = {
-    #         'a': {
-    #             'b': 2,
-    #             'c': 4
-    #         },
-    #         'd': 4
-    #     }
+        resp = tet_client.is_subset(test_obj1, test_obj2)
+        assert resp is True
 
-    #     resp = tet_client.filter_object(test_obj1, test_obj2)
-    #     assert resp is True
+    def test_is_subset_same_keys_with_different_lists(self, tet_client):
+        test_obj1 = {
+            'a': 1,
+            'b': 2,
+            'c': [3, 4, 5]
+        }
 
-    # def test_filter_object_with_same_lists(self, tet_client):
-    #     test_obj1 = [1, 2, 3]
-    #     test_obj2 = [1, 2, 3]
+        test_obj2 = {
+            'a': 1,
+            'b': 2,
+            'c': [3, 4, 5, 6]
+        }
 
-    #     resp = tet_client.filter_object(test_obj1, test_obj2)
-    #     assert resp is False
+        resp = tet_client.is_subset(test_obj1, test_obj2)
+        assert resp is False
 
-    # def test_filter_object_with_different_lists(self, tet_client):
-    #     test_obj1 = [1, 2, 3]
-    #     test_obj2 = [4, 5, 6]
+    def test_is_subset_with_completly_different_objects(self, tet_client):
+        test_obj1 = {
+            'a': 1,
+            'b': 2,
+            'c': [3, 4, 5]
+        }
 
-    #     resp = tet_client.filter_object(test_obj1, test_obj2)
-    #     assert resp is True
+        test_obj2 = {
+            'd': 1,
+            'e': 2,
+            'f': [3, 4, 5, 6]
+        }
+
+        resp = tet_client.is_subset(test_obj1, test_obj2)
+        assert resp is False
+
+    def test_is_subset_same_with_same_sub_dicts(self, tet_client):
+        test_obj1 = {
+            'a': {
+                'b': 2,
+                'c': 3
+            },
+            'd': 4
+        }
+        test_obj2 = {
+            'a': {
+                'b': 2,
+                'c': 3
+            },
+            'd': 4
+        }
+
+        resp = tet_client.is_subset(test_obj1, test_obj2)
+        assert resp is True
+
+    def test_is_subset_same_with_different_sub_dicts(self, tet_client):
+        test_obj1 = {
+            'a': {
+                'b': 2,
+                'c': 3
+            },
+            'd': 4
+        }
+        test_obj2 = {
+            'a': {
+                'b': 2,
+                'c': 4
+            },
+            'd': 4
+        }
+
+        resp = tet_client.is_subset(test_obj1, test_obj2)
+        assert resp is False
+
+    def test_is_subset_same_with_nested_same_smaller_object(self, tet_client):
+        test_obj1 = {
+            'a': {
+                'b': 2,
+                'c': [3, 4, {'a': 1, 'b': 2}]
+            }
+        }
+        test_obj2 = {
+            'a': {
+                'b': 2,
+                'c': [3, 4, {'a': 1, 'b': 2}]
+            },
+            'd': 4
+        }
+
+        resp = tet_client.is_subset(test_obj1, test_obj2)
+        assert resp is True
+
+    def test_is_subset_with_same_lists(self, tet_client):
+        test_obj1 = [1, 2, 3]
+        test_obj2 = [1, 2, 3]
+
+        with pytest.raises(TypeError) as e:
+            tet_client.is_subset(test_obj1, test_obj2)
+
+        assert str(e.value) == "Both objects must be dictionaries."
