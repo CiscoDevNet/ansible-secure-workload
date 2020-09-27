@@ -167,3 +167,23 @@
           - output.failed is false
           - output.object.success is true
           - output.changed is true
+
+# -----
+
+    - name: Test - Attempt to delete app that's already deleted 
+      tetration_application:
+        app_name: updated test_cicd_app
+        state: absent
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Attempt to delete app that's already deleted 
+      debug:
+        var: output
+    
+    - name: Verify - Attempt to delete app that's already deleted 
+      assert:
+        that:
+          - output.failed is false
+          - output.object is none
+          - output.changed is false
