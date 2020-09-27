@@ -4,6 +4,7 @@ export ANSIBLE_MODULE_UTILS=./module_utils
 export ANSIBLE_DOC_FRAGMENT_PLUGINS=./plugins/doc_fragments
 
 declare -a arr=("tetration_application"
+                "tetration_inventory_tag_search"
                 "tetration_inventory_tag_headers"
                 "tetration_application_enforcement"
                 "tetration_application_query"
