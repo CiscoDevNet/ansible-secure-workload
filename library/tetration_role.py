@@ -19,9 +19,6 @@ description:
 - Enables creation, modification, and deletion of roles.
 - Can add capabilities to a role, but cannot modify or delete capabilities.
 
-notes:
-- Does not support check mode.
-
 options:
   app_scope_id:
     default: '""'
@@ -56,6 +53,12 @@ options:
     type: string
 
 extends_documentation_fragment: tetration_doc_common
+
+notes:
+- Requires the `requests` Python module.
+
+requirements: 
+- requests 
 
 author:
     - Doron Chosnek (@dchosnek)

@@ -187,6 +187,16 @@ class TetrationApiModule(TetrationApiBase):
         else:
             self._handle_exception('delete', resp)
 
+    def is_subset(self, smaller_obj, bigger_obj):
+        # Accepts 2 dictionaries and determines if the first dict is a subset of the second dict
+        if not isinstance(smaller_obj, dict) or not isinstance(bigger_obj, dict):
+            raise TypeError("Both objects must be dictionaries.")
+
+        for k, v in smaller_obj.items():
+            if bigger_obj.get(k) != v:
+                return False
+        return True
+
     # def filter_object(self, obj1, obj2, check_only=False):
 
     #     if check_only:

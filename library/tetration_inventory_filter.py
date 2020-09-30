@@ -13,7 +13,7 @@ short_description: Add, remove, update, and query inventory filters
 version_added: '2.8'
 
 description:
-- Enables management of Cisco Teetration inventory filters.
+- Enables management of Cisco Tetration inventory filters.
 - Enables creation, modification, and deletion of filters.
 - Enables management of complex filters with boolean operators on many different objects.
 
@@ -71,10 +71,15 @@ options:
 
 extends_documentation_fragment: tetration_doc_common
 
+notes:
+- Requires the `requests` Python module.
+
+requirements: 
+- requests
+
 author:
     - Doron Chosnek (@dchosnek)
     - Joe Jacobs(@joej164)
-
 '''
 
 EXAMPLES = '''

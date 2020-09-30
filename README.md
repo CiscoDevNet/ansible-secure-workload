@@ -81,6 +81,22 @@ TETRATION_SERVER_ENDPOINT="https://ignwpov.tetrationpreview.com"
 - Run the sample plays as follows
   - `dotenv run ansible-playbook sample_play.yml`
 
+Running the Module locally
+--------------------------
+If you want to work on the module in a local environment, you'll need to create an `ansible.cfg` file with the following contents:
+
+ansible.cfg
+```
+[defaults]
+
+# Tetration modules
+library = ./
+module_utils = ./module_utils
+doc_fragment_plugins = ./plugins/doc_fragments
+
+# Helps read debug outputs better
+stdout_callback = debug
+```
 
 
 

@@ -1,0 +1,66 @@
+---
+- name: Converge
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: "Include ansible-module"
+      include_role:
+        name: "ansible-module"
+
+    - name: read variables from the environment that are set in the molecule.yml
+      set_fact:
+        ansible_host: "{{ lookup('env', 'TETRATION_SERVER_ENDPOINT') }}"
+        api_key: "{{ lookup('env', 'TETRATION_API_KEY') }}"
+        api_secret: "{{ lookup('env', 'TETRATION_API_SECRET') }}"
+      no_log: True 
+
+    - name: put the variables in the required format
+      set_fact:
+        provider_info:
+          api_key: "{{ api_key }}"
+          api_secret: "{{ api_secret }}"
+          server_endpoint: "{{ ansible_host }}"
+      no_log: True 
+
+    - name: set test variables
+      set_fact:
+        root_scope_id: 5ce71503497d4f2c23af85b7
+        test_app_id: 5ed69642755f027a324bd922
+# -----
+
+    - name: Test - Query all column headers
+      tetration_inventory_tag_headers:
+        root_scope_name: Ignwpov
+        state: query 
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Query all column headers
+      debug:
+        var: output
+    
+    - name: Verify - Query all column headers
+      assert:
+        that:
+          - output.failed is false
+          - output.changed is false
+# -----
+
+    - name: Test - Delete column header that's not present 
+      tetration_inventory_tag_headers:
+        root_scope_name: Ignwpov
+        attribute: not there 
+        state: absent 
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Delete column header that's not present 
+      debug:
+        var: output
+    
+    - name: Verify - Delete column header that's not present 
+      assert:
+        that:
+          - output.failed is false
+          - output.changed is false

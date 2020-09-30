@@ -23,9 +23,6 @@ description:
     - "Roles can be added and removed"
     - "Names can be modified"
 
-notes:
-- Supports check mode
-
 options:
     app_scope_id:
         description: ID of the user scope. Omit this parameter or set
@@ -74,6 +71,13 @@ options:
         required: true
 
 extends_documentation_fragment: tetration_doc_common
+
+notes:
+- Requires the `requests` Python module.
+- Supports check mode
+
+requirements:
+- requests 
 
 author:
     - Doron Chosnek (@dchosnek)

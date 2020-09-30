@@ -48,16 +48,17 @@ options:
 
 extends_documentation_fragment: tetration_doc_common
 
+notes:
+- Requires the `requests` Python module.
+
+requirements: 
+- requests 
+
 author:
     - Your Name (@joej164)
 '''
 
 EXAMPLES = '''
-# Pass in a message
-- name: Test with a message
-  my_test:
-    name: hello world
-
 # pass in a message and have changed true
 - name: Search for dirty scope objects by scope name
   tetration_scope_query:

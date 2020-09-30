@@ -21,10 +21,6 @@ description:
 - Enables searching for software agents based on a number of preconfigured filters
 - Returns a list of matching software agents based on the passed in criteria
 
-notes:
-- This module only queries.  Use M(tetration_software_agent) to delete or query an agent by UUID
-- If you don't provide any parameters, will return all agents in the system
-
 options:
   host_name_contains:
     description: Searches for all software agents whos name includes the string
@@ -46,6 +42,14 @@ options:
     type: string
 
 extends_documentation_fragment: tetration_doc_common
+
+notes:
+- Requires the `requests` Python module.
+- This module only queries.  Use M(tetration_software_agent) to delete or query an agent by UUID
+- If you don't provide any parameters, will return all agents in the system
+
+requirements: 
+- requests 
 
 author:
   - Brandon Beck (@techbeck03)
@@ -197,6 +201,10 @@ object:
   description: the changed or modified object(s)
   returned: always
   type: list
+items_found:
+  description: the number of items found
+  returned: always
+  type: int
 '''
 
 import ipaddress
@@ -221,7 +229,8 @@ def run_module():
     # Create the return object
     result = {
         'object': [],
-        'changed': False
+        'changed': False,
+        'items_found': 0
     }
 
     module = AnsibleModule(

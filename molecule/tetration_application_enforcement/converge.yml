@@ -1,0 +1,104 @@
+---
+- name: Converge
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: "Include ansible-module"
+      include_role:
+        name: "ansible-module"
+
+    - name: read variables from the environment that are set in the molecule.yml
+      set_fact:
+        ansible_host: "{{ lookup('env', 'TETRATION_SERVER_ENDPOINT') }}"
+        api_key: "{{ lookup('env', 'TETRATION_API_KEY') }}"
+        api_secret: "{{ lookup('env', 'TETRATION_API_SECRET') }}"
+      no_log: True 
+
+    - name: put the variables in the required format
+      set_fact:
+        provider_info:
+          api_key: "{{ api_key }}"
+          api_secret: "{{ api_secret }}"
+          server_endpoint: "{{ ansible_host }}"
+      no_log: True 
+
+    - name: set test variables
+      set_fact:
+        root_scope_id: 5ce71503497d4f2c23af85b7
+        test_app_id: 5ed69642755f027a324bd922
+# -----
+
+    - name: Test - Enable Enforcement
+      tetration_application_enforcement:
+        application_id: "{{ test_app_id }}"
+        version: p5 
+        state: enabled
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Enable Enforcement
+      debug:
+        var: output
+
+    - name: Verify - Enable Enforcement
+      assert:
+        that:
+          - output.failed is false
+          - output.changed is true 
+# -----
+
+    - name: Test - Enable Enforcement no changes
+      tetration_application_enforcement:
+        application_id: "{{ test_app_id }}"
+        version: p5 
+        state: enabled
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Enable Enforcement no changes
+      debug:
+        var: output
+
+    - name: Verify - Enable Enforcement no changes
+      assert:
+        that:
+          - output.failed is false
+          - output.changed is false
+# -----
+
+    - name: Test - Enable Enforcement change version
+      tetration_application_enforcement:
+        application_id: "{{ test_app_id }}"
+        version: p4 
+        state: enabled
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Enable Enforcement change version 
+      debug:
+        var: output
+
+    - name: Verify - Enable Enforcement change version 
+      assert:
+        that:
+          - output.failed is false
+          - output.changed is true
+# -----
+
+    - name: Test - Disable Enforcement
+      tetration_application_enforcement:
+        application_id: "{{ test_app_id }}"
+        state: disabled
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Disable Enforcement
+      debug:
+        var: output
+
+    - name: Verify - Disable Enforcement
+      assert:
+        that:
+          - output.failed is false
+          - output.changed is true 
