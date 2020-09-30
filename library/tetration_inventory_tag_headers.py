@@ -9,7 +9,7 @@ module: tetration_inventory_tag_headers
 
 short_description: Allows for deleting and querying inventory tag headers
 
-version_added: '2.8'
+version_added: '2.9'
 
 description:
 - Allows for querying all inventory tag headers 

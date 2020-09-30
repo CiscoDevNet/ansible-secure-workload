@@ -8,7 +8,7 @@ module: tetration_application_enforcement
 
 short_description: Enabled or disables application policy enforcement on a specified application workspace
 
-version_added: '2.8'
+version_added: '2.9'
 
 description:
 - Enabled or disables application policy enforcement on a specified application workspace

@@ -15,7 +15,7 @@ module: tetration_software_agent
 
 short_description: Queries and deletes software agents by uuid
 
-version_added: '2.8'
+version_added: '2.9'
 
 description:
 - Enables query or removal of software agents by uuid

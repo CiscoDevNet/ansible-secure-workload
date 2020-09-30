@@ -10,7 +10,7 @@ module: tetration_inventory_filter
 
 short_description: Add, remove, update, and query inventory filters
 
-version_added: '2.8'
+version_added: '2.9'
 
 description:
 - Enables management of Cisco Tetration inventory filters.

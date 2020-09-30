@@ -12,7 +12,7 @@ module: tetration_scope
 
 short_description: Add, remove, and update scopes
 
-version_added: '2.8'
+version_added: '2.9'
 
 description:
 - Enables management of Cisco Tetration scopes

@@ -8,7 +8,7 @@ module: tetration_application
 
 short description: Enables creation, modification, deletion and query of an application
 
-version_added: '2.8'
+version_added: '2.9'
 
 description:
 - Enables creation, modification, deletion and query of an application
