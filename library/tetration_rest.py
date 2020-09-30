@@ -9,7 +9,7 @@ module: tetration_rest
 
 short_description: Direct access to the Tetration API (non-idempotent)
 
-version_added: '2.8'
+version_added: '2.9'
 
 description:
 - Enables management of Cisco Tetration through direct access to the Cisco Tetration
@@ -17,10 +17,6 @@ description:
 - The Cisco Tetration API is not idempotent, so this module is not idempotent.
 - Familiarity with the Cisco Tetration API is required to use this module. Documentation
   for the API is available at the Cisco Tetration web UI.
-
-notes:
-- This module is not idempotent.
-- Does not support check mode.
 
 options:
   method:
@@ -43,6 +39,8 @@ extends_documentation_fragment: tetration_doc_common
 
 notes:
 - Requires the `requests` Python module.
+- This module is not idempotent.
+- Does not support check mode.
 
 requirements: 
 - requests 
@@ -119,6 +117,9 @@ object:
       description: Text returned from REST method
       returned: failed
       type: string
+  description: The results of the command
+  returned: always
+  type: complex
 '''
 import json
 

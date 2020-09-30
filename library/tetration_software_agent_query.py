@@ -111,13 +111,12 @@ tetration_software_agent_query:
       host: "https://tetration-cluster.company.com"
       api_key: 1234567890QWERTY
       api_secret: 1234567890QWERTY
-
 '''
 
 RETURN = '''
 ---
 object:
-  contains: [
+  contains:
     agent_type:
       description: Agent type
       sample: ENFORCER
@@ -197,7 +196,7 @@ object:
       returned: when matching value found
       sample: d322189839fb70b2f4569f3657eea58f096c0686
       type: int
-  ]
+
   description: the changed or modified object(s)
   returned: always
   type: list
