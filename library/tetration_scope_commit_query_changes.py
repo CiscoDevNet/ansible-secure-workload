@@ -10,7 +10,7 @@ module: tetration_scope_commit_query_changes
 
 short_description: Commits changes made to short query parameters
 
-version_added: "2.8"
+version_added: '2.9'
 
 description:
     - "When changes are made to a scopes short query, they are not actually commited"

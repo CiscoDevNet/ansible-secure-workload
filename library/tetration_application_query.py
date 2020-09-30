@@ -10,7 +10,7 @@ module: tetration_application_query
 
 short_description: Search the application api for scope id's or details
 
-version_added: "2.8"
+version_added: '2.9'
 
 description:
     - "Search the Application API by a variety of methods to find existing scopes"

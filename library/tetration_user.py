@@ -15,7 +15,7 @@ module: tetration_user
 
 short_description: Allows for working with user accounts in Tetration
 
-version_added: "2.8"
+version_added: '2.9'
 
 description:
     - "Enables management of Cisco Tetration user accounts."

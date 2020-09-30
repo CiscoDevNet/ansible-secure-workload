@@ -12,7 +12,7 @@ module: tetration_role
 
 short_description: Manage roles and capabilities
 
-version_added: '2.8'
+version_added: '2.9'
 
 description:
 - Enables management of Cisco Tetration roles.

@@ -9,7 +9,7 @@ module: tetration_inventory_tag_search
 
 short_description: Allows for searching inventory attributes
 
-version_added: '2.8'
+version_added: '2.9'
 
 description:
 - Enables the querying of IP Subnets or Addresses for annotations and values 

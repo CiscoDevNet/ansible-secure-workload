@@ -15,7 +15,7 @@ module: tetration_software_agent_query
 
 short_description: Allows for searching software agents based on desired filters
 
-version_added: '2.8'
+version_added: '2.9'
 
 description:
 - Enables searching for software agents based on a number of preconfigured filters
