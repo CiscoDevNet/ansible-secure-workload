@@ -182,7 +182,7 @@ def main():
         strict_validation=dict(type='bool', required=False, default=False),
         primary=dict(type='bool', required=False),
         state=dict(required=True, choices=['present', 'absent']),
-        provider=dict(type='dict', required=True, options=TETRATION_PROVIDER_SPEC)
+        provider=dict(type='dict', options=TETRATION_PROVIDER_SPEC)
     )
 
     module = AnsibleModule(
@@ -255,7 +255,7 @@ def main():
         if not existing_app and not existing_app_scope:
             module.fail_json(msg="The application does not exist.  Must provide a Scope ID or Scope Name to create a new scope.")
 
-        if not existing_app and not module.params['primary']:
+        if not existing_app and module.params['primary'] is None:
             module.fail_json(
                 msg="The application does not exist.  Must provide info on if the scope is primary or not when creating a scope.")
 
