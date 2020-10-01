@@ -1,0 +1,166 @@
+---
+- name: Converge
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: "Include ansible-module"
+      include_role:
+        name: "ansible-module"
+
+    - name: read variables from the environment that are set in the molecule.yml
+      set_fact:
+        ansible_host: "{{ lookup('env', 'TETRATION_SERVER_ENDPOINT') }}"
+        api_key: "{{ lookup('env', 'TETRATION_API_KEY') }}"
+        api_secret: "{{ lookup('env', 'TETRATION_API_SECRET') }}"
+      no_log: True 
+
+    - name: put the variables in the required format
+      set_fact:
+        provider_info:
+          api_key: "{{ api_key }}"
+          api_secret: "{{ api_secret }}"
+          server_endpoint: "{{ ansible_host }}"
+      no_log: True 
+
+    - name: set test variables
+      set_fact:
+        root_scope_id: 5ce71503497d4f2c23af85b7
+        test_app_id: 5ed69642755f027a324bd922
+# -----
+
+    - name: Set test attributes with data
+      set_fact:
+        test_attributes_with_data:
+          Application: my_app
+          Data: some data
+          Tier: Gold Tier
+          Environment: Great
+
+    - name: Set test attributes without data
+      set_fact:
+        test_attributes_without_data:
+          Application: ""
+          Data: ""
+          Tier: ""
+          Environment: ""
+# -----
+
+    - name: Test - Delete Inventory Tag 
+      tetration_inventory_tag:
+        root_scope_name: Ignwpov
+        state: absent 
+        ip_subnet: 10.0.0.0/8
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Delete Inventory Tag 
+      debug:
+        var: output
+    
+    - name: Verify - Delete Inventory Tag 
+      assert:
+        that:
+          - output.failed is false
+# -----
+
+    - name: Test - Create Inventory Tag 
+      tetration_inventory_tag:
+        root_scope_name: Ignwpov
+        attributes: "{{ test_attributes_with_data }}"
+        state: present
+        ip_subnet: 10.0.0.0/8
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Create Inventory Tag 
+      debug:
+        var: output
+    
+    - name: Verify - Create Inventory Tag 
+      assert:
+        that:
+          - output.failed is false
+          - output.changed is true
+#-----
+
+    - name: Test - Query Inventory Tag 
+      tetration_inventory_tag:
+        root_scope_name: Ignwpov
+        state: query 
+        ip_subnet: 10.0.0.0/8
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Query Inventory Tag 
+      debug:
+        var: output
+    
+    - name: Verify - Query Inventory Tag 
+      assert:
+        that:
+          - output.failed is false
+          - output.changed is false 
+          - output.object == test_attributes_with_data 
+# -----
+
+    - name: Test - Update Inventory Tags
+      tetration_inventory_tag:
+        root_scope_name: Ignwpov
+        attributes: "{{ test_attributes_without_data }}"
+        state: present 
+        ip_subnet: 10.0.0.0/8
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Update Inventory Tag 
+      debug:
+        var: output
+    
+    - name: Verify - Update Inventory Tag 
+      assert:
+        that:
+          - output.failed is false
+          - output.changed is true 
+          - output.object == test_attributes_without_data 
+# -----
+
+    - name: Test - Query Inventory Tag without data
+      tetration_inventory_tag:
+        root_scope_name: Ignwpov
+        state: query 
+        ip_subnet: 10.0.0.0/8
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Query Inventory Tag 
+      debug:
+        var: output
+    
+    - name: Verify - Query Inventory Tag 
+      assert:
+        that:
+          - output.failed is false
+          - output.changed is false 
+          - output.object == test_attributes_without_data 
+# -----
+
+    - name: Test - Delete Inventory Tag 
+      tetration_inventory_tag:
+        root_scope_name: Ignwpov
+        state: absent 
+        ip_subnet: 10.0.0.0/8
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Delete Inventory Tag 
+      debug:
+        var: output
+    
+    - name: Verify - Delete Inventory Tag 
+      assert:
+        that:
+          - output.failed is false
+          - output.changed is true 
+          - output.object is none
+# -----
