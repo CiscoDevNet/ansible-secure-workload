@@ -139,7 +139,7 @@ def main():
         try:
             ip_object = str(ip_network(module.params['ip_subnet']))
         except ValueError:
-            error_message = f"Invalid IPv4 or IPv6 Address entered.  Value entered: {module.params['ip_subnet']}"
+            error_message = f"Invalid IPv4 or IPv6 subnet entered.  Value entered: {module.params['ip_subnet']}"
             module.fail_json(msg=error_message)
 
     tet_module = TetrationApiModule(module)
