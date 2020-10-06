@@ -4,41 +4,53 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 ---
-author: Brandon Beck (@techbeck03)
-description: Enables creation, modification, deletion and query of application policy ports
-extends_documentation_fragment: tetration
 module: tetration_application_policy_ports
-notes:
-- Requires the `requests` Python module.
-- You cannot update an existing policy port, due to the API, you have to delete a current one and add a new one.
-- This also applies to the description, to update the description, you must delete a port and add new one
-- The only thing you can update is whether the ports are approved or not
-- You cannot specify the `ANY` protocol by C(proto_id), only by C(proto_name)
+
+short description: Enables creation, partial modification, and deletion and query of application policy ports
+
+version_added: '2.9'
+
+description:
+- Enables creation, modification, deletion and query of application policy ports
+
 options:
-  app_id:
-    description: The id for the Application to which the policy belongs
+  approved:
+    description: approval status of the port
+    type: bool
+    required: false
+  exclusion_filter:
+    description: upon deletion of a port entry, controls whether to create an exclusion filter
+    type: bool
+    required: false
+    default: false
+  description:
+    description: User defined description of the entry
     type: string
-  app_scope_id:
-    description: The id for the Scope associated with the application
-    type: string
+    required: false
   end_port:
-    description: End port of the range
+    description:
+    - End port of the range
+    - Used only when the C(proto_name) is TCP or UDP or C(proto_id) is 6 or 17
     type: int
   policy_id:
-    description: Unique identifier for the policy
-    required: true
+    description: Unique identifier for the policy this port is to be applied to
     type: string
+    required: true
   proto_id:
-    description: Protocol Integer value (NULL means all protocols)
+    description:
+    - Protocol Integer value.
+    - For all protocols us C(proto_name) with the value of `ANY`
     type: int
   proto_name:
     description: Protocol name (Ex TCP, UDP, ICMP, ANY)
     type: string
   start_port:
-    description: Start port of the range
+    description:
+    - Start port of the range
+    - Used only when the C(proto_name) is TCP or UDP or C(proto_id) is 6 or 17
     type: int
   state:
-    choices: '[present, absent, query]'
+    choices: [present, absent, query]
     description: Add, change, remove or query for application policy ports
     required: true
     type: string
@@ -46,8 +58,23 @@ options:
     description: Indications the version of the Application for which to get the policies
     required: true
     type: string
-requirements: tetpyclient
-version_added: '2.9'
+
+extends_documentation_fragment: tetration_doc_common
+
+notes:
+- Requires the `requests` Python module.
+- You cannot update an existing policy port, due to the API, you have to delete a current one and add a new one.
+- This also applies to the description, to update the description, you must delete a port and add new one
+- The only thing you can update is whether the ports are approved or not using the C(exclusion_filter) parameter
+- You cannot specify the `ANY` protocol by C(proto_id), only by C(proto_name)
+
+requirements:
+- requests 
+
+author:
+- Brandon Beck (@techbeck03)
+- Joe Jacobs (@joej164)
+
 '''
 
 EXAMPLES = '''
@@ -96,6 +123,16 @@ RETURN = '''
 ---
 object:
   contains:
+    approved:
+      description: Whether the port is approved or not
+      returned: when port is approved.  absent if not approved 
+      sample: true
+      type: bool
+    description:
+      description: User entered description of the port 
+      returned: when a value is entered.  absent if not approved 
+      sample: true
+      type: bool
     id:
       description: Unique identifier for the L4 policy params
       returned: when C(state) is present or query
@@ -103,7 +140,7 @@ object:
       type: int
     port:
       description: List containing start and end of port range
-      returned: when C(state) is present or query
+      returned: when C(state) is present or query and port ID is 6 or 17 for TCP and UDP resepectively 
       sample: '[80, 80]'
       type: list
     proto:
@@ -118,8 +155,6 @@ object:
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.tetration import TetrationApiModule
-from ansible.module_utils.tetration_constants import TETRATION_API_APPLICATIONS
-from ansible.module_utils.tetration_constants import TETRATION_API_SCOPES
 from ansible.module_utils.tetration_constants import TETRATION_API_APPLICATION_POLICIES
 from ansible.module_utils.tetration_constants import TETRATION_API_PROTOCOLS
 from ansible.module_utils.tetration_constants import TETRATION_PROVIDER_SPEC
@@ -152,8 +187,7 @@ def main():
     valid_proto_ids = [proto['value'] for proto in TETRATION_API_PROTOCOLS]
 
     module_args = dict(
-        policy_id=dict(type='str', required=False),
-        version=dict(type='str', required=False),
+        policy_id=dict(type='str', required=True),
         start_port=dict(type='int', required=False),
         end_port=dict(type='int', required=False),
         proto_id=dict(type='int', required=False, choices=valid_proto_ids),
@@ -181,8 +215,7 @@ def main():
             ['proto_name', 'TCP', ['start_port', 'end_port']],
             ['proto_name', 'UDP', ['start_port', 'end_port']],
             ['proto_id', 6, ['start_port', 'end_port']],
-            ['proto_id', 17, ['start_port', 'end_port']],
-            ['state', 'present', ['version']]
+            ['proto_id', 17, ['start_port', 'end_port']]
         ]
     )
 
@@ -224,7 +257,6 @@ def main():
         # if the object does not exist at all, create it
         # deal with approved or not approved a different way
         new_object = {
-            "version": module.params['version'],
             "start_port": module.params['start_port'],
             "end_port": module.params['end_port'],
             "description": module.params['description'],
@@ -233,7 +265,6 @@ def main():
 
         # Remove unneeded entries
         parameters = [
-            'version',
             'start_port',
             'end_port',
             'description',
@@ -291,7 +322,7 @@ def main():
             route = f"{TETRATION_API_APPLICATION_POLICIES}/{policy_id}/l4_params/{l4_param_id}"
 
             payload = {
-                "create_exclusion_filter": module.params['create_exclusion_filter']
+                "create_exclusion_filter": module.params['exclusion_filter']
             }
 
             delete_results = tet_module.run_method('DELETE', route, req_payload=payload)

@@ -57,7 +57,7 @@ options:
     type: bool
   state:
     choices: '[present, absent]'
-    description: Add, change, remove or query for application
+    description: Add, change, or remove an application
     required: true
     type: string
 
