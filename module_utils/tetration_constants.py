@@ -37,7 +37,7 @@ TETRATION_PROVIDER_SPEC = {
 }
 
 TETRATION_API_PROTOCOLS = [
-    dict(name='ANY', value=""),
+    dict(name='ANY', value=None),
     dict(name='TCP', value=6),
     dict(name='UDP', value=17),
     dict(name='ICMP', value=1),

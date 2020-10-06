@@ -106,11 +106,15 @@
       tetration_application_policy_ports:
         policy_id: "{{ policy_id }}"
         version: "{{ policy_version }}"
-        proto_name: ANY 
-        state: query
+        proto_name: ICMP 
+        description: Any other Protocol
+        #start_port: 35
+        #end_port: 35
+        approved: true 
+        state: present
         provider: "{{ provider_info }}"
       register: port_info
 
-    - name: log policy id
+    - name: log new entry 
       debug:
         var: port_info 
