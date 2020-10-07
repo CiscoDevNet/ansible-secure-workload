@@ -7,94 +7,83 @@ DOCUMENTATION = '''
 ---
 module: tetration_application_policy
 
-short description: Enables creation, modification, deletion and query of an application policy
+short description: Enables creation, deletion, and query of an application policy
 
 version_added: '2.9'
 
 description:
-- Enables creation, modification, deletion and query of an application policy
+- Enables creation, deletion, and query of an application policy
 
 options:
   app_id:
     description:
     - The id for the Application to which the policy belongs
-    - Require one of [C(app_name), C(app_id)]
-    - Mutually exclusive to C(app_name)
-    type: string
-  app_name:
-    description:
-    - The name for the Application to which the policy belongs
-    - Require one of [C(app_name), C(app_id)]
-    - Mutually exclusive to C(app_id)
-    type: string
-  app_scope_id:
-    description:
-    - The id for the Scope associated with the application
-    - Require one of [C(app_scope_name), C(app_scope_id), C(app_id)]
-    - Mutually exclusive to C(app_scope_name)
-    type: string
-  app_scope_name:
-    description:
-    - The name for the Scope associated with the application
-    - Require one of [C(app_scope_name), C(app_scope_id), C(app_id)]
-    - Mutually exclusive to C(app_scope_id)
+    required: true
     type: string
   consumer_filter_id:
     description:
-    - ID of a defined filter. Currently, any cluster, user defined filter or scope
+    - ID of a defined filter. Currently, user defined filter or scope
       can be used as the consumer of a policy
     - Mutually exclusive to C(consumer_filter_name)
+    - Either C(consumer_filter_id) or C(consumer_filter_name) is required
     type: string
   consumer_filter_name:
     description:
-    - Name of a defined filter. Currently, any cluster, user defined filter or scope
+    - Name of a defined filter. Currently, user defined filter or scope
       can be used as the consumer of a policy
     - Mutually exclusive to C(consumer_filter_id)
+    - Either C(consumer_filter_id) or C(consumer_filter_name) is required
     type: string
   policy_action:
     description:
     - Possible values can be ALLOW or DENY. Indicates whether traffic should be allowed
       or dropped for the given service port/protocol between the consumer and provider
-    - Required if I(state=present)
+    - Required always
+    required: true
     type: string
   priority:
     description: Used to sort policy
+    required: true
     type: int
   provider_filter_id:
     description:
-    - ID of a defined filter. Currently, any cluster, user defined filter or scope
+    - ID of a defined filter. Currently, user defined filter or scope
       can be used as the provider of a policy
     - Mutually exclusive to C(provider_filter_name)
+    - Either C(provider_filter_id) or C(provider_filter_name) is required
     type: string
   provider_filter_name:
     description:
-    - Name of a defined filter. Currently, any cluster, user defined filter or scope
+    - Name of a defined filter. Currently, user defined filter or scope
       can be used as the provider of a policy
     - Mutually exclusive to C(provider_filter_id)
+    - Either C(provider_filter_id) or C(provider_filter_name) is required
     type: string
   rank:
     description:
-    - 'Policy rank, possible values: DEFAULT, ABSOLUTE or CATCHALL'
-    - Required if I(state=present)
+    - 'Policy rank, possible values: DEFAULT or ABSOLUTE'
+    required: true
     type: string
   state:
-    choices: '[present, absent, query]'
-    description: Add, change, remove or query for application policy
+    choices: [present, absent, query]
+    description: Add, remove or query for application policy
     required: true
     type: string
   version:
     description:
     - Indicates the version of the Application to which the policy belongs
-    - Required if I(state=present)
+    required: true
     type: string
 
 extends_documentation_fragment: tetration_doc_common
 
 notes:
 - Requires the `requests` Python module.
+- Every parameter of this module is used to uniquely identify a policy
+- Due to the above fact, this module can only add or delete a policy, no updates are possible
 
 requirements:
--requests
+- requests
 
 author:
 - Brandon Beck (@techbeck03)
@@ -105,7 +94,6 @@ EXAMPLES = '''
 # Add or modify application policy
 tetration_application_policy:
     app_id: 59836821755f02724cbb54fb
-    app_scope_id: 5981453a497d4f430df1fd8c
     provider_filter_name: ACME:Example:Scope1
     consumer_filter_name: ACME:Example:Scope2
     version: v0
@@ -121,7 +109,6 @@ tetration_application_policy:
 # Delete application policy
 tetration_application_policy:
     app_id: 59836821755f02724cbb54fb
-    app_scope_id: 5981453a497d4f430df1fd8c
     provider_filter_name: ACME:Example:Scope1
     consumer_filter_name: ACME:Example:Scope2
     version: v0
@@ -130,21 +117,22 @@ tetration_application_policy:
     priority: 100
     state: absent
     provider:
-      host: "tetration-cluster@company.com"
+      host: "https://tetration-cluster.company.com"
       api_key: 1234567890QWERTY
       api_secret: 1234567890QWERTY
 
 # Query for application policy
 tetration_application_policy:
     app_id: 59836821755f02724cbb54fb
-    app_scope_id: 5981453a497d4f430df1fd8c
     provider_filter_name: ACME:Example:Scope1
     consumer_filter_name: ACME:Example:Scope2
     version: v0
-    rank: ABSOLUTE
+    policy_action: ALLOW
+    priority: 100
+    rank: DEFAULT 
     state: query
     provider:
-      host: "tetration-cluster@company.com"
+      host: "https://tetration-cluster.company.com"
       api_key: 1234567890QWERTY
       api_secret: 1234567890QWERTY
 '''
@@ -153,19 +141,50 @@ RETURN = '''
 ---
 object:
   contains:
-    absolute_policies:
-      description: List of all absolute policies
-      returned: when C(state) is present or query
+    action:
+      description: Action applied to the Policy
+      returned: when C(state) is 'present' or 'query'
+      type: str
+    application_id:
+      description: ID of the application the policy is associated with
+      returned: when C(state) is 'present' or 'query'
+      type: str
+    consumer_filter:
+      description: Details of the consumer filter applied to the policy
+      returned: when C(state) is 'present' or 'query'
+      type: complex
+    consumer_filter_id:
+      description: ID of the consumer filter applied to the policy
+      returned: when C(state) is 'present' or 'query'
+      type: str
+    id:
+      description: ID of the policy
+      returned: when C(state) is 'present' or 'query'
+      type: str
+    l4_params:
+      description: List of all the l4_params applied to the policy
+      returned: when C(state) is 'present' or 'query'
       type: list
-    catch_all_action:
-      description: Catch all policy action (DENY,ALLOW)
-      returned: when C(state) is present or query
-      sample: DENY
-      type: string
-    default_policies:
-      description: List of all default policies
-      returned: when C(state) is present or query
-      type: list
+    priority:
+      description: Priority of the policy
+      returned: when C(state) is 'present' or 'query'
+      type: int
+    provider_filter:
+      description: Details of the provider filter applied to the policy 
+      returned: when C(state) is 'present' or 'query'
+      type: complex 
+    provider_filter_id:
+      description: ID of the provider filter applied to the policy 
+      returned: when C(state) is 'present' or 'query'
+      type: str
+    rank:
+      description: Category of the policy
+      returned: when C(state) is 'present' or 'query'
+      type: str
+    version:
+      description: Version of the application the policy is applied to
+      returned: when C(state) is 'present' or 'query'
+      type: str
   description: the changed or modified object
   returned: always
   type: complex
@@ -218,24 +237,6 @@ def main():
         'changed': False,
         'object': None,
     }
-
-    # state = module.params['state']
-    # app_name = module.params['app_name']
-    # app_id = module.params['app_id']
-    # app_scope_name = module.params['app_scope_name']
-    # app_scope_id = module.params['app_scope_id']
-    # consumer_filter_id = module.params['consumer_filter_id']
-    # consumer_filter_name = module.params['consumer_filter_name']
-    # provider_filter_id = module.params['provider_filter_id']
-    # provider_filter_name = module.params['provider_filter_name']
-    # version = module.params['version']
-    # rank = module.params['rank']
-    # policy_action = module.params['policy_action']
-    # priority = module.params['priority']
-    # existing_app_scope = None
-    # existing_app = None
-    # existing_policy = None
-    # app_scopes = None
 
     # =========================================================================
     # Verify the application ID exists
@@ -305,6 +306,7 @@ def main():
 
     existing_policies = tet_module.run_method('GET', policy_route)
 
+    # Now figure out if the policy defined in the module exists
     existing_policy = None
     existing_policy_id = None
 

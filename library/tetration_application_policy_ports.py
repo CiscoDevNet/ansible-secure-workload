@@ -54,10 +54,6 @@ options:
     description: Add, change, remove or query for application policy ports
     required: true
     type: string
-  version:
-    description: Indications the version of the Application for which to get the policies
-    required: true
-    type: string
 
 extends_documentation_fragment: tetration_doc_common
 
@@ -83,7 +79,6 @@ tetration_application_policy_ports:
     app_id: 59836821755f02724cbb54fb
     app_scope_id: 5981453a497d4f430df1fd8c
     policy_id: 5a2e8579497d4f415ea20e38
-    version: "v0"
     proto_name: TCP
     start_port: 22
     end_port: 22
@@ -98,7 +93,6 @@ tetration_application_policy_ports:
     app_id: 59836821755f02724cbb54fb
     app_scope_id: 5981453a497d4f430df1fd8c
     policy_id: 5a2e8579497d4f415ea20e38
-    version: "v0"
     proto_name: ANY
     state: present
     provider:
@@ -111,7 +105,6 @@ tetration_application_policy_ports:
     app_id: 59836821755f02724cbb54fb
     app_scope_id: 5981453a497d4f430df1fd8c
     policy_id: 5a2e8579497d4f415ea20e38
-    version: "v0"
     state: absent
     provider:
       host: "tetration-cluster@company.com"

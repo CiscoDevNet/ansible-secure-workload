@@ -26,95 +26,188 @@
     - name: set test variables
       set_fact:
         root_scope_id: 5ce71503497d4f2c23af85b7
-        fixed_app_id: 5f76504c497d4f23eae657a7
-        policy_id: 5f76530d755f025ccc89a772
 # -----
 
-    # - name: Test - Create a primary app scope 
-    #   tetration_application:
-    #     app_name: test_cicd_app
-    #     app_scope_id: "{{ root_scope_id }}"
-    #     description: "test_cicd_app description"
-    #     alternate_query_mode: false
-    #     primary: false 
-    #     state: present
-    #     provider: "{{ provider_info }}"
-    #   register: output
-    
-    # - name: Store - Create a primary app scope 
-    #   set_fact:
-    #     app_id: "{{ output.object.id }}"
-    
-    # - name: Output - Create a primary app scope 
-    #   debug:
-    #     var: item
-    #   with_items:
-    #     - "{{ app_id }}"
-    #     - "{{ output }}"
-    
-    # - name: Verify - Create a primary app scope 
-    #   assert:
-    #     that:
-    #       - output.changed is true
-    #       - output.object.id is defined
-    #       - output.object.primary is false 
-    #       - output.failed is false
-# -----
-
-    # - name: Test - Attempt to delete app while secondary 
-    #   tetration_application:
-    #     app_name: updated test_cicd_app
-    #     state: absent
-    #     provider: "{{ provider_info }}"
-    #   register: output
-
-    # - name: Output - Attempt to delete app while secondary 
-    #   debug:
-    #     var: output
-
-    # - name: Verify - Attempt to delete app while secondary 
-    #   assert:
-    #     that:
-    #       - output.failed is false
-    #       - output.object.success is true
-    #       - output.changed is true
-
-    - name: get policy id
-      tetration_rest:
+    - name: Test - Create a primary app
+      tetration_application:
+        app_name: test_cicd_app
+        app_scope_id: "{{ root_scope_id }}"
+        description: "test_cicd_app description"
+        alternate_query_mode: False
+        primary: false 
+        state: present
         provider: "{{ provider_info }}"
-        route: "applications/{{ fixed_app_id }}/policies"
-        method: get
-        params:
-          version: '0'
-      register: policy_info
+      register: output
 
-    - name: log policy id
-      debug:
-        var: policy_info
-
-    - name: Store - Store Profile ID 
+    - name: Store - Create a primary app 
       set_fact:
-        policy_id: "{{ policy_info.json.absolute_policies[0].id }}"
-        policy_version: "{{ policy_info.json.absolute_policies[0].version }}"
-    
-    - name: log policy id
+        app_id: "{{ output.object.id }}"
+        version: "{{ output.object.latest_adm_version }}"
+
+    - name: Output - Create a primary app 
       debug:
-        var: policy_id 
-    
+        var: item
+      with_items:
+        - "{{ app_id }}"
+        - "{{ version }}"
 # -----
-    - name: test policy ports
+
+    - name: Test - Create Policy 
+      tetration_application_policy:
+        app_id: "{{ app_id }}"
+        consumer_filter_name: Ignwpov
+        provider_filter_name: CCP Namespace
+        version: "{{ version }}"
+        rank: ABSOLUTE
+        policy_action: DENY 
+        priority: 201 
+        state: present 
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Create Policy 
+      debug:
+        var: output
+
+    - name: Store - Create Policy
+      set_fact:
+        policy_id: "{{ output.object.id }}"
+
+    - name: Output - Create Policy 
+      assert:
+        that:
+          - output.failed is false
+          - output.changed is true 
+          - output.object.id is defined 
+# -----
+
+    - name: Test - Check when Policy Port Missing 
       tetration_application_policy_ports:
         policy_id: "{{ policy_id }}"
-        version: "{{ policy_version }}"
-        proto_name: ICMP 
-        description: Any other Protocol
-        #start_port: 35
-        #end_port: 35
-        approved: true 
-        state: present
+        proto_name: TCP
+        start_port: 50
+        end_port: 60
+        approved: true
+        state: query 
         provider: "{{ provider_info }}"
       register: port_info
 
-    - name: log new entry 
+    - name: Output - Check when Policy Port Missing
       debug:
         var: port_info 
+
+    - name: Verify - Check when Policy Port Missing
+      assert:
+        that:
+          - port_info.changed is false
+          - port_info.failed is false
+          - port_info.object == {} 
+# -----
+
+    - name: Test - Create Policy Port
+      tetration_application_policy_ports:
+        policy_id: "{{ policy_id }}"
+        proto_name: TCP
+        start_port: 50
+        end_port: 60
+        approved: true
+        state: present 
+        provider: "{{ provider_info }}"
+      register: port_info
+
+    - name: Output - Create Policy Port 
+      debug:
+        var: port_info 
+
+    - name: Verify - Create Policy Port 
+      assert:
+        that:
+          - port_info.changed is true 
+          - port_info.failed is false
+          - port_info.object is defined 
+          - port_info.object.proto == 6 
+# -----
+
+    - name: Test - Update Policy Port
+      tetration_application_policy_ports:
+        policy_id: "{{ policy_id }}"
+        proto_name: TCP
+        start_port: 50
+        end_port: 60
+        approved: false 
+        state: present 
+        provider: "{{ provider_info }}"
+      register: port_info
+
+    - name: Output - Update Policy Port
+      debug:
+        var: port_info 
+
+    - name: Verify - Update Policy Port
+      assert:
+        that:
+          - port_info.changed is true 
+          - port_info.failed is false
+          - port_info.object is defined 
+          - port_info.object.proto == 6 
+          - port_info.object.approved is not defined
+# -----
+
+    - name: Test - Delete Policy Port
+      tetration_application_policy_ports:
+        policy_id: "{{ policy_id }}"
+        proto_name: TCP
+        start_port: 50
+        end_port: 60
+        state: absent 
+        provider: "{{ provider_info }}"
+      register: port_info
+
+    - name: Output - Delete Policy Port
+      debug:
+        var: port_info 
+
+    - name: Verify - Delete Policy Port
+      assert:
+        that:
+          - port_info.changed is true 
+          - port_info.failed is false
+          - port_info.object.success is true
+
+# -----
+
+    - name: Test - Delete Policy 
+      tetration_application_policy:
+        app_id: "{{ app_id }}"
+        consumer_filter_name: Ignwpov
+        provider_filter_name: CCP Namespace
+        version: "{{ version }}"
+        rank: ABSOLUTE
+        policy_action: DENY 
+        priority: 201 
+        state: absent 
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Delete Policy 
+      debug:
+        var: output
+
+    - name: Output - Create Policy 
+      assert:
+        that:
+          - output.failed is false
+          - output.changed is true 
+          - output.object.success is true
+# -----
+
+    - name: Test - Delete primary app
+      tetration_application:
+        app_name: test_cicd_app
+        app_scope_id: "{{ root_scope_id }}"
+        description: "test_cicd_app description"
+        alternate_query_mode: False
+        primary: false 
+        state: absent 
+        provider: "{{ provider_info }}"
+      register: output
