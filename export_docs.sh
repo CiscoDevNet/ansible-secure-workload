@@ -5,6 +5,7 @@ export ANSIBLE_DOC_FRAGMENT_PLUGINS=./plugins/doc_fragments
 
 declare -a arr=("tetration_application"
                 "tetration_application_policy"
+                "tetration_application_policy_ports"
                 "tetration_application_policy_catchall"
                 "tetration_inventory_tag_search"
                 "tetration_inventory_tag_headers"
