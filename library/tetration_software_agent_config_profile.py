@@ -249,7 +249,8 @@ def main():
     #
     # Module specific spec
     module_args = dict(
-        name=dict(type='str', required=True),
+        name=dict(type='str', required=False),
+        id=dict(type='str', required=False),
         app_scope_id=dict(type='str', required=False),
         app_scope_name=dict(type='str', required=False),
         allow_broadcast=dict(type='bool', required=False),
@@ -260,7 +261,6 @@ def main():
         cpu_quota_pct=dict(type='int', required=False),
         cpu_quota_us=dict(type='int', required=False),
         data_plane_disabled=dict(type='bool', required=False),
-        enable_cache_sidechannel=dict(type='bool', required=False),
         enable_dns=dict(type='bool', required=False),
         enable_forensics=dict(type='bool', required=False),
         enable_meltdown=dict(type='bool', required=False),
@@ -289,12 +289,23 @@ def main():
     module = AnsibleModule(
         argument_spec=module_args,
         required_one_of=[
-            ['app_scope_id', 'app_scope_name']
+            ['app_scope_id', 'app_scope_name'],
+            ['name', 'id']
         ],
         mutually_exclusive=[
-            ['app_scope_id', 'app_scope_name']
+            ['app_scope_id', 'app_scope_name'],
+            ['name', 'id'],
+            ['cpu_quota_pct', 'cpu_quota_us'],
+            ['enforcement_cpu_quota_pct', 'enforcement_cpu_quota_us'],
+            ['forensics_cpu_quota_pct', 'forensics_cpu_quota_us'],
+            ['enforcement_max_rss_limit', 'enforcement_max_rss_limit_mb'],
+            ['forensics_mem_quota_bytes', 'forensics_mem_quota_mb'],
+            ['max_rss_limit', 'max_rss_limit_mb'],
         ]
     )
+
+    if module.params['name'] == 'Default':
+        module.fail_json(msg='Cannot modify the default agent profile')
 
     # Verify the following modules have valid inputs between 1 and 100% inclusive
     percent_params = ['cpu_quota_pct', 'enforcement_cpu_quota_pct', 'forensics_cpu_quota_pct']
@@ -341,7 +352,6 @@ def main():
         'object': {},
     }
 
-    module.exit_json(**result)
     # state = module.params['state']
     # check_mode = module.check_mode
     # name = module.params['name']
@@ -384,41 +394,77 @@ def main():
     app_scopes = tet_module.run_method('GET', TETRATION_API_SCOPES)
     app_scope_dict = {s['name']: s['id'] for s in app_scopes}
 
-    existing_app_scope = None
+    existing_app_scope_id = None
     if module.params['app_scope_id'] in app_scope_dict.values():
-        existing_app_scope = module.params['app_scope_id']
+        existing_app_scope_id = module.params['app_scope_id']
     else:
         scope_name = module.params['app_scope_name']
-        existing_app_scope = app_scope_dict.get(scope_name)
+        existing_app_scope_id = app_scope_dict.get(scope_name)
 
-    if not existing_app_scope:
+    if not existing_app_scope_id:
         if module.params['app_scope_id']:
             module.fail_json(msg=f"Unable to find existing app scope id: {module.params['app_scope_id']}")
         else:
             module.fail_json(msg=f"Unable to find existing app scope named: {module.params['app_scope_name']}")
 
     existing_profiles = tet_module.run_method('GET', TETRATION_API_AGENT_CONFIG_PROFILES)
-    result['profiles'] = existing_profiles
-    module.exit_json(**result)
 
-    existing_profile_filter = dict(name=name)
-    if existing_app_scope['name'] != 'Default':
-        existing_profile_filter['root_app_scope_id'] = existing_app_scope['root_app_scope_id']
-    existing_config_profile = tet_module.get_object(
-        target=TETRATION_API_AGENT_CONFIG_PROFILES,
-        filter=existing_profile_filter
-    )
+    existing_profile = None
+
+    for profile in existing_profiles:
+        if module.params['name'] == profile['name']:
+            existing_profile = profile
+        elif module.params['id'] == profile['id']:
+            existing_profile = profile
 
     module.exit_json(**result)
 
     # ---------------------------------
     # STATE == 'present'
     # ---------------------------------
-    if state == 'present':
-        new_object = dict(
-            root_app_scope_id=existing_app_scope['id'],
-            name=name,
-        )
+    if module.params['state'] == 'present':
+        new_object = {
+            'name': module.params['name'],
+            'app_scope_id': existing_app_scope_id,
+            'allow_broadcast': module.params['allow_broadcast'],
+            'allow_link_local': module.params['allow_link_local'],
+            'allow_multicast': module.params['allow_multicast'],
+            'auto_upgrade_opt_out': module.params['auto_upgrade_opt_out'],
+            'cpu_quota_mode': module.params['cpu_quota_mode'],
+            'cpu_quota_pct': module.params['cpu_quota_pct'],
+            'cpu_quota_us': module.params['cpu_quota_us'],
+            'data_plane_disabled': module.params['data_plane_disabled'],
+            'enable_dns': module.params['enable_dns'],
+            'enable_forensics': module.params['enable_forensics'],
+            'enable_meltdown': module.params['enable_meltdown'],
+            'enable_pid_lookup': module.params['enable_pid_lookup'],
+            'enforcement_cpu_quota_mode': module.params['enforcement_cpu_quota_mode'],
+            'enforcement_cpu_quota_pct': module.params['enforcement_cpu_quota_pct'],
+            'enforcement_cpu_quota_us': module.params['enforcement_cpu_quota_us'],
+            'enforcement_disabled': module.params['enforcement_disabled'],
+            'enforcement_max_rss_limit': module.params['enforcement_max_rss_limit'],
+            'enforcement_max_rss_limit_mb': module.params['enforcement_max_rss_limit_mb'],
+            'forensics_cpu_quota_mode': module.params['forensics_cpu_quota_mode'],
+            'forensics_cpu_quota_pct': module.params['forensics_cpu_quota_pct'],
+            'forensics_cpu_quota_us': module.params['forensics_cpu_quota_us'],
+            'forensics_mem_quota_bytes': module.params['forensics_mem_quota_bytes'],
+            'forensics_mem_quota_mb': module.params['forensics_mem_quota_mb'],
+            'max_rss_limit': module.params['max_rss_limit'],
+            'max_rss_limit_mb': module.params['max_rss_limit_mb'],
+            'preserve_existing_rules': module.params['preserve_existing_rules'],
+        }
+
+        obj_keys_to_remove = []
+        for k, v in new_object.items():
+            if v is None:
+                obj_keys_to_remove.append(k)
+
+        for key in obj_keys_to_remove:
+            new_object.pop(key)
+
+        result['to_update'] = new_object
+        module.exit_json(**result)
+
         for option in agent_options:
             new_object[option] = module.params.get(option)
         if not existing_config_profile:
