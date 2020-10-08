@@ -169,9 +169,20 @@
       debug:
         var: output
 
-    - name: Output - Create Policy does not exist 
+    - name: Output - Delete Policy does not exist 
       assert:
         that:
           - output.failed is false
           - output.changed is false 
           - output.object is none 
+# -----
+    - name: Test - Create a primary app scope 
+      tetration_application:
+        app_name: test_cicd_app
+        app_scope_id: "{{ root_scope_id }}"
+        description: "test_cicd_app description"
+        alternate_query_mode: False
+        primary: false 
+        state: absent 
+        provider: "{{ provider_info }}"
+      register: output

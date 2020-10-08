@@ -258,7 +258,25 @@ def main():
         app_scope_name_to_parent_scope_id[scope['name']] = scope['parent_app_scope_id']
 
     existing_inventory_filters = tet_module.run_method('GET', TETRATION_API_INVENTORY_FILTER)
-    inv_filter_name_to_filter_id = {f['name']: f['id'] for f in existing_inventory_filters}
+
+    # Build the inventory filter dict but check for duplicate entries and report them if found
+    inv_filter_name_to_filter_id = {}
+    duplicate_values = []
+    for i in existing_inventory_filters:
+        name = i['name']
+        inv_id = i['id']
+        if inv_id is None:
+            module.fail_json(msg='An ID returned had a value of `None`')
+
+        if inv_filter_name_to_filter_id.get(name) is None:
+            inv_filter_name_to_filter_id[name] = inv_id
+        else:
+            duplicate_values.append(name)
+
+    if duplicate_values:
+        duplicate_values = set(duplicate_values)
+        module.fail_json(
+            msg=f'The Tetration Server has multiple inventory filters with the same name.  This is not supported with this module.  Duplicate names are: {duplicate_values}')
 
     consumer_id = None
     provider_id = None
@@ -283,7 +301,6 @@ def main():
             provider_id = module.params['provider_filter_id']
         elif module.params['provider_filter_id'] in inv_filter_name_to_filter_id.values():
             provider_id = module.params['provider_filter_id']
-
     elif module.params['provider_filter_name']:
         # Verify the ID is a valid api scope or an inventory filter
         filter_name = module.params['provider_filter_name']
@@ -312,11 +329,18 @@ def main():
 
     desired_unique_id = (module.params['priority'], module.params['policy_action'], consumer_id, provider_id)
 
+    found_policies = []
     for policy in existing_policies:
         policy_id = (policy['priority'], policy['action'], policy['consumer_filter_id'], policy['provider_filter_id'])
         if policy_id == desired_unique_id:
-            existing_policy = policy
-            existing_policy_id = policy['id']
+            found_policies.append(policy)
+
+    if len(found_policies) == 1:
+        existing_policy = found_policies[0]
+        existing_policy_id = found_policies[0]['id']
+    elif len(found_policies) >= 2:
+        module.fail_json(
+            msg=f"Multiple policies found with the given criteria.  Cannot use this module if multiple policies match the `priority`, `action`, `consumer`, and `provider` fields.  Duplicate policies: {found_policies}")
 
     # ---------------------------------
     # STATE == 'present'
