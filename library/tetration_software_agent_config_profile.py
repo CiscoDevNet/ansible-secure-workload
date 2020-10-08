@@ -234,6 +234,15 @@ from ansible.module_utils.tetration_constants import TETRATION_API_AGENT_CONFIG_
 from ansible.module_utils.tetration_constants import TETRATION_PROVIDER_SPEC
 
 
+def validate_ranges(params_to_validate, all_params, low_value, high_value):
+    invalid_pct_params = []
+    for param in params_to_validate:
+        if all_params[param] is not None and all_params[param] not in range(low_value, high_value + 1):
+            invalid_pct_params.append(param)
+
+    return invalid_pct_params
+
+
 def main():
     ''' Main entry point for module execution
     '''
@@ -241,95 +250,156 @@ def main():
     # Module specific spec
     module_args = dict(
         name=dict(type='str', required=True),
-        root_app_scope_id=dict(type='str', required=False),
-        root_app_scope_name=dict(type='str', required=False),
-        allow_broadcast=dict(type='bool', required=False, default=True),
-        allow_multicast=dict(type='bool', required=False, default=True),
-        auto_upgrade_opt_out=dict(type='bool', required=False, default=True),
-        cpu_quota_mode=dict(type='int', required=False, default=1, choices=[0, 1, 2]),
-        cpu_quota_pct=dict(type='int', required=False, default=3),
-        data_plane_disabled=dict(type='bool', required=False, default=False),
-        enable_cache_sidechannel=dict(type='bool', required=False, default=False),
-        enable_forensics=dict(type='bool', required=False, default=False),
-        enable_meltdown=dict(type='bool', required=False, default=False),
-        enable_pid_lookup=dict(type='bool', required=False, default=False),
+        app_scope_id=dict(type='str', required=False),
+        app_scope_name=dict(type='str', required=False),
+        allow_broadcast=dict(type='bool', required=False),
+        allow_link_local=dict(type='bool', required=False),
+        allow_multicast=dict(type='bool', required=False),
+        auto_upgrade_opt_out=dict(type='bool', required=False),
+        cpu_quota_mode=dict(type='int', required=False, choices=[0, 1, 2]),
+        cpu_quota_pct=dict(type='int', required=False),
+        cpu_quota_us=dict(type='int', required=False),
+        data_plane_disabled=dict(type='bool', required=False),
+        enable_cache_sidechannel=dict(type='bool', required=False),
+        enable_dns=dict(type='bool', required=False),
+        enable_forensics=dict(type='bool', required=False),
+        enable_meltdown=dict(type='bool', required=False),
+        enable_pid_lookup=dict(type='bool', required=False),
+        enforcement_cpu_quota_mode=dict(type='int', required=False, choices=[0, 1, 2]),
+        enforcement_cpu_quota_pct=dict(type='int', required=False),
+        enforcement_cpu_quota_us=dict(type='int', required=False),
         enforcement_disabled=dict(type='bool', required=False, default=True),
-        preserve_existing_rules=dict(type='bool', required=False, default=False),
-        state=dict(default='present', choices=['present', 'absent', 'query']),
+        enforcement_max_rss_limit=dict(type='int', required=False),
+        enforcement_max_rss_limit_mb=dict(type='int', required=False),
+        forensics_cpu_quota_mode=dict(type='int', required=False, choices=[0, 1, 2]),
+        forensics_cpu_quota_pct=dict(type='int', required=False),
+        forensics_cpu_quota_us=dict(type='int', required=False),
+        forensics_mem_quota_bytes=dict(type='int', required=False),
+        forensics_mem_quota_mb=dict(type='int', required=False),
+        max_rss_limit=dict(type='int', required=False),
+        max_rss_limit_mb=dict(type='int', required=False),
+        preserve_existing_rules=dict(type='bool', required=False),
+        state=dict(choices=['present', 'absent', 'query']),
         provider=dict(type='dict', options=TETRATION_PROVIDER_SPEC)
     )
 
-    # Combine specs and include provider parameter
+    # Building custom error handling to display custom error messages
 
+    # Combine specs and include provider parameter
     module = AnsibleModule(
         argument_spec=module_args,
         required_one_of=[
-            ['root_app_scope_id', 'root_app_scope_name']
+            ['app_scope_id', 'app_scope_name']
         ],
         mutually_exclusive=[
-            ['root_app_scope_id', 'root_app_scope_name']
+            ['app_scope_id', 'app_scope_name']
         ]
     )
 
-    # These are all elements we put in our return JSON object for clarity
-    tet_module = TetrationApiModule(module)
-    result = dict(
-        changed=False,
-        object=None,
-    )
+    # Verify the following modules have valid inputs between 1 and 100% inclusive
+    percent_params = ['cpu_quota_pct', 'enforcement_cpu_quota_pct', 'forensics_cpu_quota_pct']
+    invalid_percent_params = validate_ranges(percent_params, module.params, low_value=1, high_value=100)
+    if invalid_percent_params:
+        module.fail_json(msg=f'The following params need to be between 1 and 100 inclusive: {invalid_percent_params}')
 
-    state = module.params['state']
-    check_mode = module.check_mode
-    name = module.params['name']
-    root_app_scope_id = module.params['root_app_scope_id']
-    tenant_name = module.params['tenant_name']
-    allow_broadcast = module.params['allow_broadcast']
-    allow_multicast = module.params['allow_multicast']
-    auto_upgrade_opt_out = module.params['auto_upgrade_opt_out']
-    cpu_quota_mode = module.params['cpu_quota_mode']
-    cpu_quota_pct = module.params['cpu_quota_pct']
-    data_plane_disabled = module.params['data_plane_disabled']
-    enable_cache_sidechannel = module.params['enable_cache_sidechannel']
-    enable_forensics = module.params['enable_forensics']
-    enable_meltdown = module.params['enable_meltdown']
-    enable_pid_lookup = module.params['enable_pid_lookup']
-    enforcement_disabled = module.params['enforcement_disabled']
-    preserve_existing_rules = module.params['preserve_existing_rules']
-    existing_app_scope = None
-    existing_config_profile = None
-    agent_options = [
-        'allow_broadcast',
-        'allow_multicast',
-        'auto_upgrade_opt_out',
-        'cpu_quota_mode',
-        'cpu_quota_pct',
-        'data_plane_disabled',
-        'enable_cache_sidechannel',
-        'enable_forensics',
-        'enable_meltdown',
-        'enable_pid_lookup',
-        'enforcement_disabled',
-        'preserve_existing_rules'
-    ]
-    agent_update_remove_keys = [
-        'preserve_existing_rules'
-    ]
+    # Verify the following modules have valid inputs between 10,000 and 1,000,000 inclusive
+    us_params = ['cpu_quota_us', 'enforcement_cpu_quota_us', 'forensics_cpu_quota_us']
+    invalid_us_params = validate_ranges(us_params, module.params, low_value=10000, high_value=100000)
+    if invalid_us_params:
+        module.fail_json(msg=f'The following params need to be between 10,000 and 1,000,000 inclusive: {invalid_us_params}')
+
+    # Verify the following modules have valid inputs between 128 and 2048 inclusive
+    mb_params = ['enforcement_max_rss_limit_mb', 'forensics_mem_quota_mb']
+    invalid_mb_params = validate_ranges(mb_params, module.params, low_value=128, high_value=2048)
+    if invalid_mb_params:
+        module.fail_json(msg=f'The following params need to be between 128 and 2048 inclusive: {invalid_mb_params}')
+
+    # Verify the following modules have valid inputs between 200 and 2048 inclusive
+    vis_mb_params = ['max_rss_limit_mb']
+    invalid_vis_mb_params = validate_ranges(vis_mb_params, module.params, low_value=200, high_value=2048)
+    if invalid_vis_mb_params:
+        module.fail_json(msg=f'The following params need to be between 200 and 2048 inclusive: {invalid_vis_mb_params}')
+
+    # Verify the following modules have valid inputs between 134,217,728 and 2,147,483,649 inclusive
+    bytes_params = ['enforcement_max_rss_limit', 'forensics_mem_quota_bytes']
+    invalid_bytes_params = validate_ranges(bytes_params, module.params, low_value=134217728, high_value=2147483649)
+    if invalid_bytes_params:
+        module.fail_json(
+            msg=f'The following params need to be between 134,217,728 and 2,147,483,649 inclusive: {invalid_bytes_params}')
+
+    # Verify the following modules have valid inputs between 209,715,200 and 2,147,483,649 inclusive
+    vis_bytes_params = ['max_rss_limit']
+    invalid_vis_bytes_params = validate_ranges(vis_bytes_params, module.params, low_value=209715200, high_value=2147483649)
+    if invalid_vis_bytes_params:
+        module.fail_json(
+            msg=f'The following params need to be between 209,715,200 and 2,147,483,649 inclusive: {invalid_vis_bytes_params}')
+
+    tet_module = TetrationApiModule(module)
+    # These are all elements we put in our return JSON object for clarity
+    result = {
+        'changed': False,
+        'object': {},
+    }
+
+    module.exit_json(**result)
+    # state = module.params['state']
+    # check_mode = module.check_mode
+    # name = module.params['name']
+    # app_scope_id = module.params['root_app_scope_id']
+    # app_scope_name = module.params['tenant_name']
+    # allow_broadcast = module.params['allow_broadcast']
+    # allow_multicast = module.params['allow_multicast']
+    # auto_upgrade_opt_out = module.params['auto_upgrade_opt_out']
+    # cpu_quota_mode = module.params['cpu_quota_mode']
+    # cpu_quota_pct = module.params['cpu_quota_pct']
+    # data_plane_disabled = module.params['data_plane_disabled']
+    # enable_cache_sidechannel = module.params['enable_cache_sidechannel']
+    # enable_forensics = module.params['enable_forensics']
+    # enable_meltdown = module.params['enable_meltdown']
+    # enable_pid_lookup = module.params['enable_pid_lookup']
+    # enforcement_disabled = module.params['enforcement_disabled']
+    # preserve_existing_rules = module.params['preserve_existing_rules']
+    # existing_app_scope = None
+    # existing_config_profile = None
+    # agent_options = [
+    #     'allow_broadcast',
+    #     'allow_multicast',
+    #     'auto_upgrade_opt_out',
+    #     'cpu_quota_mode',
+    #     'cpu_quota_pct',
+    #     'data_plane_disabled',
+    #     'enable_cache_sidechannel',
+    #     'enable_forensics',
+    #     'enable_meltdown',
+    #     'enable_pid_lookup',
+    #     'enforcement_disabled',
+    #     'preserve_existing_rules'
+    # ]
+    # agent_update_remove_keys = [
+    #     'preserve_existing_rules'
+    # ]
 
     # =========================================================================
     # Get current state of the object
-    if root_app_scope_id:
-        existing_app_scope = tet_module.run_method(
-            method_name='get',
-            target='%s/%s' % (TETRATION_API_SCOPES, root_app_scope_id)
-        )
-    elif not root_app_scope_id:
-        existing_app_scope = tet_module.get_object(
-            target=TETRATION_API_SCOPES,
-            filter=dict(name=tenant_name)
-        )
+    app_scopes = tet_module.run_method('GET', TETRATION_API_SCOPES)
+    app_scope_dict = {s['name']: s['id'] for s in app_scopes}
+
+    existing_app_scope = None
+    if module.params['app_scope_id'] in app_scope_dict.values():
+        existing_app_scope = module.params['app_scope_id']
+    else:
+        scope_name = module.params['app_scope_name']
+        existing_app_scope = app_scope_dict.get(scope_name)
 
     if not existing_app_scope:
-        module.fail_json(msg='Unable to find existing app scope named: %s' % tenant_name)
+        if module.params['app_scope_id']:
+            module.fail_json(msg=f"Unable to find existing app scope id: {module.params['app_scope_id']}")
+        else:
+            module.fail_json(msg=f"Unable to find existing app scope named: {module.params['app_scope_name']}")
+
+    existing_profiles = tet_module.run_method('GET', TETRATION_API_AGENT_CONFIG_PROFILES)
+    result['profiles'] = existing_profiles
+    module.exit_json(**result)
 
     existing_profile_filter = dict(name=name)
     if existing_app_scope['name'] != 'Default':
@@ -338,6 +408,8 @@ def main():
         target=TETRATION_API_AGENT_CONFIG_PROFILES,
         filter=existing_profile_filter
     )
+
+    module.exit_json(**result)
 
     # ---------------------------------
     # STATE == 'present'
