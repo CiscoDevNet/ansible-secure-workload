@@ -1,0 +1,188 @@
+---
+- name: Converge
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: "Include ansible-module"
+      include_role:
+        name: "ansible-module"
+
+    - name: read variables from the environment that are set in the molecule.yml
+      set_fact:
+        ansible_host: "{{ lookup('env', 'TETRATION_SERVER_ENDPOINT') }}"
+        api_key: "{{ lookup('env', 'TETRATION_API_KEY') }}"
+        api_secret: "{{ lookup('env', 'TETRATION_API_SECRET') }}"
+      no_log: True 
+
+    - name: put the variables in the required format
+      set_fact:
+        provider_info:
+          api_key: "{{ api_key }}"
+          api_secret: "{{ api_secret }}"
+          server_endpoint: "{{ ansible_host }}"
+      no_log: True 
+
+    - name: set test variables
+      set_fact:
+        root_scope_id: 5ce71503497d4f2c23af85b7
+# -----
+
+    - name: Test - Create a primary app scope 
+      tetration_application:
+        app_name: test_cicd_app
+        app_scope_id: "{{ root_scope_id }}"
+        description: "test_cicd_app description"
+        alternate_query_mode: False
+        primary: false 
+        state: present
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Store - Create a primary app scope 
+      set_fact:
+        app_id: "{{ output.object.id }}"
+        version: "{{ output.object.latest_adm_version }}"
+
+    - name: Output - Create a primary app scope 
+      debug:
+        var: item
+      with_items:
+        - "{{ app_id }}"
+        - "{{ version }}"
+# -----
+
+    - name: Test - Query policy missing
+      tetration_application_policy:
+        app_id: "{{ app_id }}"
+        consumer_filter_name: Ignwpov
+        provider_filter_name: CCP Namespace
+        version: "{{ version }}"
+        rank: ABSOLUTE
+        policy_action: DENY 
+        priority: 201 
+        state: query
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Query policy missing
+      debug:
+        var: output
+
+    - name: Verify - Query policy missing
+      assert:
+        that:
+          - output.failed is false
+          - output.changed is false
+          - output.object is none 
+# -----
+
+    - name: Test - Create Policy 
+      tetration_application_policy:
+        app_id: "{{ app_id }}"
+        consumer_filter_name: Ignwpov
+        provider_filter_name: CCP Namespace
+        version: "{{ version }}"
+        rank: ABSOLUTE
+        policy_action: DENY 
+        priority: 201 
+        state: present 
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Create Policy 
+      debug:
+        var: output
+
+    - name: Output - Create Policy 
+      assert:
+        that:
+          - output.failed is false
+          - output.changed is true 
+          - output.object.id is defined 
+# -----
+
+    - name: Test - Query policy
+      tetration_application_policy:
+        app_id: "{{ app_id }}"
+        consumer_filter_name: Ignwpov
+        provider_filter_name: CCP Namespace
+        version: "{{ version }}"
+        rank: ABSOLUTE
+        policy_action: DENY 
+        priority: 201 
+        state: query
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Query policy
+      debug:
+        var: output
+
+    - name: Verify - Query policy
+      assert:
+        that:
+          - output.failed is false
+          - output.changed is false
+          - output.object.id is defined
+# -----
+
+    - name: Test - Delete Policy 
+      tetration_application_policy:
+        app_id: "{{ app_id }}"
+        consumer_filter_name: Ignwpov
+        provider_filter_name: CCP Namespace
+        version: "{{ version }}"
+        rank: ABSOLUTE
+        policy_action: DENY 
+        priority: 201 
+        state: absent 
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Delete Policy 
+      debug:
+        var: output
+
+    - name: Output - Create Policy 
+      assert:
+        that:
+          - output.failed is false
+          - output.changed is true 
+          - output.object.success is true
+# -----
+
+    - name: Test - Delete Policy does not exist
+      tetration_application_policy:
+        app_id: "{{ app_id }}"
+        consumer_filter_name: Ignwpov
+        provider_filter_name: CCP Namespace
+        version: "{{ version }}"
+        rank: ABSOLUTE
+        policy_action: DENY 
+        priority: 201 
+        state: absent 
+        provider: "{{ provider_info }}"
+      register: output
+
+    - name: Output - Delete Policy does not exist 
+      debug:
+        var: output
+
+    - name: Output - Delete Policy does not exist 
+      assert:
+        that:
+          - output.failed is false
+          - output.changed is false 
+          - output.object is none 
+# -----
+    - name: Test - Create a primary app scope 
+      tetration_application:
+        app_name: test_cicd_app
+        app_scope_id: "{{ root_scope_id }}"
+        description: "test_cicd_app description"
+        alternate_query_mode: False
+        primary: false 
+        state: absent 
+        provider: "{{ provider_info }}"
+      register: output
