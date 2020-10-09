@@ -82,7 +82,7 @@ options:
         - You can changed the value and it will update the profile
         - At this time has not impact on the Profile 
         type: bool
-    enable_forensic:
+    enable_forensics:
         description:
         - Whether or not forensics is enabled
         - Matching GUI Element - Forensics -> Forensics 
@@ -285,8 +285,7 @@ tetration_software_agent_config_profile:
     cpu_quota_mode: 1
     cpu_quota_pct: 3
     data_plane_disabled: False
-    enable_cache_sidechannel: False
-    enable_forensic: True
+    enable_forensics: True
     enable_meltdown: False
     enable_pid_lookup: True
     enforcement_disabled: False
@@ -388,7 +387,7 @@ object:
         - You can changed the value and it will update the profile
         - At this time has not impact on the Profile 
         type: bool
-    enable_forensic:
+    enable_forensics:
         description:
         - Whether or not forensics is enabled
         - Matching GUI Element - Forensics -> Forensics 
