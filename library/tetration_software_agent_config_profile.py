@@ -23,7 +23,7 @@ options:
         type: bool
     allow_link_local:
         description:
-        - blah
+        - If True, Adds rules to the firewall to always allow link local addresses’ traffic on the workload.
         - Matching GUI Element - Enforcement -> Allow Link Local Address 
         type: bool
     allow_multicast:
@@ -40,7 +40,18 @@ options:
         choices: [0, 1, 2]
         description:
         - 0=disabled 1=Adjusted 2=Top
-        - blah
+        - ---
+        - 'If mode Adjusted: The CPU limit is adjusted according to the number of CPUs on the system.'
+        - For example, if the CPU limit is set to 3% and there are 10 CPUs in the system, selecting
+        - this mode means that agent is allowed to use a total of 30% (measured by top).
+        - ---
+        - 'If mode Top: The CPU limit value would match the top view on average.'
+        - For example, if the CPU limit is set to 3% and there are 10 CPUs in the system.
+        - The cpu usuage would still be 3%.
+        - This is a fairly restrictive mode and should be used only when necessary.
+        - ---
+        - 'If mode Disabled: The CPU limit feature is disabled. The agent will use CPU resources permitted by the OS.'
+        - ---
         - Matching GUI Element - Visibility -> CPU Quota Mode 
         type: int
     cpu_quota_pct:
@@ -89,10 +100,21 @@ options:
     enforcement_cpu_quota_mode:
         choices: [0, 1, 2]
         description:
-        - blah
         - 0=disabled 1=Adjusted 2=Top
-        - Matching GUI Element - Enforcement -> CPU Quota Mode
-        type: bool
+        - ---
+        - 'If mode Adjusted: The CPU limit is adjusted according to the number of CPUs on the system.'
+        - For example, if the CPU limit is set to 3% and there are 10 CPUs in the system, selecting
+        - this mode means that agent is allowed to use a total of 30% (measured by top).
+        - ---
+        - 'If mode Top: The CPU limit value would match the top view on average.'
+        - For example, if the CPU limit is set to 3% and there are 10 CPUs in the system.
+        - The cpu usuage would still be 3%.
+        - This is a fairly restrictive mode and should be used only when necessary.
+        - ---
+        - 'If mode Disabled: The CPU limit feature is disabled. The agent will use CPU resources permitted by the OS.'
+        - ---
+        - Matching GUI Element - Visibility -> CPU Quota Mode 
+        type: int
     enforcement_cpu_quota_pct:
         description:
         - The amount of CPU quota to give to agent on the end host
@@ -117,14 +139,18 @@ options:
         type: bool
     enforcement_max_rss_limit:
         description:
-        - blah
+        - Specify the memory limit in bytes that the process is allowed to use.
+        - If the process hits this limit, it will restart.
+        - ---
         - Matching GUI Element - Enforcement -> Memory Quota Limit MB 
         - Mutually exclusive [C(enforcement_max_rss_limit), C(enforcement_max_rss_limit_mb)]
         - 'Valid values: 134217728 (128MB) to 2147483648 (2048M)'
         type: bool
     enforcement_max_rss_limit_mb:
         description:
-        - blah
+        - Specify the memory limit in MegaBytes (MB) that the process is allowed to use.
+        - If the process hits this limit, it will restart.
+        - ---
         - Matching GUI Element - Enforcement -> Memory Quota Limit MB 
         - Mutually exclusive [C(enforcement_max_rss_limit), C(enforcement_max_rss_limit_mb)]
         - 'Valid values: 128 (MB) to 2048 (MB)'
@@ -132,10 +158,21 @@ options:
     forensics_cpu_quota_mode:
         choices: [0, 1, 2]
         description:
-        - blah
         - 0=disabled 1=Adjusted 2=Top
-        - Matching GUI Element - Forensics -> CPU Quota Mode
-        type: bool
+        - ---
+        - 'If mode Adjusted: The CPU limit is adjusted according to the number of CPUs on the system.'
+        - For example, if the CPU limit is set to 3% and there are 10 CPUs in the system, selecting
+        - this mode means that agent is allowed to use a total of 30% (measured by top).
+        - ---
+        - 'If mode Top: The CPU limit value would match the top view on average.'
+        - For example, if the CPU limit is set to 3% and there are 10 CPUs in the system.
+        - The cpu usuage would still be 3%.
+        - This is a fairly restrictive mode and should be used only when necessary.
+        - ---
+        - 'If mode Disabled: The CPU limit feature is disabled. The agent will use CPU resources permitted by the OS.'
+        - ---
+        - Matching GUI Element - Visibility -> CPU Quota Mode 
+        type: int
     forensics_cpu_quota_pct:
         description:
         - The amount of CPU quota to give to agent on the end host
@@ -155,34 +192,42 @@ options:
         type: int
     forensics_mem_quota_bytes:
         description:
-        - blah
+        - Specify the memory limit in bytes that the process is allowed to use.
+        - If the process hits this limit, it will restart.
+        - ---
         - Matching GUI Element - Forensics -> Memory Quota Limit MB 
         - Mutually exclusive [C(forensics_mem_quota_bytes), C(forensics_mem_quota_mb)]
         - 'Valid values: 134217728 (128MB) to 2147483648 (2048M)'
         type: bool
     forensics_mem_quota_mb:
         description:
-        - blah
+        - Specify the memory limit in MegaBytes (MB) that the process is allowed to use.
+        - If the process hits this limit, it will restart.
+        - ---
         - Matching GUI Element - Forensics -> Memory Quota Limit MB 
         - Mutually exclusive [C(forensics_mem_quota_bytes), C(forensics_mem_quota_mb)]
         - 'Valid values: 128 (MB) to 2048 (MB)'
         type: bool
     id:
         description:
-        - blah
+        - The ID of the policy
         - Required when updating the name of a profile, otherwise is not needed
         - Can be used to identify a profile instead of using the name field
         type: bool
     max_rss_limit:
         description:
-        - blah
+        - Specify the memory limit in bytes that the process is allowed to use.
+        - If the process hits this limit, it will restart.
+        - ---
         - Matching GUI Element - Visability -> Memory Quota Limit MB 
         - Mutually exclusive [C(max_rss_limit), C(max_rss_limit_mb)]
         - 'Valid values: 209715200 (200MB) to 2147483648 (2048M)'
         type: bool
     max_rss_limit_mb:
         description:
-        - blah
+        - Specify the memory limit in MegaBytes (MB) that the process is allowed to use.
+        - If the process hits this limit, it will restart.
+        - ---
         - Matching GUI Element - Visability -> Memory Quota Limit MB 
         - Mutually exclusive [C(max_rss_limit), C(max_rss_limit_mb)]
         - 'Valid values: 200 (MB) to 2048 (MB)'
@@ -233,7 +278,7 @@ EXAMPLES = '''
 # Add or Modify agent config profile
 tetration_software_agent_config_profile:
     name: Enforcement Enabled
-    tenant_name: ACME
+    root_app_scope_name: ACME
     allow_broadcast: True
     allow_multicast: True
     auto_upgrade_opt_out: False
@@ -255,7 +300,7 @@ tetration_software_agent_config_profile:
 # Delete agent config profile
 tetration_software_agent_config_profile:
     name: Enforcement Enabled
-    tenant_name: ACME
+    root_app_scope_name: ACME
     state: absent
     provider:
       host: "https://tetration-cluster.company.com"
@@ -265,7 +310,7 @@ tetration_software_agent_config_profile:
 # Query agent config profile
 tetration_software_agent_config_profile:
     name: Enforcement Enabled
-    tenant_name: ACME
+    root_app_scope_name: ACME
     state: query
     provider:
       host: "https://tetration-cluster.company.com"
@@ -278,81 +323,241 @@ RETURN = '''
 object:
   contains:
     allow_broadcast:
-      description: Whether or not broadcast traffic should be allowed
-      returned: when C(state) is present or query
-      sample: 'True'
-      type: bool
+        description:
+        - Whether or not broadcast traffic should be allowed
+        - Matching GUI Element - Enforcement -> Allow Broadcast
+        type: bool
+    allow_link_local:
+        description:
+        - If True, Adds rules to the firewall to always allow link local addresses’ traffic on the workload.
+        - Matching GUI Element - Enforcement -> Allow Link Local Address 
+        type: bool
     allow_multicast:
-      description: Whether or not broadcast traffic should be allowed
-      returned: when C(state) is present or query
-      sample: 'True'
-      type: bool
+        description:
+        - Whether or not broadcast traffic should be allowed
+        - Matching GUI Element - Enforcement -> Allow Multicast 
+        type: bool
     auto_upgrade_opt_out:
-      description: If True, agents are not auto-upgraded during upgrade of Tetration
-        cluster
-      returned: when C(state) is present or query
-      sample: 'False'
-      type: bool
+        description:
+        - If True, agents are not auto-upgraded during upgrade of Tetration cluster
+        - Matching GUI Element - Visibility -> Auto-Upgrade
+        type: bool
     cpu_quota_mode:
-      description: 0=disabled 1=Adjusted 2=Top
-      returned: when C(state) is present or query
-      sample: 1
-      type: bool
+        choices: [0, 1, 2]
+        description:
+        - 0=disabled 1=Adjusted 2=Top
+        - ---
+        - 'If mode Adjusted: The CPU limit is adjusted according to the number of CPUs on the system.'
+        - For example, if the CPU limit is set to 3% and there are 10 CPUs in the system, selecting
+        - this mode means that agent is allowed to use a total of 30% (measured by top).
+        - ---
+        - 'If mode Top: The CPU limit value would match the top view on average.'
+        - For example, if the CPU limit is set to 3% and there are 10 CPUs in the system.
+        - The cpu usuage would still be 3%.
+        - This is a fairly restrictive mode and should be used only when necessary.
+        - ---
+        - 'If mode Disabled: The CPU limit feature is disabled. The agent will use CPU resources permitted by the OS.'
+        - ---
+        - Matching GUI Element - Visibility -> CPU Quota Mode 
+        type: int
     cpu_quota_pct:
-      description: The amount of CPU quota to give to agent on the end host (pct)
-      returned: when C(state) is present or query
-      sample: 3
-      type: int
+        description:
+        - The amount of CPU quota to give to agent on the end host
+        - Matching GUI Element - Visibility -> CPU Quota Mode Percent
+        - Mutually exclusive [C(cpu_quota_pct), C(cpu_quota_us)]
+        - 'Valid values: 1 to 100'
+        type: int
     cpu_quota_us:
-      description: The amount of CPU quota to give to agent on the end host (us)
-      returned: when C(state) is present or query
-      sample: 30000
-      type: int
+        description:
+        - The amount of CPU quota to give to agent on the end host
+        - This is much more granular than C(cpu_quota_pct)
+        - Matching GUI Element - Visibility -> CPU Quota Mode Percent
+        - Mutually exclusive [C(cpu_quota_pct), C(cpu_quota_us)]
+        - 'Valid values: 10000 to 1000000'
+        - Value of 10000 equals 1 percent in the GUI
+        - Value of 1000000 equals 100 percent in the GUI
+        type: int
     data_plane_disabled:
-      description: If true, agent stops reporting flows to Tetration
-      returned: when C(state) is present or query
-      sample: 'False'
-      type: bool
-    enable_cache_sidechannel:
-      description: Whether or not sidechannel detection is enabled
-      returned: when C(state) is present or query
-      sample: 'False'
-      type: bool
+        description:
+        - If true, agent stops reporting flows to Tetration
+        - Matching GUI Element - Visibility -> Data Plane 
+        type: bool
+    enable_dns:
+        description:
+        - This a placeholder for a future feature 
+        - You can changed the value and it will update the profile
+        - At this time has not impact on the Profile 
+        type: bool
     enable_forensic:
-      description: Whether or not forensics is enabled
-      returned: when C(state) is present or query
-      sample: 'True'
-      type: bool
+        description:
+        - Whether or not forensics is enabled
+        - Matching GUI Element - Forensics -> Forensics 
+        type: bool
     enable_meltdown:
-      description: Whether or not meltdown detection is enabled
-      returned: when C(state) is present or query
-      sample: 'False'
-      type: bool
+        description:
+        - Whether or not meltdown detection is enabled
+        - Matching GUI Element - Forensics -> Meltdown Exploit Detection
+        type: bool
     enable_pid_lookup:
-      description: Whether or not pid lookup for flow search is enabled
-      returned: when C(state) is present or query
-      sample: 'True'
-      type: bool
+        description:
+        - Whether or not pid lookup for flow search is enabled
+        - Matching GUI Element - Visability -> PID Lookup 
+        type: bool
+    enforcement_cpu_quota_mode:
+        choices: [0, 1, 2]
+        description:
+        - 0=disabled 1=Adjusted 2=Top
+        - ---
+        - 'If mode Adjusted: The CPU limit is adjusted according to the number of CPUs on the system.'
+        - For example, if the CPU limit is set to 3% and there are 10 CPUs in the system, selecting
+        - this mode means that agent is allowed to use a total of 30% (measured by top).
+        - ---
+        - 'If mode Top: The CPU limit value would match the top view on average.'
+        - For example, if the CPU limit is set to 3% and there are 10 CPUs in the system.
+        - The cpu usuage would still be 3%.
+        - This is a fairly restrictive mode and should be used only when necessary.
+        - ---
+        - 'If mode Disabled: The CPU limit feature is disabled. The agent will use CPU resources permitted by the OS.'
+        - ---
+        - Matching GUI Element - Visibility -> CPU Quota Mode 
+        type: int
+    enforcement_cpu_quota_pct:
+        description:
+        - The amount of CPU quota to give to agent on the end host
+        - Matching GUI Element - Enforcement -> CPU Quota Mode Percent
+        - Mutually exclusive [C(enforcement_cpu_quota_pct), C(enforcement_cpu_quota_us)]
+        - 'Valid values: 1 to 100'
+        type: int
+    enforcement_cpu_quota_us:
+        description:
+        - The amount of CPU quota to give to agent on the end host
+        - This is much more granular than C(enforcement_cpu_quota_pct)
+        - Matching GUI Element - Enforcement -> CPU Quota Mode Percent
+        - Mutually exclusive [C(cpu_quota_pct), C(cpu_quota_us)]
+        - 'Valid values: 10000 to 1000000'
+        - Value of 10000 equals 1 percent in the GUI
+        - Value of 1000000 equals 100 percent in the GUI
+        type: int
     enforcement_disabled:
-      description: If True, enforcement is disabled
-      returned: when C(state) is present or query
-      sample: 'False'
-      type: bool
+        description:
+        - If True, enforcement is disabled
+        - Matching GUI Element - Enforcement -> Enforcement
+        type: bool
+    enforcement_max_rss_limit:
+        description:
+        - Specify the memory limit in bytes that the process is allowed to use.
+        - If the process hits this limit, it will restart.
+        - ---
+        - Matching GUI Element - Enforcement -> Memory Quota Limit MB 
+        - Mutually exclusive [C(enforcement_max_rss_limit), C(enforcement_max_rss_limit_mb)]
+        - 'Valid values: 134217728 (128MB) to 2147483648 (2048M)'
+        type: bool
+    enforcement_max_rss_limit_mb:
+        description:
+        - Specify the memory limit in MegaBytes (MB) that the process is allowed to use.
+        - If the process hits this limit, it will restart.
+        - ---
+        - Matching GUI Element - Enforcement -> Memory Quota Limit MB 
+        - Mutually exclusive [C(enforcement_max_rss_limit), C(enforcement_max_rss_limit_mb)]
+        - 'Valid values: 128 (MB) to 2048 (MB)'
+        type: bool
+    forensics_cpu_quota_mode:
+        choices: [0, 1, 2]
+        description:
+        - 0=disabled 1=Adjusted 2=Top
+        - ---
+        - 'If mode Adjusted: The CPU limit is adjusted according to the number of CPUs on the system.'
+        - For example, if the CPU limit is set to 3% and there are 10 CPUs in the system, selecting
+        - this mode means that agent is allowed to use a total of 30% (measured by top).
+        - ---
+        - 'If mode Top: The CPU limit value would match the top view on average.'
+        - For example, if the CPU limit is set to 3% and there are 10 CPUs in the system.
+        - The cpu usuage would still be 3%.
+        - This is a fairly restrictive mode and should be used only when necessary.
+        - ---
+        - 'If mode Disabled: The CPU limit feature is disabled. The agent will use CPU resources permitted by the OS.'
+        - ---
+        - Matching GUI Element - Visibility -> CPU Quota Mode 
+        type: int
+    forensics_cpu_quota_pct:
+        description:
+        - The amount of CPU quota to give to agent on the end host
+        - Matching GUI Element - Forensics -> CPU Quota Mode Percent
+        - Mutually exclusive [C(forensics_cpu_quota_pct), C(forensics_cpu_quota_us)]
+        - 'Valid values: 1 to 100'
+        type: int
+    forensics_cpu_quota_us:
+        description:
+        - The amount of CPU quota to give to agent on the end host
+        - This is much more granular than C(forensics_cpu_quota_pct)
+        - Matching GUI Element - Forensics -> CPU Quota Mode Percent
+        - Mutually exclusive [C(forensics_cpu_quota_pct), C(forensics_cpu_quota_us)]
+        - 'Valid values: 10000 to 1000000'
+        - Value of 10000 equals 1 percent in the GUI
+        - Value of 1000000 equals 100 percent in the GUI
+        type: int
+    forensics_mem_quota_bytes:
+        description:
+        - Specify the memory limit in bytes that the process is allowed to use.
+        - If the process hits this limit, it will restart.
+        - ---
+        - Matching GUI Element - Forensics -> Memory Quota Limit MB 
+        - Mutually exclusive [C(forensics_mem_quota_bytes), C(forensics_mem_quota_mb)]
+        - 'Valid values: 134217728 (128MB) to 2147483648 (2048M)'
+        type: bool
+    forensics_mem_quota_mb:
+        description:
+        - Specify the memory limit in MegaBytes (MB) that the process is allowed to use.
+        - If the process hits this limit, it will restart.
+        - ---
+        - Matching GUI Element - Forensics -> Memory Quota Limit MB 
+        - Mutually exclusive [C(forensics_mem_quota_bytes), C(forensics_mem_quota_mb)]
+        - 'Valid values: 128 (MB) to 2048 (MB)'
+        type: bool
     id:
-      description: Unique identifier for the agent config intent
-      returned: when C(state) is present or query
-      sample: 2000
-      type: int
+        description:
+        - The ID of the policy
+        - Required when updating the name of a profile, otherwise is not needed
+        - Can be used to identify a profile instead of using the name field
+        type: bool
+    max_rss_limit:
+        description:
+        - Specify the memory limit in bytes that the process is allowed to use.
+        - If the process hits this limit, it will restart.
+        - ---
+        - Matching GUI Element - Visability -> Memory Quota Limit MB 
+        - Mutually exclusive [C(max_rss_limit), C(max_rss_limit_mb)]
+        - 'Valid values: 209715200 (200MB) to 2147483648 (2048M)'
+        type: bool
+    max_rss_limit_mb:
+        description:
+        - Specify the memory limit in MegaBytes (MB) that the process is allowed to use.
+        - If the process hits this limit, it will restart.
+        - ---
+        - Matching GUI Element - Visability -> Memory Quota Limit MB 
+        - Mutually exclusive [C(max_rss_limit), C(max_rss_limit_mb)]
+        - 'Valid values: 200 (MB) to 2048 (MB)'
+        type: bool
     name:
-      description: User provided name for config intent
-      returned: when C(state) is present or query
-      sample: Enforcement Enabled
-      type: string
+        description:
+        - User provided name of software agent config profile
+        - Required when creating a new profile
+        required: false
+        type: string
     preserve_existing_rules:
-      description: If True, existing firewall rules are preserved
-      returned: when C(state) is present or query
-      sample: 'False'
-      type: bool
+        description:
+        - If True, existing firewall rules are preserved
+        - Matching GUI Element - Enforcement -> Preserve Rules 
+        - Due to a bug, this parameter is not returned at the time of writing this module
+        type: bool
+    root_app_scope_id:
+        description:
+        - ID of root app scope for tenant to which an agent profile should be applied
+        - Mutually exculusive [C(root_app_scope_id), C(root_app_scope_name)]
+        type: string
+    updated_at:
+        description:
+        - time stamp of the last time this profile was updated
   description: the changed or modified object(s)
   returned: always
   type: complex
