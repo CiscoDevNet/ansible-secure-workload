@@ -77,7 +77,8 @@ notes:
 - Supports check mode
 
 requirements:
-- requests 
+- requests
+- 'Required API Permission(s): user_role_scope_management'
 
 author:
     - Doron Chosnek (@dchosnek)

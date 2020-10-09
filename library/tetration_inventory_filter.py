@@ -24,13 +24,13 @@ options:
   name:
     description:
     - Name of the inventory filter
-    - When C(id) is not defined 
+    - When C(id) is not defined
     required: False
     type: string
   id:
     description:
     - ID of the inventory filter
-    - Required when C(name) is not defined 
+    - Required when C(name) is not defined
     required: False
     type: string
   primary:
@@ -74,8 +74,9 @@ extends_documentation_fragment: tetration_doc_common
 notes:
 - Requires the `requests` Python module.
 
-requirements: 
+requirements:
 - requests
+- 'Required API Permission(s): app_policy_management or sensor_management'
 
 author:
     - Doron Chosnek (@dchosnek)
@@ -152,7 +153,7 @@ EXAMPLES = '''
       type: contains
       value: a9
 
-# Create a filter based on different operating system types 
+# Create a filter based on different operating system types
 - tetration_inventory_filter:
     provider: "{{ my_tetration }}"
     name: Various types of Operating Systems
@@ -160,14 +161,14 @@ EXAMPLES = '''
     state: present
     query_multiple:
       filter:
-        - field: os 
-          type: contains 
-          value: linux 
-        - field: os 
-          type: contains 
+        - field: os
+          type: contains
+          value: linux
+        - field: os
+          type: contains
           value: windows
-        - field: os 
-          type: contains 
+        - field: os
+          type: contains
           value: mac
       type: or
 
@@ -186,7 +187,7 @@ EXAMPLES = '''
           value: linux
         - field: os
           type: contains
-          value: windows 
+          value: windows
         - filters:
             - field: host_tags_cvss3
               type: gt
@@ -364,7 +365,7 @@ def run_module():
             # Updating the Update Object
             payload_keys = [k for k in req_payload.keys()]
             for key in payload_keys:
-                if module.params.get(key) != None and module.params[key] != response[key]:
+                if module.params.get(key) is not None and module.params[key] != response[key]:
                     req_payload[key] = module.params[key]
                 elif key == 'query':
                     if extracted_query_filter and extracted_query_filter != response['short_query']:

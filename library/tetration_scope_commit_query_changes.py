@@ -37,8 +37,9 @@ notes:
 - If the command successfully runs, always returns as changed even if no short queries need updating
 - Requires the `requests` Python module.
 
-requirements: 
-- requests 
+requirements:
+- requests
+- 'Required API Permission(s): user_role_scope_management or app_policy_management or sensor_management'
 
 author:
     - Joe Jacobs (@joej164)
@@ -66,7 +67,7 @@ EXAMPLES = '''
 
 RETURN = '''
 success:
-    description: Boolean value describing whether the command successfully ran or not 
+    description: Boolean value describing whether the command successfully ran or not
     type: bool
     returned: always
 '''

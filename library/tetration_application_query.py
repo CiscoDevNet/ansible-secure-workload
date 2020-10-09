@@ -6,7 +6,7 @@ ANSIBLE_METADATA = {
 
 DOCUMENTATION = '''
 ---
-module: tetration_application_query 
+module: tetration_application_query
 
 short_description: Search the application api for scope id's or details
 
@@ -25,7 +25,7 @@ options:
         type: string
     app_name:
         description:
-          - Return all applications with this value in its name 
+          - Return all applications with this value in its name
           - Mutually exclusive with C(app_id)
         required: false
         type: string
@@ -35,7 +35,7 @@ options:
           - Leave blank to not search on this value
           - Mutually exclusive with C(app_id)
         required: false
-        type: boolean 
+        type: boolean
     is_enforcing:
         description:
           - Return all applications that are enforcing
@@ -55,16 +55,17 @@ extends_documentation_fragment: tetration_doc_common
 notes:
 - Requires the `requests` Python module.
 
-requirements: 
-- requests 
+requirements:
+- requests
+- 'Required API Permission(s): app_policy_management'
 
 author:
-    - Your Name (@joej164)
+    - Joe Jacobs(@joej164)
 '''
 
 EXAMPLES = '''
 # pass in a message and have changed true
-- name: Search for all applications 
+- name: Search for all applications
   tetration_application_query:
     provider: "{{ provider_info }}"
 
@@ -86,37 +87,37 @@ RETURN = '''
 object:
   contains:
     alternate_query_mode:
-      description: 
+      description:
       - Indicates if ‘dynamic mode’ is used for the application.
       - In the dynamic mode, an ADM run creates one or more candidate queries for each cluster.
-      sample: false 
-      type: boolean 
+      sample: false
+      type: boolean
     app_scope_id:
-      description: ID of the scope assigned to the application. 
+      description: ID of the scope assigned to the application.
       sample: 5ed69642755f027a324bd922
       type: string
     author:
       description: First and last name of the user who created the application.
       sample: John Doe
       type: string
-    created_at: 
+    created_at:
       description: Unix timestamp of when the application was created.
-      sample: 1591121474 
+      sample: 1591121474
       type: int
     description:
       description: User specified description of the application.
-      sample: The application description 
+      sample: The application description
       type: string
     enforced_version:
       description: The enforced p* version of the application.
       sample: 0
       type: int
     enforcement_enabled:
-      description: Indicates if enforcement is enabled on the application 
+      description: Indicates if enforcement is enabled on the application
       sample: true
       type: boolean
     id:
-      description: A unique identifier for the application. 
+      description: A unique identifier for the application.
       sample: 5ed69642755f027a324bd922
       type: string
     latest_adm_version:
@@ -124,15 +125,15 @@ object:
       sample: 0
       type: int
     name:
-      description: User specified name of the application. 
-      sample: Application Name 
+      description: User specified name of the application.
+      sample: Application Name
       type: string
     primary:
-      description: Indicates if the application is primary for its scope. 
+      description: Indicates if the application is primary for its scope.
       sample: true
       type: boolean
   description: the first object found in the array
-  returned: when an item is found 
+  returned: when an item is found
   type: complex
 objects:
     description: an array of all objects found

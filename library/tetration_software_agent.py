@@ -20,7 +20,7 @@ version_added: '2.9'
 description:
 - Enables query or removal of software agents by uuid
 - Searching by C(uuid) returns all parameters from the API
-- Marking as absent deletes the 
+- Marking as absent deletes the
 
 options:
   uuid:
@@ -38,11 +38,12 @@ extends_documentation_fragment: tetration_doc_common
 
 notes:
 - Requires the `requests` Python module.
+- 'Required API Permission(s): sensor_management'
 
-requirements: 
-- requests 
+requirements:
+- requests
 
-author: 
+author:
   - Brandon Beck (@techbeck03)
   - Joe Jacobs(@joej164)
 '''
@@ -188,7 +189,7 @@ def run_module():
         response = tet_module.run_method('GET', route)
     elif module.params['state'] == 'absent':
         response = tet_module.run_method('DELETE', route)
-        result['changed'] == True
+        result['changed'] is True
 
     result['object'] = response
 

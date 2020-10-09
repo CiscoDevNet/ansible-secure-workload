@@ -8,21 +8,14 @@ import time
 import warnings
 
 from datetime import datetime
-# from functools import partial
 from six.moves.urllib.parse import urljoin
-# from ansible.module_utils._text import to_native
-from ansible.module_utils.six import iteritems, iterkeys
+from ansible.module_utils.six import iteritems
 from ansible.module_utils._text import to_text
 from . import tetration_constants
 from requests.packages.urllib3 import disable_warnings
 
 # Disable SSL Warnings
 disable_warnings()
-
-
-# Because the cmp() function is not in Python3
-def cmp(a, b):
-    return (a > b) - (a < b)
 
 
 class TetrationApiBase(object):
@@ -196,42 +189,6 @@ class TetrationApiModule(TetrationApiBase):
             if bigger_obj.get(k) != v:
                 return False
         return True
-
-    # def filter_object(self, obj1, obj2, check_only=False):
-
-    #     if check_only:
-    #         return obj1 == obj2
-
-    #     changed_flag = False
-    #     try:
-    #         for k in list(iterkeys(obj1)):
-    #             if k in list(iterkeys(obj2)):
-    #                 if type(obj1[k]) is dict:
-    #                     if cmp(obj1[k], obj2[k]) != 0:
-    #                         changed_flag = True
-    #                 elif obj1[k] != obj2[k]:
-    #                     changed_flag = True
-    #                 if not changed_flag and not check_only:
-    #                     del obj1[k]
-    #             else:
-    #                 changed_flag = True
-    #         return changed_flag
-    #     except AttributeError:
-    #         changed_flag = True
-    #         return changed_flag
-
-    # def compare_keys(self, obj1, obj2):
-    #     # Not used, can be deleted???
-    #     unknown_keys = []
-    #     for k in list(iterkeys(obj1)):
-    #         if k not in list(iterkeys(obj2)):
-    #             unknown_keys.append(k)
-    #     return unknown_keys
-
-    # def clear_values(self, obj):
-    #     # Not used, can be deleted???
-    #     for k in list(iterkeys(obj)):
-    #         obj[k] = ''
 
 
 class MultiPartOption(object):
@@ -535,97 +492,3 @@ class RestClient(object):
         return self.signed_http_request(
             http_method='DELETE', uri_path=self.__prefix_path(uri_path),
             args=kwargs)
-
-    # def patch(self, uri_path='', **kwargs):
-    #     """
-    #     PATCH request to the server. Returns a requests.Response.
-
-    #     Args:
-    #         uri_path: Additional string URI path for query
-    #         kwargs:
-    #             json_body: String JSON body
-    #             timeout: Float of timeout in seconds
-
-    #     Returns:
-    #         requests.Response object for the request
-    #     """
-    #     return self.signed_http_request(
-    #         http_method='PATCH', uri_path=self.__prefix_path(uri_path),
-    #         args=kwargs)
-
-    # def download(self, file_path, uri_path, timeout=10):
-    #     """
-    #     Makes a GET request to the backend and streams the response body to a
-    #     file
-
-    #     Args:
-    #         file_path: path to save the file
-    #         uri_path: additional string URI path for query
-    #         kwargs:
-    #             timeout: float of timeout in seconds
-    #     Returns:
-    #         requests.Response object for the request
-    #     """
-
-    #     unprep_req = requests.Request(
-    #         'GET',
-    #         urljoin(self.server_endpoint, self.__prefix_path(uri_path)))
-    #     req = self.session.prepare_request(unprep_req)
-    #     self.__add_custom_headers(req, checksum=True)
-    #     self.__add_auth_header(req)
-    #     resp = self.session.send(req, timeout=timeout, verify=self.verify,
-    #                              stream=True)
-    #     try:
-    #         with open(file_path, 'wb') as outputf:
-    #             for chunk in resp.iter_content(chunk_size=1024):
-    #                 if chunk:  # filter out keep-alive new chunks
-    #                     outputf.write(chunk)
-    #     except Exception as ex:
-    #         raise Exception('Error saving file. %s' % ex)
-    #     return resp
-
-    # def upload(self, file_path, uri_path, params=None, timeout=10):
-    #     """
-    #     Uploads a file to the backend.
-
-    #     Args:
-    #         file_path: path to the file
-    #         uri_path: additional string URI path for query
-    #         kwargs:
-    #             timeout: float of timeout in seconds
-    #             CMDB:
-    #             keys: list of column names used to construct the record
-    #                   identifier
-    #             delete: if true, deletes records from CMDB
-    #             params: list of parameters of type MultiPartOption
-    #     Returns:
-    #         requests.Response object for the request
-    #     """
-    #     if (params is not None
-    #             and (not isinstance(params, list)
-    #                  or any(not isinstance(param, MultiPartOption)
-    #                         for param in params))):
-    #         raise ValueError('"params" should be of type list with items of '
-    #                          'type "MultiPartOption"')
-    #     fields = OrderedDict()
-    #     for param in params or []:
-    #         val = param.val
-    #         if not isinstance(val, string_types):
-    #             val = json.dumps(val)
-    #         fields[param.key] = val
-    #     fields[self.__MULTIPART_FILE_ID] = (
-    #         ('filename', open(file_path, 'rb'), 'text/plain')
-    #     )
-    #     encoder = MultipartEncoder(
-    #         fields=fields,
-    #         boundary=self.__MULTIPART_BOUNDARY_ID
-    #     )
-    #     unprep_req = requests.Request(
-    #         'POST',
-    #         urljoin(self.server_endpoint, self.__prefix_path(uri_path)),
-    #         data=encoder,
-    #         headers={'Content-Type': encoder.content_type})
-    #     req = self.session.prepare_request(unprep_req)
-    #     self.__add_custom_headers(req, checksum=False)
-    #     self.__add_auth_header(req)
-    #     return self.session.send(req, timeout=timeout, verify=self.verify)

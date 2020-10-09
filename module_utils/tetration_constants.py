@@ -3,19 +3,15 @@
 # defining tetration constants
 TETRATION_API_INVENTORY_TAG = '/inventory/tags'
 TETRATION_API_ROLE = '/roles'
-TETRATION_API_TENANT = '/vrfs'
 TETRATION_API_USER = '/users'
 TETRATION_API_SENSORS = '/sensors'
 TETRATION_API_INVENTORY_FILTER = '/filters/inventories'
 TETRATION_API_SCOPES = '/app_scopes'
-TETRATION_API_INTERFACE_INTENTS = '/inventory_config/interface_intents'
-TETRATION_API_AGENT_NAT_CONFIG = '/agentnatconfig'
 TETRATION_API_APPLICATIONS = '/applications'
 TETRATION_API_APPLICATION_POLICIES = '/policies'
 TETRATION_API_AGENT_CONFIG_PROFILES = '/inventory_config/profiles'
 TETRATION_API_AGENT_CONFIG_INTENTS = '/inventory_config/intents'
 TETRATION_COLUMN_NAMES = '/assets/cmdb/attributenames'
-TETRATION_API_EXT_ORCHESTRATORS = '/orchestrator'
 TETRATION_API_APP_SCOPE_CAPABILITIES = ['SCOPE_READ', 'SCOPE_WRITE', 'EXECUTE',
                                         'ENFORCE', 'SCOPE_OWNER', 'DEVELOPER']
 

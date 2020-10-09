@@ -58,7 +58,8 @@ notes:
 - Requires the `requests` Python module.
 
 requirements:
-- requests 
+- requests
+- 'Required API Permission(s): sensor_management'
 
 author:
 - Brandon Beck (@techbeck03)
@@ -78,16 +79,16 @@ tetration_software_agent_config_intent:
       api_secret: 1234567890QWERTY
 # Delete agent config intent
 tetration_software_agent_config_intent:
-    profile_name: ACME Profile 
+    profile_name: ACME Profile
     filter_name: ACME Filter or Scope
-    state: absent 
+    state: absent
     provider:
       host: "https://tetration-cluster.company.com"
       api_key: 1234567890QWERTY
       api_secret: 1234567890QWERTY
 # Query agent config intent
 tetration_software_agent_config_intent:
-    profile_name: ACME Profile 
+    profile_name: ACME Profile
     filter_name: ACME Filter or Scope
     state: query
     provider:
@@ -123,7 +124,7 @@ object:
     name:
       description: Null value
       returned: when C(state) is present or query
-      sample: Null 
+      sample: Null
       type: string
     updated_at:
       description: Date this inventory filter was last updated (Unix Epoch)
@@ -219,7 +220,8 @@ def main():
     if duplicate_values:
         duplicate_values = set(duplicate_values)
         module.fail_json(
-            msg=f'The Tetration Server has multiple inventory filters with the same name.  This is not supported with this module.  Duplicate names are: {duplicate_values}')
+            msg=('The Tetration Server has multiple inventory filters with the same name.  '
+                 f'This is not supported with this module.  Duplicate names are: {duplicate_values}'))
 
     filter_id = None
 

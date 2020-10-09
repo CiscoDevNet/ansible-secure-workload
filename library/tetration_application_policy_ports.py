@@ -65,12 +65,12 @@ notes:
 - You cannot specify the `ANY` protocol by C(proto_id), only by C(proto_name)
 
 requirements:
-- requests 
+- requests
+- 'Required API Permission(s): app_policy_management'
 
 author:
 - Brandon Beck (@techbeck03)
 - Joe Jacobs (@joej164)
-
 '''
 
 EXAMPLES = '''
@@ -118,12 +118,12 @@ object:
   contains:
     approved:
       description: Whether the port is approved or not
-      returned: when port is approved.  absent if not approved 
+      returned: when port is approved.  absent if not approved
       sample: true
       type: bool
     description:
-      description: User entered description of the port 
-      returned: when a value is entered.  absent if not approved 
+      description: User entered description of the port
+      returned: when a value is entered.  absent if not approved
       sample: true
       type: bool
     id:
@@ -133,7 +133,7 @@ object:
       type: int
     port:
       description: List containing start and end of port range
-      returned: when C(state) is present or query and port ID is 6 or 17 for TCP and UDP resepectively 
+      returned: when C(state) is present or query and port ID is 6 or 17 for TCP and UDP resepectively
       sample: '[80, 80]'
       type: list
     proto:
@@ -162,9 +162,8 @@ def find_l4_param(existing_l4_params=None, proto_id=None, start_port=None, end_p
         found_params = [p for p in existing_l4_params if p['proto'] is None]
     elif proto_id in [6, 17]:
         # Find the matching object if the object is a TCP or UDP protocol
-        found_params = [p for p in existing_l4_params if p['proto'] == proto_id and
-                        p['port'][0] == start_port and
-                        p['port'][1] == end_port]
+        found_params = [p for p in existing_l4_params if p['proto'] ==
+                        proto_id and p['port'][0] == start_port and p['port'][1] == end_port]
     else:
         # Search for anything else
         found_params = [p for p in existing_l4_params if p['proto'] == proto_id]

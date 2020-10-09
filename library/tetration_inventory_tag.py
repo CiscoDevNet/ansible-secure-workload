@@ -32,7 +32,7 @@ options:
     required: true
     type: string
   root_scope_name:
-    description: Name of the root scope 
+    description: Name of the root scope
     required: true
     type: string
   state:
@@ -50,6 +50,7 @@ notes:
 
 requirements:
 - requests
+- 'Required API Permission(s): user_data_upload'
 
 author:
 - Brandon Beck (@techbeck03)
@@ -71,14 +72,14 @@ EXAMPLES = '''
       api_key: 1234567890QWERTY
       api_secret: 1234567890QWERTY
 
-- name: Remove attributes without deleting all attributes 
+- name: Remove attributes without deleting all attributes
   tetration_user_annotations:
     root_scopt_name: Default
     ip_address: 172.16.1.10
     attributes:
-      location: 
-      lifecycle: 
-      owner: 
+      location:
+      lifecycle:
+      owner:
     state: present
     provider:
       host: "https://tetration-cluster.company.com"
@@ -205,8 +206,6 @@ def main():
         'ip': ip_object
     }
     query_result = tet_module.run_method('GET', route, params=params)
-    #result['output'] = query_result
-    # module.exit_json(**result)
     current_attributes = query_result if query_result else {}
 
     # ---------------------------------

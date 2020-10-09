@@ -84,6 +84,7 @@ notes:
 
 requirements:
 - requests
+- 'Required API Permission(s): app_policy_management'
 
 author:
 - Brandon Beck (@techbeck03)
@@ -129,7 +130,7 @@ tetration_application_policy:
     version: v0
     policy_action: ALLOW
     priority: 100
-    rank: DEFAULT 
+    rank: DEFAULT
     state: query
     provider:
       host: "https://tetration-cluster.company.com"
@@ -170,11 +171,11 @@ object:
       returned: when C(state) is 'present' or 'query'
       type: int
     provider_filter:
-      description: Details of the provider filter applied to the policy 
+      description: Details of the provider filter applied to the policy
       returned: when C(state) is 'present' or 'query'
-      type: complex 
+      type: complex
     provider_filter_id:
-      description: ID of the provider filter applied to the policy 
+      description: ID of the provider filter applied to the policy
       returned: when C(state) is 'present' or 'query'
       type: str
     rank:
@@ -276,7 +277,9 @@ def main():
     if duplicate_values:
         duplicate_values = set(duplicate_values)
         module.fail_json(
-            msg=f'The Tetration Server has multiple inventory filters with the same name.  This is not supported with this module.  Duplicate names are: {duplicate_values}')
+            msg=('The Tetration Server has multiple inventory filters with the same name.  '
+                 'This is not supported with this module.  '
+                 f'Duplicate names are: {duplicate_values}'))
 
     consumer_id = None
     provider_id = None
@@ -340,7 +343,10 @@ def main():
         existing_policy_id = found_policies[0]['id']
     elif len(found_policies) >= 2:
         module.fail_json(
-            msg=f"Multiple policies found with the given criteria.  Cannot use this module if multiple policies match the `priority`, `action`, `consumer`, and `provider` fields.  Duplicate policies: {found_policies}")
+            msg=("Multiple policies found with the given criteria.  "
+                 "Cannot use this module if multiple policies match the "
+                 "`priority`, `action`, `consumer`, and `provider` fields.  "
+                 f"Duplicate policies: {found_policies}"))
 
     # ---------------------------------
     # STATE == 'present'

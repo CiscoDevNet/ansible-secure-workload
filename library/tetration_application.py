@@ -67,8 +67,9 @@ notes:
 - Requires the requests Python module.
 - Only the fields C(app_name), C(description), C(primary) can be updated on an existing application
 
-requirements: 
-- requests 
+requirements:
+- requests
+- 'Required API Permission(s): app_policy_management'
 
 author:
     - Brandon Beck (@techbeck03)
@@ -216,10 +217,12 @@ def main():
         found_app_scopes = [scope for scope in all_scopes if scope['name'] == module.params['app_scope_name']]
         if len(found_app_scopes) == 0:
             module.fail_json(
-                msg=f"There were no app scopes that matched the name entered.  Searched for: {module.params['app_scope_name']}")
+                msg=("There were no app scopes that matched the name entered.  "
+                     f"Searched for: {module.params['app_scope_name']}"))
         elif len(found_app_scopes) > 1:
             module.fail_json(
-                msg=f"There were too many app scopes that matched the name entered.  Searched for: {module.params['app_scope_name']}")
+                msg=("There were too many app scopes that matched the name entered.  "
+                     f"Searched for: {module.params['app_scope_name']}"))
         existing_app_scope = found_app_scopes[0]
 
     existing_app = {}
@@ -253,11 +256,13 @@ def main():
     if module.params['state'] == 'present':
         # if the object does not exist at all, create it but verify we have all needed data first
         if not existing_app and not existing_app_scope:
-            module.fail_json(msg="The application does not exist.  Must provide a Scope ID or Scope Name to create a new scope.")
+            module.fail_json(msg=("The application does not exist.  "
+                                  "Must provide a Scope ID or Scope Name to create a new scope."))
 
         if not existing_app and module.params['primary'] is None:
             module.fail_json(
-                msg="The application does not exist.  Must provide info on if the scope is primary or not when creating a scope.")
+                msg=("The application does not exist.  "
+                     "Must provide info on if the scope is primary or not when creating a scope."))
 
         if existing_app:
             updated_app = {

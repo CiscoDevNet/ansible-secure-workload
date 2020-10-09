@@ -36,6 +36,7 @@ notes:
 
 requirements:
 - requests
+- 'Required API Permission(s): app_policy_management'
 
 author:
   - Brandon Beck (@techbeck03)
@@ -76,8 +77,8 @@ RETURN = '''
 ---
 object:
   contains:
-    epoch: 
-      description: Unique identifier for the latest enforcement profile. 
+    epoch:
+      description: Unique identifier for the latest enforcement profile.
       returned: On Success
       sample: 5f70de34497d4f5ba2e6583c
       type: string
@@ -128,7 +129,8 @@ def main():
             result['changed'] = True
         elif module.params['version'] is not None and existing_app['enforced_version'] != int(module.params['version'].strip('p')):
             # Per the API guide, the preferred method of passing the version is `p4` for Version 4
-            # But the version returned from the api is just an int.  This deals with passing in an int or the p for for the version
+            # But the version returned from the api is just an int.
+            # This deals with passing in an int or the p for for the version
             result['changed'] = True
 
         if result['changed']:

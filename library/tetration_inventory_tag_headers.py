@@ -12,17 +12,13 @@ short_description: Allows for deleting and querying inventory tag headers
 version_added: '2.9'
 
 description:
-- Allows for querying all inventory tag headers 
+- Allows for querying all inventory tag headers
 - Allows for deleting an inventory tag headers
-
-notes:
-- Requires the requests Python module.
-- Cannot add a column header as the API does not support it.  To add a header, add a tag to a subnet
 
 options:
   attribute:
     description:
-    - String containing attribute value to delete 
+    - String containing attribute value to delete
     - Required if I(state=absent)
     type: string
   root_scope_name:
@@ -31,24 +27,30 @@ options:
     type: string
   state:
     choices: [absent, query]
-    description: Query the current attributes or mark an attribute as should be absent from the system 
+    description: Query the current attributes or mark an attribute as should be absent from the system
     required: true
     type: string
 
 extends_documentation_fragment: tetration_doc_common
 
-requirements:
-- requests 
+notes:
+- Requires the `requests` Python module.
+- Cannot add a column header as the API does not support it.  To add a header, add a tag to a subnet
 
-author: 
+
+requirements:
+- requests
+- 'Required API Permission(s): user_data_upload'
+
+author:
 - Joe Jacobs(@joej164)
 '''
 
 EXAMPLES = '''
-- name: List all attributes in the system 
+- name: List all attributes in the system
   tetration_inventory_tag_headers:
     root_scope_name: Default
-    state: query 
+    state: query
     provider:
       host: "https://tetration-cluster.company.com"
       api_key: 1234567890QWERTY
@@ -68,9 +70,9 @@ EXAMPLES = '''
 RETURN = '''
 ---
 object:
-  description: a list of column headers 
+  description: a list of column headers
   returned: always
-  type: list 
+  type: list
 '''
 
 from ansible.module_utils.basic import AnsibleModule
