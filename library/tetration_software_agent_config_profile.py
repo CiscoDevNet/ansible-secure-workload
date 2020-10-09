@@ -17,77 +17,208 @@ description: Enables creation, modification, deletion and query of software agen
 
 options:
     allow_broadcast:
-        default: 'True'
-        description: Whether or not broadcast traffic should be allowed
+        description:
+        - Whether or not broadcast traffic should be allowed
+        - Matching GUI Element - Enforcement -> Allow Broadcast
+        type: bool
+    allow_link_local:
+        description:
+        - blah
+        - Matching GUI Element - Enforcement -> Allow Link Local Address 
         type: bool
     allow_multicast:
-        default: 'True'
-        description: Whether or not broadcast traffic should be allowed
+        description:
+        - Whether or not broadcast traffic should be allowed
+        - Matching GUI Element - Enforcement -> Allow Multicast 
         type: bool
     auto_upgrade_opt_out:
-        default: 'True'
-        description: If True, agents are not auto-upgraded during upgrade of Tetration
-          cluster
+        description:
+        - If True, agents are not auto-upgraded during upgrade of Tetration cluster
+        - Matching GUI Element - Visibility -> Auto-Upgrade
         type: bool
     cpu_quota_mode:
         choices: [0, 1, 2]
-        default: 1
-        description: 0=disabled 1=Adjusted 2=To
+        description:
+        - 0=disabled 1=Adjusted 2=Top
+        - blah
+        - Matching GUI Element - Visibility -> CPU Quota Mode 
         type: int
     cpu_quota_pct:
-        default: 3
-        description: The amount of CPU quota to give to agent on the end host
+        description:
+        - The amount of CPU quota to give to agent on the end host
+        - Matching GUI Element - Visibility -> CPU Quota Mode Percent
+        - Mutually exclusive [C(cpu_quota_pct), C(cpu_quota_us)]
+        - 'Valid values: 1 to 100'
+        type: int
+    cpu_quota_us:
+        description:
+        - The amount of CPU quota to give to agent on the end host
+        - This is much more granular than C(cpu_quota_pct)
+        - Matching GUI Element - Visibility -> CPU Quota Mode Percent
+        - Mutually exclusive [C(cpu_quota_pct), C(cpu_quota_us)]
+        - 'Valid values: 10000 to 1000000'
+        - Value of 10000 equals 1 percent in the GUI
+        - Value of 1000000 equals 100 percent in the GUI
         type: int
     data_plane_disabled:
-        default: 'False'
-        description: If true, agent stops reporting flows to Tetration
+        description:
+        - If true, agent stops reporting flows to Tetration
+        - Matching GUI Element - Visibility -> Data Plane 
         type: bool
-    enable_cache_sidechannel:
-        default: 'False'
-        description: Whether or not sidechannel detection is enabled
+    enable_dns:
+        description:
+        - This a placeholder for a future feature 
+        - You can changed the value and it will update the profile
+        - At this time has not impact on the Profile 
         type: bool
     enable_forensic:
-        default: 'False'
-        description: Whether or not forensics is enabled
+        description:
+        - Whether or not forensics is enabled
+        - Matching GUI Element - Forensics -> Forensics 
         type: bool
     enable_meltdown:
-        default: 'False'
-        description: Whether or not meltdown detection is enabled
+        description:
+        - Whether or not meltdown detection is enabled
+        - Matching GUI Element - Forensics -> Meltdown Exploit Detection
         type: bool
     enable_pid_lookup:
-        default: 'False'
-        description: Whether or not pid lookup for flow search is enabled
+        description:
+        - Whether or not pid lookup for flow search is enabled
+        - Matching GUI Element - Visability -> PID Lookup 
         type: bool
+    enforcement_cpu_quota_mode:
+        choices: [0, 1, 2]
+        description:
+        - blah
+        - 0=disabled 1=Adjusted 2=Top
+        - Matching GUI Element - Enforcement -> CPU Quota Mode
+        type: bool
+    enforcement_cpu_quota_pct:
+        description:
+        - The amount of CPU quota to give to agent on the end host
+        - Matching GUI Element - Enforcement -> CPU Quota Mode Percent
+        - Mutually exclusive [C(enforcement_cpu_quota_pct), C(enforcement_cpu_quota_us)]
+        - 'Valid values: 1 to 100'
+        type: int
+    enforcement_cpu_quota_us:
+        description:
+        - The amount of CPU quota to give to agent on the end host
+        - This is much more granular than C(enforcement_cpu_quota_pct)
+        - Matching GUI Element - Enforcement -> CPU Quota Mode Percent
+        - Mutually exclusive [C(cpu_quota_pct), C(cpu_quota_us)]
+        - 'Valid values: 10000 to 1000000'
+        - Value of 10000 equals 1 percent in the GUI
+        - Value of 1000000 equals 100 percent in the GUI
+        type: int
     enforcement_disabled:
-        default: 'True'
-        description: If True, enforcement is disabled
+        description:
+        - If True, enforcement is disabled
+        - Matching GUI Element - Enforcement -> Enforcement
+        type: bool
+    enforcement_max_rss_limit:
+        description:
+        - blah
+        - Matching GUI Element - Enforcement -> Memory Quota Limit MB 
+        - Mutually exclusive [C(enforcement_max_rss_limit), C(enforcement_max_rss_limit_mb)]
+        - 'Valid values: 134217728 (128MB) to 2147483648 (2048M)'
+        type: bool
+    enforcement_max_rss_limit_mb:
+        description:
+        - blah
+        - Matching GUI Element - Enforcement -> Memory Quota Limit MB 
+        - Mutually exclusive [C(enforcement_max_rss_limit), C(enforcement_max_rss_limit_mb)]
+        - 'Valid values: 128 (MB) to 2048 (MB)'
+        type: bool
+    forensics_cpu_quota_mode:
+        choices: [0, 1, 2]
+        description:
+        - blah
+        - 0=disabled 1=Adjusted 2=Top
+        - Matching GUI Element - Forensics -> CPU Quota Mode
+        type: bool
+    forensics_cpu_quota_pct:
+        description:
+        - The amount of CPU quota to give to agent on the end host
+        - Matching GUI Element - Forensics -> CPU Quota Mode Percent
+        - Mutually exclusive [C(forensics_cpu_quota_pct), C(forensics_cpu_quota_us)]
+        - 'Valid values: 1 to 100'
+        type: int
+    forensics_cpu_quota_us:
+        description:
+        - The amount of CPU quota to give to agent on the end host
+        - This is much more granular than C(forensics_cpu_quota_pct)
+        - Matching GUI Element - Forensics -> CPU Quota Mode Percent
+        - Mutually exclusive [C(forensics_cpu_quota_pct), C(forensics_cpu_quota_us)]
+        - 'Valid values: 10000 to 1000000'
+        - Value of 10000 equals 1 percent in the GUI
+        - Value of 1000000 equals 100 percent in the GUI
+        type: int
+    forensics_mem_quota_bytes:
+        description:
+        - blah
+        - Matching GUI Element - Forensics -> Memory Quota Limit MB 
+        - Mutually exclusive [C(forensics_mem_quota_bytes), C(forensics_mem_quota_mb)]
+        - 'Valid values: 134217728 (128MB) to 2147483648 (2048M)'
+        type: bool
+    forensics_mem_quota_mb:
+        description:
+        - blah
+        - Matching GUI Element - Forensics -> Memory Quota Limit MB 
+        - Mutually exclusive [C(forensics_mem_quota_bytes), C(forensics_mem_quota_mb)]
+        - 'Valid values: 128 (MB) to 2048 (MB)'
+        type: bool
+    id:
+        description:
+        - blah
+        - Required when updating the name of a profile, otherwise is not needed
+        - Can be used to identify a profile instead of using the name field
+        type: bool
+    max_rss_limit:
+        description:
+        - blah
+        - Matching GUI Element - Visability -> Memory Quota Limit MB 
+        - Mutually exclusive [C(max_rss_limit), C(max_rss_limit_mb)]
+        - 'Valid values: 209715200 (200MB) to 2147483648 (2048M)'
+        type: bool
+    max_rss_limit_mb:
+        description:
+        - blah
+        - Matching GUI Element - Visability -> Memory Quota Limit MB 
+        - Mutually exclusive [C(max_rss_limit), C(max_rss_limit_mb)]
+        - 'Valid values: 200 (MB) to 2048 (MB)'
         type: bool
     name:
-        description: User provided name of software agent profile
-        required: true
+        description:
+        - User provided name of software agent config profile
+        - Required when creating a new profile
+        required: false
         type: string
     preserve_existing_rules:
-        default: 'False'
-        description: If True, existing firewall rules are preserved
+        description:
+        - If True, existing firewall rules are preserved
+        - Matching GUI Element - Enforcement -> Preserve Rules 
         type: bool
     root_app_scope_id:
-        description: ID of root app scope for tenant to which an agent profile should
-          be applied
+        description:
+        - ID of root app scope for tenant to which an agent profile should be applied
+        - Mutually exculusive [C(root_app_scope_id), C(root_app_scope_name)]
+        type: string
+    root_app_scope_name:
+        description:
+        - Name of root app scope for tenant to which an agent profile should be applied
+        - Mutually exculusive [C(root_app_scope_id), C(root_app_scope_name)]
         type: string
     state:
         choices: [present, absent, query]
-        default: present
         description: Add, change, remove or query for agent config profiles
         required: true
-        type: string
-    tenant_name:
-        description: Tenant name to which an agent config profile should be applied
         type: string
 
 extends_documentation_fragment: tetration_doc_common
 
 notes:
 - Requires the `requests` Python module.
+- For defaults, look at the `Default` profile in the system.  All new profiles are modeled from that unless parameter specified.
 
 requirements:
 - requests
@@ -251,8 +382,8 @@ def main():
     module_args = dict(
         name=dict(type='str', required=False),
         id=dict(type='str', required=False),
-        app_scope_id=dict(type='str', required=False),
-        app_scope_name=dict(type='str', required=False),
+        root_app_scope_id=dict(type='str', required=False),
+        root_app_scope_name=dict(type='str', required=False),
         allow_broadcast=dict(type='bool', required=False),
         allow_link_local=dict(type='bool', required=False),
         allow_multicast=dict(type='bool', required=False),
@@ -268,7 +399,7 @@ def main():
         enforcement_cpu_quota_mode=dict(type='int', required=False, choices=[0, 1, 2]),
         enforcement_cpu_quota_pct=dict(type='int', required=False),
         enforcement_cpu_quota_us=dict(type='int', required=False),
-        enforcement_disabled=dict(type='bool', required=False, default=True),
+        enforcement_disabled=dict(type='bool', required=False),
         enforcement_max_rss_limit=dict(type='int', required=False),
         enforcement_max_rss_limit_mb=dict(type='int', required=False),
         forensics_cpu_quota_mode=dict(type='int', required=False, choices=[0, 1, 2]),
@@ -289,12 +420,11 @@ def main():
     module = AnsibleModule(
         argument_spec=module_args,
         required_one_of=[
-            ['app_scope_id', 'app_scope_name'],
+            ['root_app_scope_id', 'root_app_scope_name'],
             ['name', 'id']
         ],
         mutually_exclusive=[
-            ['app_scope_id', 'app_scope_name'],
-            ['name', 'id'],
+            ['root_app_scope_id', 'root_app_scope_name'],
             ['cpu_quota_pct', 'cpu_quota_us'],
             ['enforcement_cpu_quota_pct', 'enforcement_cpu_quota_us'],
             ['forensics_cpu_quota_pct', 'forensics_cpu_quota_us'],
@@ -352,53 +482,16 @@ def main():
         'object': {},
     }
 
-    # state = module.params['state']
-    # check_mode = module.check_mode
-    # name = module.params['name']
-    # app_scope_id = module.params['root_app_scope_id']
-    # app_scope_name = module.params['tenant_name']
-    # allow_broadcast = module.params['allow_broadcast']
-    # allow_multicast = module.params['allow_multicast']
-    # auto_upgrade_opt_out = module.params['auto_upgrade_opt_out']
-    # cpu_quota_mode = module.params['cpu_quota_mode']
-    # cpu_quota_pct = module.params['cpu_quota_pct']
-    # data_plane_disabled = module.params['data_plane_disabled']
-    # enable_cache_sidechannel = module.params['enable_cache_sidechannel']
-    # enable_forensics = module.params['enable_forensics']
-    # enable_meltdown = module.params['enable_meltdown']
-    # enable_pid_lookup = module.params['enable_pid_lookup']
-    # enforcement_disabled = module.params['enforcement_disabled']
-    # preserve_existing_rules = module.params['preserve_existing_rules']
-    # existing_app_scope = None
-    # existing_config_profile = None
-    # agent_options = [
-    #     'allow_broadcast',
-    #     'allow_multicast',
-    #     'auto_upgrade_opt_out',
-    #     'cpu_quota_mode',
-    #     'cpu_quota_pct',
-    #     'data_plane_disabled',
-    #     'enable_cache_sidechannel',
-    #     'enable_forensics',
-    #     'enable_meltdown',
-    #     'enable_pid_lookup',
-    #     'enforcement_disabled',
-    #     'preserve_existing_rules'
-    # ]
-    # agent_update_remove_keys = [
-    #     'preserve_existing_rules'
-    # ]
-
     # =========================================================================
     # Get current state of the object
     app_scopes = tet_module.run_method('GET', TETRATION_API_SCOPES)
     app_scope_dict = {s['name']: s['id'] for s in app_scopes}
 
     existing_app_scope_id = None
-    if module.params['app_scope_id'] in app_scope_dict.values():
-        existing_app_scope_id = module.params['app_scope_id']
+    if module.params['root_app_scope_id'] in app_scope_dict.values():
+        existing_app_scope_id = module.params['root_app_scope_id']
     else:
-        scope_name = module.params['app_scope_name']
+        scope_name = module.params['root_app_scope_name']
         existing_app_scope_id = app_scope_dict.get(scope_name)
 
     if not existing_app_scope_id:
@@ -412,12 +505,10 @@ def main():
     existing_profile = None
 
     for profile in existing_profiles:
-        if module.params['name'] == profile['name']:
+        if module.params['id'] == profile['id']:
             existing_profile = profile
-        elif module.params['id'] == profile['id']:
+        elif module.params['name'] == profile['name']:
             existing_profile = profile
-
-    module.exit_json(**result)
 
     # ---------------------------------
     # STATE == 'present'
@@ -425,7 +516,7 @@ def main():
     if module.params['state'] == 'present':
         new_object = {
             'name': module.params['name'],
-            'app_scope_id': existing_app_scope_id,
+            'root_app_scope_id': existing_app_scope_id,
             'allow_broadcast': module.params['allow_broadcast'],
             'allow_link_local': module.params['allow_link_local'],
             'allow_multicast': module.params['allow_multicast'],
@@ -454,58 +545,36 @@ def main():
             'preserve_existing_rules': module.params['preserve_existing_rules'],
         }
 
-        obj_keys_to_remove = []
-        for k, v in new_object.items():
-            if v is None:
-                obj_keys_to_remove.append(k)
+        # Remove all the undefined parameters from the new_object
+        new_object = {k: v for k, v in new_object.items() if v is not None}
 
-        for key in obj_keys_to_remove:
-            new_object.pop(key)
-
-        result['to_update'] = new_object
-        module.exit_json(**result)
-
-        for option in agent_options:
-            new_object[option] = module.params.get(option)
-        if not existing_config_profile:
-            if not check_mode:
-                result['object'] = tet_module.run_method(
-                    method_name='post',
-                    target=TETRATION_API_AGENT_CONFIG_PROFILES,
-                    req_payload=new_object
-                )
+        if existing_profile:
+            if tet_module.is_subset(new_object, existing_profile):
+                # If there is no change required to the module
+                result['object'] = existing_profile
             else:
-                result['object'] = new_object
-            result['changed'] = True
+                # A change is required
+                route = f"{TETRATION_API_AGENT_CONFIG_PROFILES}/{existing_profile['id']}"
+                result['object'] = tet_module.run_method('PUT', route, req_payload=new_object)
+                result['changed'] = True
         else:
-            for option in agent_update_remove_keys:
-                del new_object[option]
-            result['changed'] = tet_module.filter_object(new_object, existing_config_profile, check_only=True)
-            if not check_mode:
-                result['object'] = tet_module.run_method(
-                    method_name='put',
-                    target='%s/%s' % (TETRATION_API_AGENT_CONFIG_PROFILES, existing_config_profile['id']),
-                    req_payload=new_object
-                )
-            else:
-                result['object'] = new_object
+            result['object'] = tet_module.run_method('POST', TETRATION_API_AGENT_CONFIG_PROFILES, req_payload=new_object)
+            result['changed'] = True
 
     # ---------------------------------
     # STATE == 'absent'
     # ---------------------------------
-    elif module.params['state'] in 'absent':
-        if existing_config_profile:
-            if not check_mode:
-                tet_module.run_method(
-                    method_name='delete',
-                    target='%s/%s' % (TETRATION_API_AGENT_CONFIG_PROFILES, existing_config_profile['id'])
-                )
+    elif module.params['state'] == 'absent':
+        if existing_profile:
+            route = f"{TETRATION_API_AGENT_CONFIG_PROFILES}/{existing_profile['id']}"
+            result['object'] = tet_module.run_method('DELETE', route)
             result['changed'] = True
     # ---------------------------------
     # STATE == 'query'
     # ---------------------------------
     else:
-        result['object'] = existing_config_profile
+        if existing_profile:
+            result['object'] = existing_profile
 
     module.exit_json(**result)
 
