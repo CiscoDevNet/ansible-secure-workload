@@ -5,14 +5,15 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 ---
-author: Brandon Beck (@techbeck03)
-description: Enables creation, modification, deletion and query of software agent
-  config intent
-extends_documentation_fragment: tetration
 module: tetration_software_agent_config_intent
-notes:
-- Requires the tetpyclient Python module.
-- Supports check mode.
+
+short description: Enables creation, deletion and query of software agent config intent
+
+version_added: '2.9'
+
+description:
+- Enables creation, deletion and query of software agent config intent
+
 options:
   inventory_config_profile_id:
     description: ID of inventory config profile
@@ -32,7 +33,7 @@ options:
     - Required together [C(inventory_filter_name), C(inventory_filter_type)]
     type: string
   inventory_filter_type:
-    choices: '[inventory, scope]'
+    choices: [inventory, scope]
     description:
     - Type of inventory filter used for association
     - Required together [C(inventory_filter_name), C(inventory_filter_type)]
@@ -42,7 +43,7 @@ options:
       be applied
     type: string
   state:
-    choices: '[present, absent, query]'
+    choices: [present, absent, query]
     default: present
     description: Add, change, remove or query for agent config intents
     required: true
@@ -50,42 +51,47 @@ options:
   tenant_name:
     description: Tenant name to which an agent config profile should be applied
     type: string
-requirements: tetpyclient
-version_added: '2.8'
+
+extends_documentation_fragment: tetration_doc_common
+
+notes:
+- Requires the `requests` Python module.
+
+requirements:
+- requests 
+
+author:
+- Brandon Beck (@techbeck03)
+- Joe Jacobs (@joej164)
+
 '''
 
 EXAMPLES = '''
 # Add or Modify agent config intent
 tetration_software_agent_config_intent:
-    tenant_name: ACME
-    inventory_config_profile_id: 596d6751497d4f3eb1f1fd2d
-    inventory_filter_name: ACME
-    inventory_filter_type: scope
+    profile_id: 596d6751497d4f3eb1f1fd2d
+    filter_id: 596d6751497d4f3eb1f1abc
     state: present
     provider:
-      host: "tetration-cluster@company.com"
+      host: "https://tetration-cluster.company.com"
       api_key: 1234567890QWERTY
       api_secret: 1234567890QWERTY
 # Delete agent config intent
 tetration_software_agent_config_intent:
-    tenant_name: ACME
-    inventory_filter_name: ACME
-    inventory_filter_type: scope
-    inventory_config_profile_id: 596d6751497d4f3eb1f1fd2d
-    state: absent
+    profile_name: ACME Profile 
+    filter_name: ACME Filter or Scope
+    state: absent 
     provider:
-      host: "tetration-cluster@company.com"
+      host: "https://tetration-cluster.company.com"
       api_key: 1234567890QWERTY
       api_secret: 1234567890QWERTY
 # Query agent config intent
 tetration_software_agent_config_intent:
-    tenant_name: ACME
-    inventory_filter_name: ACME
-    inventory_filter_type: scope
-    inventory_config_profile_id: 596d6751497d4f3eb1f1fd2d
+    profile_name: ACME Profile 
+    filter_name: ACME Filter or Scope
     state: query
     provider:
-      host: "tetration-cluster@company.com"
+      host: "https://tetration-cluster.company.com"
       api_key: 1234567890QWERTY
       api_secret: 1234567890QWERTY
 '''
@@ -115,9 +121,9 @@ object:
       sample: 5c493b58755f027da9818750
       type: string
     name:
-      description: User provided name for config intent
+      description: Null value
       returned: when C(state) is present or query
-      sample: ACME
+      sample: Null 
       type: string
     updated_at:
       description: Date this inventory filter was last updated (Unix Epoch)
@@ -135,186 +141,148 @@ from ansible.module_utils.tetration_constants import TETRATION_API_SCOPES
 from ansible.module_utils.tetration_constants import TETRATION_API_AGENT_CONFIG_PROFILES
 from ansible.module_utils.tetration_constants import TETRATION_API_AGENT_CONFIG_INTENTS
 from ansible.module_utils.tetration_constants import TETRATION_API_INVENTORY_FILTER
+from ansible.module_utils.tetration_constants import TETRATION_PROVIDER_SPEC
 
 
 def main():
-    ''' Main entry point for module execution
-    '''
-    #
-    # Module specific spec
-    tetration_spec = dict(
-        tenant_name=dict(type='str', required=False),
-        root_app_scope_id=dict(type='str', required=False),
-        inventory_config_profile_id=dict(type='str', required=True),
-        inventory_filter_id=dict(type='str', required=False),
-        inventory_filter_name=dict(type='str', required=False),
-        inventory_filter_type=dict(type='str', required=False, choices=['inventory', 'scope'])
-    )
-    # Common spec for tetration modules
-    argument_spec = dict(
-        provider=dict(required=True),
-        state=dict(default='present', choices=['present', 'absent', 'query'])
-    )
+    # Main entry point for module execution
 
-    # Combine specs and include provider parameter
-    argument_spec.update(tetration_spec)
-    argument_spec.update(TetrationApiModule.provider_spec)
+    # Module specific spec
+    module_args = dict(
+        profile_name=dict(type='str', required=False),
+        profile_id=dict(type='str', required=False),
+        filter_id=dict(type='str', required=False),
+        filter_name=dict(type='str', required=False),
+        state=dict(default='present', choices=['present', 'absent', 'query']),
+        provider=dict(type='dict', options=TETRATION_PROVIDER_SPEC)
+    )
 
     module = AnsibleModule(
-        argument_spec=argument_spec,
-        supports_check_mode=True,
+        argument_spec=module_args,
         required_one_of=[
-            ['inventory_filter_id', 'inventory_filter_name']
+            ['profile_name', 'profile_id'],
+            ['filter_id', 'filter_name'],
         ],
         mutually_exclusive=[
-            ['inventory_filter_id', 'inventory_filter_name'],
-            ['inventory_filter_id', 'inventory_filter_type']
-        ],
-        required_together=[
-            ['inventory_filter_name', 'inventory_filter_type']
+            ['profile_name', 'profile_id'],
+            ['filter_id', 'filter_name'],
         ]
     )
 
     # These are all elements we put in our return JSON object for clarity
     tet_module = TetrationApiModule(module)
-    result = dict(
-        changed=False,
-        object=None,
-    )
-
-    state = module.params['state']
-    check_mode = module.check_mode
-    tenant_name = module.params['tenant_name']
-    root_app_scope_id = module.params['root_app_scope_id']
-    inventory_config_profile_id = module.params['inventory_config_profile_id']
-    inventory_filter_id = module.params['inventory_filter_id']
-    inventory_filter_name = module.params['inventory_filter_name']
-    inventory_filter_type = module.params['inventory_filter_type']
-    existing_app_scope = None
-    existing_config_profile = None
-    existing_inventory_filter = None
-    existing_config_intent = None
+    result = {
+        'changed': False,
+        'object': {},
+    }
 
     # =========================================================================
     # Get current state of the object
-    if root_app_scope_id:
-        existing_app_scope = tet_module.run_method(
-            method_name='get',
-            target='%s/%s' % (TETRATION_API_SCOPES, root_app_scope_id)
-        )
-    elif not root_app_scope_id:
-        existing_app_scope = tet_module.get_object(
-            target=TETRATION_API_SCOPES,
-            filter=dict(name=tenant_name)
-        )
+    config_profiles = tet_module.run_method('GET', TETRATION_API_AGENT_CONFIG_PROFILES)
+    config_profiles_and_ids = {c['name']: c['id'] for c in config_profiles}
 
-    if not existing_app_scope:
-        if root_app_scope_id:
-            module.fail_json(msg='Unable to find existing app scope with id: %s' % root_app_scope_id)
+    profile_id = None
+    if module.params['profile_id'] in config_profiles_and_ids.values():
+        profile_id = module.params['profile_id']
+    elif module.params['profile_name'] in config_profiles_and_ids.keys():
+        profile_name = module.params['profile_name']
+        profile_id = config_profiles_and_ids[profile_name]
+
+    if not profile_id:
+        if module.params['profile_id']:
+            module.fail_json(msg=f"Unable to find existing profile id: {module.params['profile_id']}")
         else:
-            module.fail_json(msg='Unable to find existing app scope named: %s' % tenant_name)
+            module.fail_json(msg=f"Unable to find existing profile named: {module.params['profile_name']}")
 
-    existing_config_profile = tet_module.run_method(
-        method_name='get',
-        target='%s/%s' % (TETRATION_API_AGENT_CONFIG_PROFILES, inventory_config_profile_id)
-    )
+    # Get the existing API Scopes and Inventory Filters to verify the filter parameters passed in
+    existing_app_scopes = tet_module.run_method('GET', TETRATION_API_SCOPES)
 
-    if not existing_config_profile:
-        module.fail_json(msg='Unable to find existing config profile with id: %s' % inventory_config_profile_id)
+    # Build a lookup object for the app scopes
+    app_scope_name_to_scope_id = {s['name']: s['id'] for s in existing_app_scopes}
 
-    if inventory_filter_type == 'inventory':
-        if inventory_filter_id:
-            existing_inventory_filter = tet_module.run_method(
-                method_name='get',
-                target='%s/%s' % (TETRATION_API_INVENTORY_FILTER, inventory_filter_id),
-            )
+    # Build the inventory filter dict but check for duplicate entries and report them if found
+    existing_inventory_filters = tet_module.run_method('GET', TETRATION_API_INVENTORY_FILTER)
+
+    inv_filter_name_to_filter_id = {}
+    duplicate_values = []
+    for i in existing_inventory_filters:
+        name = i['name']
+        inv_id = i['id']
+        if inv_id is None:      # If the API returns an ID of None, this code won't work
+            module.fail_json(msg='An ID returned had a value of `None`')
+
+        if inv_filter_name_to_filter_id.get(name) is None:      # Does the ID exist in the new dict
+            inv_filter_name_to_filter_id[name] = inv_id
         else:
-            app_scopes = tet_module.get_object(
-                target=TETRATION_API_SCOPES,
-                filter=dict(root_app_scope_id=existing_app_scope['root_app_scope_id']),
-                allow_multiple=True
-            )
-            scope_ids = [scope['id'] for scope in app_scopes]
-            inventory_filters = tet_module.run_method(
-                method_name='get',
-                target=TETRATION_API_INVENTORY_FILTER,
-            )
-            if inventory_filters:
-                inventory_filters = [valid_filter for valid_filter in inventory_filters if valid_filter['app_scope_id']
-                                     in scope_ids and valid_filter['name'] == inventory_filter_name]
-                existing_inventory_filter = inventory_filters[0] if len(inventory_filters) == 1 else None
-            else:
-                existing_inventory_filter = None
-        if not existing_inventory_filter:
-            if inventory_filter_id:
-                module.fail_json(msg='Unable to find inventory filter matching id: %s' % inventory_filter_id)
-            else:
-                module.fail_json(msg='Unable to find inventory filter named: %s' % inventory_filter_name)
+            duplicate_values.append(name)
 
-    elif inventory_filter_type == 'scope':
-        if inventory_filter_id:
-            existing_inventory_filter = tet_module.run_method(
-                method_name='get',
-                target='%s/%s' % (TETRATION_API_SCOPES, inventory_filter_id),
-            )
-        else:
-            existing_inventory_filter = tet_module.get_object(
-                target=TETRATION_API_SCOPES,
-                filter=dict(
-                    root_app_scope_id=existing_app_scope['root_app_scope_id'],
-                    name=inventory_filter_name
-                )
-            )
-        if not existing_inventory_filter:
-            if inventory_filter_id:
-                module.fail_json(msg='Unable to find scope matching id: %s' % inventory_filter_id)
-            else:
-                module.fail_json(msg='Unable to find scope named: %s' % inventory_filter_name)
+    if duplicate_values:
+        duplicate_values = set(duplicate_values)
+        module.fail_json(
+            msg=f'The Tetration Server has multiple inventory filters with the same name.  This is not supported with this module.  Duplicate names are: {duplicate_values}')
 
-    existing_config_intent = tet_module.get_object(
-        target=TETRATION_API_AGENT_CONFIG_INTENTS,
-        filter=dict(
-            inventory_filter_id=existing_inventory_filter['id'],
-            inventory_config_profile_id=inventory_config_profile_id
-        )
-    )
+    filter_id = None
+
+    if module.params['filter_id']:
+        # Verify the ID is a valid api scope or an inventory filter
+        if module.params['filter_id'] in app_scope_name_to_scope_id.values():
+            filter_id = module.params['filter_id']
+        elif module.params['filter_id'] in inv_filter_name_to_filter_id.values():
+            filter_id = module.params['filter_id']
+    elif module.params['filter_name']:
+        # Verify the ID is a valid api scope or an inventory filter
+        filter_name = module.params['filter_name']
+        if app_scope_name_to_scope_id.get(filter_name):
+            filter_id = app_scope_name_to_scope_id[filter_name]
+        elif inv_filter_name_to_filter_id.get(filter_name):
+            filter_id = inv_filter_name_to_filter_id[filter_name]
+
+    if filter_id is None:
+        module.fail_json(msg='The provided filter name or id is invalid')
+
+    # Get the current config intents
+    existing_intents = tet_module.run_method('GET', TETRATION_API_AGENT_CONFIG_INTENTS)
+
+    intent_to_find = {
+        'inventory_config_profile_id': profile_id,
+        'inventory_filter_id': filter_id
+    }
+
+    existing_intent = None
+    for intent in existing_intents:
+        if tet_module.is_subset(intent_to_find, intent):
+            existing_intent = intent
 
     # ---------------------------------
     # STATE == 'present'
     # ---------------------------------
-    if state == 'present':
-        new_object = dict(
-            inventory_filter_id=existing_inventory_filter['id'],
-            inventory_config_profile_id=inventory_config_profile_id
-        )
-        if not existing_config_intent:
-            if not check_mode:
-                tet_module.run_method(
-                    method_name='post',
-                    target=TETRATION_API_AGENT_CONFIG_INTENTS,
-                    req_payload=new_object
-                )
-            result['object'] = new_object
+    if module.params['state'] == 'present':
+        new_object = {
+            'inventory_config_profile_id': profile_id,
+            'inventory_filter_id': filter_id
+        }
+
+        if not existing_intent:
+            result['object'] = tet_module.run_method('POST', TETRATION_API_AGENT_CONFIG_INTENTS, req_payload=new_object)
             result['changed'] = True
         else:
-            result['object'] = existing_config_profile
+            result['object'] = existing_intent
 
     # ---------------------------------
     # STATE == 'absent'
     # ---------------------------------
     elif module.params['state'] in 'absent':
-        if existing_config_intent:
-            if not check_mode:
-                tet_module.run_method(
-                    method_name='delete',
-                    target='%s/%s' % (TETRATION_API_AGENT_CONFIG_INTENTS, existing_config_intent['id'])
-                )
+        if existing_intent:
+            route = f"{TETRATION_API_AGENT_CONFIG_INTENTS}/{existing_intent['id']}"
+            result['object'] = tet_module.run_method('DELETE', route)
             result['changed'] = True
+
     # ---------------------------------
     # STATE == 'query'
     # ---------------------------------
     else:
-        result['object'] = existing_config_intent
+        if existing_intent:
+            result['object'] = existing_intent
 
     module.exit_json(**result)
 

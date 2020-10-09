@@ -20,6 +20,7 @@ declare -a arr=("tetration_application"
                 "tetration_software_agent_query"
                 "tetration_software_agent"
                 "tetration_software_agent_config_profile"
+                "tetration_software_agent_config_intent"
                 "tetration_user"
                 )
 

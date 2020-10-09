@@ -248,12 +248,12 @@ def main():
         module.fail_json(msg='Unable to find existing application id')
 
     # Get the existing API Scopes and Inventory Filters to verify the consumer and provider settings
-    existing_api_scopes = tet_module.run_method('GET', TETRATION_API_SCOPES)
+    existing_app_scopes = tet_module.run_method('GET', TETRATION_API_SCOPES)
 
     app_scope_name_to_scope_id = {}
     app_scope_name_to_parent_scope_id = {}
 
-    for scope in existing_api_scopes:
+    for scope in existing_app_scopes:
         app_scope_name_to_scope_id[scope['name']] = scope['id']
         app_scope_name_to_parent_scope_id[scope['name']] = scope['parent_app_scope_id']
 
