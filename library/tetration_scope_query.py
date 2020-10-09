@@ -6,7 +6,7 @@ ANSIBLE_METADATA = {
 
 DOCUMENTATION = '''
 ---
-module: tetration_scope_query 
+module: tetration_scope_query
 
 short_description: Search the scope api for scope id's or details
 
@@ -51,8 +51,9 @@ extends_documentation_fragment: tetration_doc_common
 notes:
 - Requires the `requests` Python module.
 
-requirements: 
-- requests 
+requirements:
+- requests
+- 'Required API Permission(s): app_policy_management or user_role_scope_management or sensor_management'
 
 author:
     - Your Name (@joej164)
@@ -62,7 +63,7 @@ EXAMPLES = '''
 # pass in a message and have changed true
 - name: Search for dirty scope objects by scope name
   tetration_scope_query:
-    short_name: Ignwpov 
+    short_name: Ignwpov
     only_dirty: true
     provider: "{{ provider_info }}"
 
@@ -73,7 +74,7 @@ EXAMPLES = '''
 
 - name: Search for objects by fully qualified name
   tetration_scope_query:
-    fully_qualified_name: RootScopeName:SubScopeName 
+    fully_qualified_name: RootScopeName:SubScopeName
     provider: "{{ provider_info }}"
 '''
 
@@ -142,7 +143,7 @@ object:
       sample: 1
       type: int
   description: the first object found
-  returned: when an item is found 
+  returned: when an item is found
   type: complex
 objects:
     description: an array of all objects found
@@ -170,12 +171,12 @@ def run_module():
         provider=dict(type='dict', options=TETRATION_PROVIDER_SPEC)
     )
 
-    result = dict(
-        changed=False,
-        object={},
-        objects=[],
-        qty_found=0
-    )
+    result = {
+        'changed': False,
+        'object': {},
+        'objects': [],
+        'qty_found': 0
+    }
 
     module = AnsibleModule(
         argument_spec=module_args,
@@ -194,7 +195,7 @@ def run_module():
         to_find = module.params['fully_qualified_name']
         found_scopes = [s for s in all_scopes_response if s['name'] == to_find]
         if module.params['only_dirty']:
-            found_scopes = [s for s in found_scopes if s['dirty'] == True]
+            found_scopes = [s for s in found_scopes if s['dirty'] is True]
         result['objects'] = found_scopes
         result['qty_found'] = len(found_scopes)
         if found_scopes:
@@ -203,7 +204,7 @@ def run_module():
         to_find = module.params['scope_id']
         found_scopes = [s for s in all_scopes_response if s['id'] == to_find]
         if module.params['only_dirty']:
-            found_scopes = [s for s in found_scopes if s['dirty'] == True]
+            found_scopes = [s for s in found_scopes if s['dirty'] is True]
         result['objects'] = found_scopes
         result['qty_found'] = len(found_scopes)
         if found_scopes:
@@ -212,7 +213,7 @@ def run_module():
         to_find = module.params['short_name']
         found_scopes = [s for s in all_scopes_response if to_find in s['short_name']]
         if module.params['only_dirty']:
-            found_scopes = [s for s in found_scopes if s['dirty'] == True]
+            found_scopes = [s for s in found_scopes if s['dirty'] is True]
         result['objects'] = found_scopes
         result['qty_found'] = len(found_scopes)
         if found_scopes:

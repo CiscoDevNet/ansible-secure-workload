@@ -24,12 +24,12 @@ options:
     allow_link_local:
         description:
         - If True, Adds rules to the firewall to always allow link local addresses’ traffic on the workload.
-        - Matching GUI Element - Enforcement -> Allow Link Local Address 
+        - Matching GUI Element - Enforcement -> Allow Link Local Address
         type: bool
     allow_multicast:
         description:
         - Whether or not broadcast traffic should be allowed
-        - Matching GUI Element - Enforcement -> Allow Multicast 
+        - Matching GUI Element - Enforcement -> Allow Multicast
         type: bool
     auto_upgrade_opt_out:
         description:
@@ -52,7 +52,7 @@ options:
         - ---
         - 'If mode Disabled: The CPU limit feature is disabled. The agent will use CPU resources permitted by the OS.'
         - ---
-        - Matching GUI Element - Visibility -> CPU Quota Mode 
+        - Matching GUI Element - Visibility -> CPU Quota Mode
         type: int
     cpu_quota_pct:
         description:
@@ -74,18 +74,18 @@ options:
     data_plane_disabled:
         description:
         - If true, agent stops reporting flows to Tetration
-        - Matching GUI Element - Visibility -> Data Plane 
+        - Matching GUI Element - Visibility -> Data Plane
         type: bool
     enable_dns:
         description:
-        - This a placeholder for a future feature 
+        - This a placeholder for a future feature
         - You can changed the value and it will update the profile
-        - At this time has not impact on the Profile 
+        - At this time has not impact on the Profile
         type: bool
     enable_forensics:
         description:
         - Whether or not forensics is enabled
-        - Matching GUI Element - Forensics -> Forensics 
+        - Matching GUI Element - Forensics -> Forensics
         type: bool
     enable_meltdown:
         description:
@@ -95,7 +95,7 @@ options:
     enable_pid_lookup:
         description:
         - Whether or not pid lookup for flow search is enabled
-        - Matching GUI Element - Visability -> PID Lookup 
+        - Matching GUI Element - Visability -> PID Lookup
         type: bool
     enforcement_cpu_quota_mode:
         choices: [0, 1, 2]
@@ -113,7 +113,7 @@ options:
         - ---
         - 'If mode Disabled: The CPU limit feature is disabled. The agent will use CPU resources permitted by the OS.'
         - ---
-        - Matching GUI Element - Visibility -> CPU Quota Mode 
+        - Matching GUI Element - Visibility -> CPU Quota Mode
         type: int
     enforcement_cpu_quota_pct:
         description:
@@ -142,7 +142,7 @@ options:
         - Specify the memory limit in bytes that the process is allowed to use.
         - If the process hits this limit, it will restart.
         - ---
-        - Matching GUI Element - Enforcement -> Memory Quota Limit MB 
+        - Matching GUI Element - Enforcement -> Memory Quota Limit MB
         - Mutually exclusive [C(enforcement_max_rss_limit), C(enforcement_max_rss_limit_mb)]
         - 'Valid values: 134217728 (128MB) to 2147483648 (2048M)'
         type: bool
@@ -151,7 +151,7 @@ options:
         - Specify the memory limit in MegaBytes (MB) that the process is allowed to use.
         - If the process hits this limit, it will restart.
         - ---
-        - Matching GUI Element - Enforcement -> Memory Quota Limit MB 
+        - Matching GUI Element - Enforcement -> Memory Quota Limit MB
         - Mutually exclusive [C(enforcement_max_rss_limit), C(enforcement_max_rss_limit_mb)]
         - 'Valid values: 128 (MB) to 2048 (MB)'
         type: bool
@@ -171,7 +171,7 @@ options:
         - ---
         - 'If mode Disabled: The CPU limit feature is disabled. The agent will use CPU resources permitted by the OS.'
         - ---
-        - Matching GUI Element - Visibility -> CPU Quota Mode 
+        - Matching GUI Element - Visibility -> CPU Quota Mode
         type: int
     forensics_cpu_quota_pct:
         description:
@@ -195,7 +195,7 @@ options:
         - Specify the memory limit in bytes that the process is allowed to use.
         - If the process hits this limit, it will restart.
         - ---
-        - Matching GUI Element - Forensics -> Memory Quota Limit MB 
+        - Matching GUI Element - Forensics -> Memory Quota Limit MB
         - Mutually exclusive [C(forensics_mem_quota_bytes), C(forensics_mem_quota_mb)]
         - 'Valid values: 134217728 (128MB) to 2147483648 (2048M)'
         type: bool
@@ -204,7 +204,7 @@ options:
         - Specify the memory limit in MegaBytes (MB) that the process is allowed to use.
         - If the process hits this limit, it will restart.
         - ---
-        - Matching GUI Element - Forensics -> Memory Quota Limit MB 
+        - Matching GUI Element - Forensics -> Memory Quota Limit MB
         - Mutually exclusive [C(forensics_mem_quota_bytes), C(forensics_mem_quota_mb)]
         - 'Valid values: 128 (MB) to 2048 (MB)'
         type: bool
@@ -219,7 +219,7 @@ options:
         - Specify the memory limit in bytes that the process is allowed to use.
         - If the process hits this limit, it will restart.
         - ---
-        - Matching GUI Element - Visability -> Memory Quota Limit MB 
+        - Matching GUI Element - Visability -> Memory Quota Limit MB
         - Mutually exclusive [C(max_rss_limit), C(max_rss_limit_mb)]
         - 'Valid values: 209715200 (200MB) to 2147483648 (2048M)'
         type: bool
@@ -228,7 +228,7 @@ options:
         - Specify the memory limit in MegaBytes (MB) that the process is allowed to use.
         - If the process hits this limit, it will restart.
         - ---
-        - Matching GUI Element - Visability -> Memory Quota Limit MB 
+        - Matching GUI Element - Visability -> Memory Quota Limit MB
         - Mutually exclusive [C(max_rss_limit), C(max_rss_limit_mb)]
         - 'Valid values: 200 (MB) to 2048 (MB)'
         type: bool
@@ -241,7 +241,7 @@ options:
     preserve_existing_rules:
         description:
         - If True, existing firewall rules are preserved
-        - Matching GUI Element - Enforcement -> Preserve Rules 
+        - Matching GUI Element - Enforcement -> Preserve Rules
         type: bool
     root_app_scope_id:
         description:
@@ -267,6 +267,7 @@ notes:
 
 requirements:
 - requests
+- 'Required API Permission(s): sensor_management'
 
 author:
   - Brandon Beck (@techbeck03)
@@ -329,12 +330,12 @@ object:
     allow_link_local:
         description:
         - If True, Adds rules to the firewall to always allow link local addresses’ traffic on the workload.
-        - Matching GUI Element - Enforcement -> Allow Link Local Address 
+        - Matching GUI Element - Enforcement -> Allow Link Local Address
         type: bool
     allow_multicast:
         description:
         - Whether or not broadcast traffic should be allowed
-        - Matching GUI Element - Enforcement -> Allow Multicast 
+        - Matching GUI Element - Enforcement -> Allow Multicast
         type: bool
     auto_upgrade_opt_out:
         description:
@@ -357,7 +358,7 @@ object:
         - ---
         - 'If mode Disabled: The CPU limit feature is disabled. The agent will use CPU resources permitted by the OS.'
         - ---
-        - Matching GUI Element - Visibility -> CPU Quota Mode 
+        - Matching GUI Element - Visibility -> CPU Quota Mode
         type: int
     cpu_quota_pct:
         description:
@@ -379,18 +380,18 @@ object:
     data_plane_disabled:
         description:
         - If true, agent stops reporting flows to Tetration
-        - Matching GUI Element - Visibility -> Data Plane 
+        - Matching GUI Element - Visibility -> Data Plane
         type: bool
     enable_dns:
         description:
-        - This a placeholder for a future feature 
+        - This a placeholder for a future feature
         - You can changed the value and it will update the profile
-        - At this time has not impact on the Profile 
+        - At this time has not impact on the Profile
         type: bool
     enable_forensics:
         description:
         - Whether or not forensics is enabled
-        - Matching GUI Element - Forensics -> Forensics 
+        - Matching GUI Element - Forensics -> Forensics
         type: bool
     enable_meltdown:
         description:
@@ -400,7 +401,7 @@ object:
     enable_pid_lookup:
         description:
         - Whether or not pid lookup for flow search is enabled
-        - Matching GUI Element - Visability -> PID Lookup 
+        - Matching GUI Element - Visability -> PID Lookup
         type: bool
     enforcement_cpu_quota_mode:
         choices: [0, 1, 2]
@@ -418,7 +419,7 @@ object:
         - ---
         - 'If mode Disabled: The CPU limit feature is disabled. The agent will use CPU resources permitted by the OS.'
         - ---
-        - Matching GUI Element - Visibility -> CPU Quota Mode 
+        - Matching GUI Element - Visibility -> CPU Quota Mode
         type: int
     enforcement_cpu_quota_pct:
         description:
@@ -447,7 +448,7 @@ object:
         - Specify the memory limit in bytes that the process is allowed to use.
         - If the process hits this limit, it will restart.
         - ---
-        - Matching GUI Element - Enforcement -> Memory Quota Limit MB 
+        - Matching GUI Element - Enforcement -> Memory Quota Limit MB
         - Mutually exclusive [C(enforcement_max_rss_limit), C(enforcement_max_rss_limit_mb)]
         - 'Valid values: 134217728 (128MB) to 2147483648 (2048M)'
         type: bool
@@ -456,7 +457,7 @@ object:
         - Specify the memory limit in MegaBytes (MB) that the process is allowed to use.
         - If the process hits this limit, it will restart.
         - ---
-        - Matching GUI Element - Enforcement -> Memory Quota Limit MB 
+        - Matching GUI Element - Enforcement -> Memory Quota Limit MB
         - Mutually exclusive [C(enforcement_max_rss_limit), C(enforcement_max_rss_limit_mb)]
         - 'Valid values: 128 (MB) to 2048 (MB)'
         type: bool
@@ -476,7 +477,7 @@ object:
         - ---
         - 'If mode Disabled: The CPU limit feature is disabled. The agent will use CPU resources permitted by the OS.'
         - ---
-        - Matching GUI Element - Visibility -> CPU Quota Mode 
+        - Matching GUI Element - Visibility -> CPU Quota Mode
         type: int
     forensics_cpu_quota_pct:
         description:
@@ -500,7 +501,7 @@ object:
         - Specify the memory limit in bytes that the process is allowed to use.
         - If the process hits this limit, it will restart.
         - ---
-        - Matching GUI Element - Forensics -> Memory Quota Limit MB 
+        - Matching GUI Element - Forensics -> Memory Quota Limit MB
         - Mutually exclusive [C(forensics_mem_quota_bytes), C(forensics_mem_quota_mb)]
         - 'Valid values: 134217728 (128MB) to 2147483648 (2048M)'
         type: bool
@@ -509,7 +510,7 @@ object:
         - Specify the memory limit in MegaBytes (MB) that the process is allowed to use.
         - If the process hits this limit, it will restart.
         - ---
-        - Matching GUI Element - Forensics -> Memory Quota Limit MB 
+        - Matching GUI Element - Forensics -> Memory Quota Limit MB
         - Mutually exclusive [C(forensics_mem_quota_bytes), C(forensics_mem_quota_mb)]
         - 'Valid values: 128 (MB) to 2048 (MB)'
         type: bool
@@ -524,7 +525,7 @@ object:
         - Specify the memory limit in bytes that the process is allowed to use.
         - If the process hits this limit, it will restart.
         - ---
-        - Matching GUI Element - Visability -> Memory Quota Limit MB 
+        - Matching GUI Element - Visability -> Memory Quota Limit MB
         - Mutually exclusive [C(max_rss_limit), C(max_rss_limit_mb)]
         - 'Valid values: 209715200 (200MB) to 2147483648 (2048M)'
         type: bool
@@ -533,7 +534,7 @@ object:
         - Specify the memory limit in MegaBytes (MB) that the process is allowed to use.
         - If the process hits this limit, it will restart.
         - ---
-        - Matching GUI Element - Visability -> Memory Quota Limit MB 
+        - Matching GUI Element - Visability -> Memory Quota Limit MB
         - Mutually exclusive [C(max_rss_limit), C(max_rss_limit_mb)]
         - 'Valid values: 200 (MB) to 2048 (MB)'
         type: bool
@@ -546,7 +547,7 @@ object:
     preserve_existing_rules:
         description:
         - If True, existing firewall rules are preserved
-        - Matching GUI Element - Enforcement -> Preserve Rules 
+        - Matching GUI Element - Enforcement -> Preserve Rules
         - Due to a bug, this parameter is not returned at the time of writing this module
         type: bool
     root_app_scope_id:

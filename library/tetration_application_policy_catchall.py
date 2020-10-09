@@ -7,12 +7,12 @@ DOCUMENTATION = '''
 ---
 module: tetration_application_policy_catchall
 
-short description: Allows the updating and querying of an applications catchall value 
+short description: Allows the updating and querying of an applications catchall value
 
 version_added: '2.9'
 
 description:
-- Enables setting the catchall value of an application to `ALLOW` or `DENY` 
+- Enables setting the catchall value of an application to `ALLOW` or `DENY`
 
 options:
   app_id:
@@ -40,6 +40,7 @@ notes:
 
 requirements:
 - requests
+- 'Required API Permission(s): app_policy_management'
 
 author:
 - Joe Jacobs (@joej164)
@@ -51,7 +52,7 @@ tetration_application_policy_catchall:
     app_id: 59836821755f02724cbb54fb
     version: v0
     policy_action: ALLOW
-    state: update 
+    state: update
     provider:
       host: "https://tetration-cluster.company.com"
       api_key: 1234567890QWERTY
@@ -62,13 +63,13 @@ tetration_application_policy_catchall:
     app_id: 59836821755f02724cbb54fb
     version: v0
     policy_action: DENY
-    state: update 
+    state: update
     provider:
       host: "https://tetration-cluster.company.com"
       api_key: 1234567890QWERTY
       api_secret: 1234567890QWERTY
 
-# Query the catchall policy for an application 
+# Query the catchall policy for an application
 tetration_application_policy_catchall:
     app_id: 59836821755f02724cbb54fb
     version: v0
@@ -85,26 +86,26 @@ RETURN = '''
 object:
   contains:
     action:
-      description: current state of the applications catcahall policy 
-      returned: always 
-      type: string 
+      description: current state of the applications catcahall policy
+      returned: always
+      type: string
     application_id:
-      description: application id of the catch all policy modified 
-      returned: always 
-      type: string 
+      description: application id of the catch all policy modified
+      returned: always
+      type: string
     id:
       description: id of the catch all policy
-      returned: always 
-      type: string 
+      returned: always
+      type: string
     rank:
       description:
       - type of policy returned
       - should always be `CATCH_ALL`
-      returned: always 
-      type: string 
+      returned: always
+      type: string
     version:
-      description: version of the application id updated 
-      returned: always 
+      description: version of the application id updated
+      returned: always
       type: string
   description: the changed or modified object
   returned: always

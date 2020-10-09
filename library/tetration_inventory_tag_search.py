@@ -12,7 +12,7 @@ short_description: Allows for searching inventory attributes
 version_added: '2.9'
 
 description:
-- Enables the querying of IP Subnets or Addresses for annotations and values 
+- Enables the querying of IP Subnets or Addresses for annotations and values
 
 options:
   root_scope_name:
@@ -26,13 +26,13 @@ options:
     - IP subnet to associate with annotations
     - Requries one of C(ip_address) or C(ip_subnet)
     type: string
-    required: false 
+    required: false
   ip_subnet:
     description:
     - IP subnet to associate with annotations
     - Requries one of C(ip_address) or C(ip_subnet)
     type: string
-    required: false 
+    required: false
 
 extends_documentation_fragment: tetration_doc_common
 
@@ -40,14 +40,15 @@ notes:
 - Requires the `requests` Python module.
 
 requirements:
-- requests 
+- requests
+- 'Required API Permission(s): user_data_upload'
 
 author:
 - Joe Jacobs (@joej164)
 '''
 
 EXAMPLES = '''
-- name: Search for tags assigned to a host 
+- name: Search for tags assigned to a host
   tetration_inventory_tag_search:
     root_scope_name: Default
     ip_address: 172.16.1.10/32
@@ -56,7 +57,7 @@ EXAMPLES = '''
       api_key: 1234567890QWERTY
       api_secret: 1234567890QWERTY
 
-- name: Search for tags assigned to a subnet 
+- name: Search for tags assigned to a subnet
   tetration_inventory_tag_search:
     root_scope_name: Default
     ip_subnet: 172.16.1.10/8
@@ -69,26 +70,26 @@ EXAMPLES = '''
 RETURN = '''
 ---
 object:
-  description: a dict with the found object 
+  description: a dict with the found object
   contains:
     key:
         description: The value in tetration the value field apply to
         returned: always
         sample: 10.0.0.0/8
         type: string
-    updatedAt: 
+    updatedAt:
         description: Epoch time of when the tag was last updated
         returned: always
         sample: 1601244407
-        type: int 
-    value: 
+        type: int
+    value:
         description: Dictionary containg all assigned attributes and any assigned values to the subnet
         returned: always
         sample:
             Application: data
             Org: My org
-        type: dict 
-        
+        type: dict
+
   returned: always
   type: complex
 '''

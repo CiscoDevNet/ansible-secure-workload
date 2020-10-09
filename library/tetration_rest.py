@@ -42,8 +42,9 @@ notes:
 - This module is not idempotent.
 - Does not support check mode.
 
-requirements: 
-- requests 
+requirements:
+- requests
+- 'Required API Permission(s): depends on the API Call, refer to API Docs'
 
 author:
     - Doron Chosnek (@dchosnek)

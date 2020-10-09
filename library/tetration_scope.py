@@ -74,9 +74,10 @@ extends_documentation_fragment: tetration_doc_common
 
 notes:
 - Requires the `requests` Python module.
+- 'Required API Permission(s): app_policy_management or user_role_scope_management or sensor_management'
 
-requirements: 
-- requests 
+requirements:
+- requests
 
 author:
     - Brandon Beck (@techbeck03)
@@ -106,14 +107,14 @@ tetration_scope:
     description: Scope for ACME example application
     query_multiple:
       filter:
-        - field: os 
-          type: contains 
-          value: linux 
-        - field: os 
-          type: contains 
+        - field: os
+          type: contains
+          value: linux
+        - field: os
+          type: contains
           value: windows
-        - field: os 
-          type: contains 
+        - field: os
+          type: contains
           value: mac
       type: or
     state: present
@@ -122,7 +123,7 @@ tetration_scope:
       api_key: 1234567890QWERTY
       api_secret: 1234567890QWERTY
 
-# Add or Modify scope with multiple nested filters 
+# Add or Modify scope with multiple nested filters
 tetration_scope:
     short_name: Application
     parent_app_scope_id: abcd1234
@@ -134,7 +135,7 @@ tetration_scope:
           value: linux
         - field: os
           type: contains
-          value: windows 
+          value: windows
         - filters:
             - field: host_tags_cvss3
               type: gt
@@ -168,7 +169,7 @@ object:
   contains:
     child_app_scope_ids:
       description: "An array of child scope ids"
-      returned: when C(state) is present 
+      returned: when C(state) is present
       sample: '[]'
       type: list
     description:
@@ -218,27 +219,27 @@ object:
       type: dict
     root_app_scope_id:
       description: ID of the root scope this scope belongs to
-      returned: when C(state) is present 
+      returned: when C(state) is present
       sample: 596d3d2f497d4f35380b68ef
       type: string
     short_name:
       description: User specified name of the scope
-      returned: when C(state) is present 
+      returned: when C(state) is present
       sample: Application
       type: string
     query_single:
       description: Filter (or match criteria) associated with the scope
-      returned: when C(state) is present 
+      returned: when C(state) is present
       sample: JSON Filter (short)
       type: dict
     updated_at:
       description: Date this scope was last updated (Unix Epoch)
-      returned: when C(state) is present 
+      returned: when C(state) is present
       sample: 1500402190
       type: int
     vrf_id:
       description: ID of the VRF to which scope belongs to
-      returned: when C(state) is present 
+      returned: when C(state) is present
       sample: 1
       type: int
   description: the changed or modified object(s)
@@ -366,7 +367,7 @@ def run_module():
 
             payload_keys = [k for k in req_payload.keys()]
             for key in payload_keys:
-                if module.params.get(key) != None and module.params[key] != response[key]:
+                if module.params.get(key) is not None and module.params[key] != response[key]:
                     req_payload[key] = module.params[key]
                 elif key == 'short_query':
                     if extracted_query_filter and extracted_query_filter != response['short_query']:

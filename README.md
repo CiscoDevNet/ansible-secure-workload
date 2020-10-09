@@ -1,31 +1,78 @@
-Role Name
+Ansible Module
 =========
 
-A brief description of the role goes here.
+An ansible role for administrating a tetration server.
 
 Requirements
 ------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+- Python 3.7 or later
+- Ansible 2.9 and later
+- Python `requests` package must be installed on the server.
+- API Key with the following permissions
+  - app_policy_management
+  - sensor_management
+  - user_data_upload
+  - user_role_scope_management
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+The following variables need to be explicitly imported in to the role OR can be set as environmental variables.
+  - TETRATION_SERVER_ENDPOINT
+  - TETRATION_API_KEY
+  - TETRATION_API_SECRET
+
+The api key and secret can be obtained from the **Settings -> API Keys** menu in the Tetration Server
+
+The server endpoint is just the base URL of your tetration server.
 
 Dependencies
 ------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+`requests`
+
+This role uses the Python `requests` package to communicate via https with Tetration Server.
 
 Example Playbook
 ----------------
-
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
-
-    - hosts: servers
+```
+    - name: Add User to Tetration 
+      hosts: localhost
+      connection: local
       roles:
-         - { role: username.rolename, x: 42 }
+        - role: ansible-module 
+    
+      tasks:
+        - name: read variables from the environment to be explicit
+          set_fact:
+            ansible_host: "{{ lookup('env', 'TETRATION_SERVER_ENDPOINT') }}"
+            api_key: "{{ lookup('env', 'TETRATION_API_KEY') }}"
+            api_secret: "{{ lookup('env', 'TETRATION_API_SECRET') }}"
+          no_log: True 
+    
+        - name: put the variables in the required format
+          set_fact:
+            provider_info:
+              api_key: "{{ api_key }}"
+              api_secret: "{{ api_secret }}"
+              server_endpoint: "{{ ansible_host }}"
+          no_log: True
+    
+        - name: Create or verify a test user exists in the system
+          tetration_user:
+            provider: "{{ provider_info }}"
+            email: test_user@test.com
+            first_name: "Test"
+            last_name: "User"
+            app_scope_name: "RootScope"
+            role_names:
+              - Execute
+              - Enforce
+            state: present 
+          delegate_to: localhost
+          register: output
+```
 
 Testing
 -------
@@ -103,9 +150,9 @@ stdout_callback = debug
 License
 -------
 
-BSD
+TBD
 
 Author Information
 ------------------
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+TBD

@@ -48,8 +48,9 @@ notes:
 - This module only queries.  Use M(tetration_software_agent) to delete or query an agent by UUID
 - If you don't provide any parameters, will return all agents in the system
 
-requirements: 
-- requests 
+requirements:
+- requests
+- 'Required API Permission(s): sensor_management'
 
 author:
   - Brandon Beck (@techbeck03)

@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
     'status': ['preview'],
@@ -57,8 +55,9 @@ extends_documentation_fragment: tetration_doc_common
 notes:
 - Requires the `requests` Python module.
 
-requirements: 
-- requests 
+requirements:
+- requests
+- 'Required API Permission(s): user_role_scope_management'
 
 author:
     - Doron Chosnek (@dchosnek)
