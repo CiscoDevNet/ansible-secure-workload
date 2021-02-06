@@ -13,7 +13,7 @@
         ansible_host: "{{ lookup('env', 'TETRATION_SERVER_ENDPOINT') }}"
         api_key: "{{ lookup('env', 'TETRATION_API_KEY') }}"
         api_secret: "{{ lookup('env', 'TETRATION_API_SECRET') }}"
-      no_log: True 
+      no_log: True
 
     - name: put the variables in the required format
       set_fact:
@@ -21,32 +21,32 @@
           api_key: "{{ api_key }}"
           api_secret: "{{ api_secret }}"
           server_endpoint: "{{ ansible_host }}"
-      no_log: True 
+      no_log: True
 
     - name: set test variables
       set_fact:
         root_scope_id: 5ce71503497d4f2c23af85b7
-# -----
+    # -----
 
     - name: Test - Can find matching hostnames
       tetration_software_agent_query:
-        host_name_contains: student
+        host_name_contains: DC
         provider: "{{ provider_info }}"
       register: output
 
     - name: Output - Can find matching hostnames
       debug:
         var: output
-    
+
     - name: Verify - Can find matching hostnames
       assert:
         that:
-          - output.items_found == 10
-# -----
+          - output.items_found == 2
+    # -----
 
     - name: Test - Can find exact hostname
       tetration_software_agent_query:
-        host_name_is_exactly: student-867-0
+        host_name_is_exactly: DC1
         provider: "{{ provider_info }}"
       register: output
 
@@ -58,26 +58,26 @@
       assert:
         that:
           - output.items_found == 1
-# -----
+    # -----
 
-    - name: Test - Can find all agents 
+    - name: Test - Can find all agents
       tetration_software_agent_query:
         provider: "{{ provider_info }}"
       register: output
 
-    - name: Output - Can find all agents 
+    - name: Output - Can find all agents
       debug:
         var: output.items_found
 
-    - name: Verify - Can find all agents 
+    - name: Verify - Can find all agents
       assert:
         that:
-          - output.items_found > 100
-# -----
+          - output.items_found > 20
+    # -----
 
     - name: Test - Can find an IPv4 Address
       tetration_software_agent_query:
-        interface_ip_is_exactly: '10.138.0.21'
+        interface_ip_is_exactly: "10.254.252.41"
         provider: "{{ provider_info }}"
       register: output
 
@@ -89,11 +89,11 @@
       assert:
         that:
           - output.items_found == 1
-# -----
+    # -----
 
     - name: Test - Can find an IPv6 Address
       tetration_software_agent_query:
-        interface_ip_is_exactly: 'fe80::4001:aff:fe8a:e'
+        interface_ip_is_exactly: "fe80::5efe:afe:fc29"
         provider: "{{ provider_info }}"
       register: output
 
@@ -105,38 +105,38 @@
       assert:
         that:
           - output.items_found == 1
-# -----
+    # -----
 
-    - name: Test - Error on invalid IPv4 address 
+    - name: Test - Error on invalid IPv4 address
       tetration_software_agent_query:
-        interface_ip_is_exactly: '10.138.0.257'
+        interface_ip_is_exactly: "10.138.0.257"
         provider: "{{ provider_info }}"
       ignore_errors: true
       register: output
 
-    - name: Output - Error on invalid IPv4 address 
+    - name: Output - Error on invalid IPv4 address
       debug:
         var: output
-    
+
     - name: Expected Output - Error on invalid IPv4 address
       set_fact:
         expected_output: >-
           Invalid IPv4 or IPv6 Address entered.  Value entered: 10.138.0.257
 
-    - name: Verify - Error on invalid IPv4 address 
+    - name: Verify - Error on invalid IPv4 address
       assert:
         that:
-          - output.msg == expected_output 
-# -----
+          - output.msg == expected_output
+    # -----
 
-    - name: Test - Test error on invalid IPv6 Address 
+    - name: Test - Test error on invalid IPv6 Address
       tetration_software_agent_query:
-        interface_ip_is_exactly: 'fe80::4001:gff:fe8a:e'
+        interface_ip_is_exactly: "fe80::4001:gff:fe8a:e"
         provider: "{{ provider_info }}"
       ignore_errors: true
       register: output
 
-    - name: Verify - Test error on invalid IPv6 Address 
+    - name: Verify - Test error on invalid IPv6 Address
       debug:
         var: output
 
@@ -145,15 +145,15 @@
         expected_output: >-
           Invalid IPv4 or IPv6 Address entered.  Value entered: fe80::4001:gff:fe8a:e
 
-    - name: Output - Test error on invalid IPv6 Address 
+    - name: Output - Test error on invalid IPv6 Address
       assert:
         that:
           - output.msg == expected_output
-# -----
+    # -----
 
     - name: Test - Can find devices in IPv4 Network
       tetration_software_agent_query:
-        interface_ip_in_network: '10.138.0.21/24'
+        interface_ip_in_network: "10.254.252.0/24"
         provider: "{{ provider_info }}"
       register: output
 
@@ -164,12 +164,12 @@
     - name: Verify - Can find devices in IPv4 Network
       assert:
         that:
-          - output.items_found == 9
-# -----
+          - output.items_found == 6
+    # -----
 
     - name: Test - Can find devices in IPv6 Network
       tetration_software_agent_query:
-        interface_ip_in_network: 'fe80::4001:aff:fe8a:e/125'
+        interface_ip_in_network: "fe80:0000:0000:0000:0000:0000:0000:0000/64"
         provider: "{{ provider_info }}"
       register: output
 
@@ -180,12 +180,12 @@
     - name: Verify - Can find devices in IPv6 Network
       assert:
         that:
-          - output.items_found == 2 
-# -----
+          - output.items_found == 19
+    # -----
 
     - name: Test - Error on invalid IPv4 Network
       tetration_software_agent_query:
-        interface_ip_in_network: '10.138.0.257'
+        interface_ip_in_network: "10.138.0.257"
         provider: "{{ provider_info }}"
       ignore_errors: true
       register: output
@@ -193,7 +193,7 @@
     - name: Output - Error on invalid IPv4 Network
       debug:
         var: output
-    
+
     - name: Expected Output - Error on invalid IPv4 Network
       set_fact:
         expected_output: >-
@@ -202,12 +202,12 @@
     - name: Verify - Error on invalid IPv4 Network
       assert:
         that:
-          - output.msg == expected_output 
-# -----
+          - output.msg == expected_output
+    # -----
 
     - name: Test - Error on invalid IPv6 Network
       tetration_software_agent_query:
-        interface_ip_in_network: 'fe80::4001:ffg:fe8a:e'
+        interface_ip_in_network: "fe80::4001:ffg:fe8a:e"
         provider: "{{ provider_info }}"
       ignore_errors: true
       register: output
