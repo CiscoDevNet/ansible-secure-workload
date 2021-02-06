@@ -13,7 +13,7 @@
         ansible_host: "{{ lookup('env', 'TETRATION_SERVER_ENDPOINT') }}"
         api_key: "{{ lookup('env', 'TETRATION_API_KEY') }}"
         api_secret: "{{ lookup('env', 'TETRATION_API_SECRET') }}"
-      no_log: True 
+      no_log: True
 
     - name: put the variables in the required format
       set_fact:
@@ -21,20 +21,25 @@
           api_key: "{{ api_key }}"
           api_secret: "{{ api_secret }}"
           server_endpoint: "{{ ansible_host }}"
-      no_log: True 
+      no_log: True
 
     - name: set test variables
       set_fact:
         root_scope_id: 5ce71503497d4f2c23af85b7
-# -----
+    # -----
+    - name: Find a software agent
+      tetration_software_agent_query:
+        host_name_contains: DC
+      register: agent_list
 
-    - name: test
+    - name: Test - Pull Software Agent Info
       tetration_software_agent:
-        uuid: 4b35fa6001339e5313af5e34bd88012381a9af0d 
+        uuid: "{{ agent_list.object[0].uuid }}"
         state: query
         provider: "{{ provider_info }}"
       register: output
 
-    - name: output
-      debug:
-        var: output
+    - name: Verify - Pull Software Agent Info
+      assert:
+        that:
+          - output.object.uuid == agent_list.object[0].uuid
