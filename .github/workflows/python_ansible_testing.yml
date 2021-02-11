@@ -11,9 +11,9 @@ on:
 jobs:
   build:
     env:
-      TETRATION_API_KEY: ${{ secrets.TETRATION_API_KEY_ALL_CAPS }}
-      TETRATION_API_SECRET: ${{ secrets.TETRATION_API_SECRET_ALL_CAPS }} 
-      TETRATION_SERVER_ENDPOINT: ${{ secrets.TETRATION_ENDPOINT_IGNW_ALL_CAPS }} 
+      TETRATION_API_KEY: ${{ secrets.TETRATION_API_KEY }}
+      TETRATION_API_SECRET: ${{ secrets.TETRATION_API_SECRET }} 
+      TETRATION_SERVER_ENDPOINT: ${{ secrets.TETRATION_ENDPOINT }} 
 
     runs-on: ubuntu-latest
     continue-on-error: false
