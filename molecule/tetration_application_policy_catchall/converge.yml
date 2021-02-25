@@ -77,7 +77,7 @@
       tetration_application_policy_catchall:
         app_id: "{{ app_id }}"
         version: "{{ app_version }}"
-        policy_action: "ALLOW"
+        policy_action: 'ALLOW'
         state: update
         provider: "{{ provider_info }}"
       register: catchall_status
@@ -98,7 +98,7 @@
       tetration_application_policy_catchall:
         app_id: "{{ app_id }}"
         version: "{{ app_version }}"
-        policy_action: "ALLOW"
+        policy_action: 'ALLOW'
         state: update
         provider: "{{ provider_info }}"
       register: catchall_status
