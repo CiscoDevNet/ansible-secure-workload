@@ -25,11 +25,12 @@
 
     - name: set test variables
       set_fact:
-        root_scope_id: 5ce71503497d4f2c23af85b7
+        root_scope: "{{ lookup('env', 'TETRATION_ROOT_SCOPE_NAME') }}"
+        root_scope_id: "{{ lookup('env', 'TETRATION_ROOT_SCOPE_ID') }}"
     # -----
     - name: Find a software agent
       tetration_software_agent_query:
-        host_name_contains: DC
+        host_name_contains: test-sensor
       register: agent_list
 
     - name: Test - Pull Software Agent Info

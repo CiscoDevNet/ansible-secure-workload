@@ -13,7 +13,7 @@
         ansible_host: "{{ lookup('env', 'TETRATION_SERVER_ENDPOINT') }}"
         api_key: "{{ lookup('env', 'TETRATION_API_KEY') }}"
         api_secret: "{{ lookup('env', 'TETRATION_API_SECRET') }}"
-      no_log: True 
+      no_log: True
 
     - name: put the variables in the required format
       set_fact:
@@ -21,12 +21,13 @@
           api_key: "{{ api_key }}"
           api_secret: "{{ api_secret }}"
           server_endpoint: "{{ ansible_host }}"
-      no_log: True 
+      no_log: True
 
     - name: set test variables
       set_fact:
-        root_scope_id: 5ce71503497d4f2c23af85b7
-# -----
+        root_scope: "{{ lookup('env', 'TETRATION_ROOT_SCOPE_NAME') }}"
+        root_scope_id: "{{ lookup('env', 'TETRATION_ROOT_SCOPE_ID') }}"
+    # -----
 
     - name: Test - Query missing SW Agent Module
       tetration_software_agent_config_profile:
@@ -43,7 +44,7 @@
         enable_pid_lookup: True
         enforcement_disabled: False
         preserve_existing_rules: False
-        state: query 
+        state: query
         provider: "{{ provider_info }}"
       register: output
 
@@ -54,10 +55,10 @@
     - name: Test - Query missing SW Agent Module
       assert:
         that:
-          - output.changed is false 
+          - output.changed is false
           - output.failed is false
           - output.object | length == 0
-# ----- 
+    # -----
 
     - name: Test - Create SW Agent Module
       tetration_software_agent_config_profile:
@@ -66,7 +67,7 @@
         allow_broadcast: True
         allow_multicast: True
         auto_upgrade_opt_out: False
-        cpu_quota_mode: 0 
+        cpu_quota_mode: 0
         cpu_quota_pct: 3
         data_plane_disabled: False
         enable_forensics: True
@@ -74,7 +75,7 @@
         enable_pid_lookup: True
         enforcement_disabled: False
         preserve_existing_rules: False
-        state: present 
+        state: present
         provider: "{{ provider_info }}"
       register: output
 
@@ -85,7 +86,7 @@
     - name: Test - Create SW Agent Module
       assert:
         that:
-          - output.changed is true 
+          - output.changed is true
           - output.failed is false
           - output.object.id is defined
           - output.object.name == "test profile"
@@ -96,13 +97,13 @@
     - name: Store - Create SW Agent Module
       set_fact:
         profile_id: "{{ output.object.id }}"
-# -----
+    # -----
 
     - name: Test - Query SW Agent Module
       tetration_software_agent_config_profile:
         name: test profile
         root_app_scope_id: "{{ root_scope_id }}"
-        state: query 
+        state: query
         provider: "{{ provider_info }}"
       register: output
 
@@ -113,20 +114,20 @@
     - name: Test - Query SW Agent Module
       assert:
         that:
-          - output.changed is false 
+          - output.changed is false
           - output.failed is false
           - output.object.id == profile_id
           - output.object.name == "test profile"
           - output.object.cpu_quota_mode == 0
-# -----
+    # -----
 
     - name: Test - Update SW Agent Module
       tetration_software_agent_config_profile:
         name: updated test profile
         id: "{{ profile_id }}"
         root_app_scope_id: "{{ root_scope_id }}"
-        allow_broadcast: False 
-        cpu_quota_mode: 2 
+        allow_broadcast: False
+        cpu_quota_mode: 2
         cpu_quota_pct: 30
         state: present
         provider: "{{ provider_info }}"
@@ -139,20 +140,20 @@
     - name: Test - Update SW Agent Module
       assert:
         that:
-          - output.changed is true 
+          - output.changed is true
           - output.failed is false
           - output.object.id == profile_id
           - output.object.name == "updated test profile"
           - output.object.cpu_quota_mode == 2
           - output.object.cpu_quota_pct == 30
           - output.object.allow_broadcast is false
-# -----
+    # -----
 
     - name: Test - Query SW Agent Module after update
       tetration_software_agent_config_profile:
         id: "{{ profile_id }}"
         root_app_scope_id: "{{ root_scope_id }}"
-        state: query 
+        state: query
         provider: "{{ provider_info }}"
       register: output
 
@@ -163,16 +164,16 @@
     - name: Test - Query SW Agent Module after update
       assert:
         that:
-          - output.changed is false 
+          - output.changed is false
           - output.failed is false
           - output.object.id == profile_id
           - output.object.name == "updated test profile"
           - output.object.cpu_quota_mode == 2
           - output.object.cpu_quota_pct == 30
           - output.object.allow_broadcast is false
-# -----
+    # -----
 
-    - name: Test - Delete SW Agent Module 
+    - name: Test - Delete SW Agent Module
       tetration_software_agent_config_profile:
         id: "{{ profile_id }}"
         root_app_scope_id: "{{ root_scope_id }}"
@@ -180,31 +181,31 @@
         provider: "{{ provider_info }}"
       register: output
 
-    - name: Output - Delete SW Agent Module 
+    - name: Output - Delete SW Agent Module
       debug:
         var: output
 
-    - name: Validate - Delete SW Agent Module 
+    - name: Validate - Delete SW Agent Module
       assert:
         that:
           - output.changed is true
           - output.failed is false
           - output.object.success is true
-# -----
+    # -----
 
-    - name: Test - Delete SW Agent Module that's mising
+    - name: Test - Delete SW Agent Module that's missing
       tetration_software_agent_config_profile:
         id: "{{ profile_id }}"
         root_app_scope_id: "{{ root_scope_id }}"
-        state: absent 
+        state: absent
         provider: "{{ provider_info }}"
       register: output
 
-    - name: Output - Delete SW Agent Module that's mising
+    - name: Output - Delete SW Agent Module that's missing
       debug:
         var: output
 
-    - name: Validate - Delete SW Agent Module that's mising
+    - name: Validate - Delete SW Agent Module that's missing
       assert:
         that:
           - output.changed is false

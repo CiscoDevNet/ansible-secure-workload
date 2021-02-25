@@ -13,7 +13,7 @@
         ansible_host: "{{ lookup('env', 'TETRATION_SERVER_ENDPOINT') }}"
         api_key: "{{ lookup('env', 'TETRATION_API_KEY') }}"
         api_secret: "{{ lookup('env', 'TETRATION_API_SECRET') }}"
-      no_log: True 
+      no_log: True
 
     - name: put the variables in the required format
       set_fact:
@@ -21,12 +21,13 @@
           api_key: "{{ api_key }}"
           api_secret: "{{ api_secret }}"
           server_endpoint: "{{ ansible_host }}"
-      no_log: True 
+      no_log: True
 
     - name: set test variables
       set_fact:
-        root_scope_id: 5ce71503497d4f2c23af85b7
-# -----
+        root_scope: "{{ lookup('env', 'TETRATION_ROOT_SCOPE_NAME') }}"
+        root_scope_id: "{{ lookup('env', 'TETRATION_ROOT_SCOPE_ID') }}"
+    # -----
 
     - name: Create an agent config profile
       tetration_software_agent_config_profile:
@@ -39,16 +40,16 @@
     - name: Store config profile id
       set_fact:
         profile_id: "{{ output.object.id }}"
-# ----- 
+    # -----
 
     - name: Test - Look for a missing config intent
       tetration_software_agent_config_intent:
         profile_name: test_agent_config_profile
         filter_id: "{{ root_scope_id }}"
-        state: query 
+        state: query
         provider: "{{ provider_info }}"
       register: output
-    
+
     - name: Output - Look for a missing config intent
       debug:
         var: output
@@ -59,16 +60,16 @@
           - output.changed is false
           - output.failed is false
           - output.object | length == 0
-# ----- 
+    # -----
 
     - name: Test - Create config intent
       tetration_software_agent_config_intent:
         profile_name: test_agent_config_profile
         filter_id: "{{ root_scope_id }}"
-        state: present 
+        state: present
         provider: "{{ provider_info }}"
       register: output
-    
+
     - name: Output - Create config intent
       debug:
         var: output
@@ -76,22 +77,22 @@
     - name: Verify - Create config intent
       assert:
         that:
-          - output.changed is true 
+          - output.changed is true
           - output.failed is false
           - output.object.id is defined
           - output.object.inventory_config_profile_id == profile_id
           - output.object.inventory_filter_id == root_scope_id
 
-# ----- 
+    # -----
 
     - name: Test - Query config intent
       tetration_software_agent_config_intent:
-        profile_id: "{{ profile_id }}" 
+        profile_id: "{{ profile_id }}"
         filter_id: "{{ root_scope_id }}"
-        state: query 
+        state: query
         provider: "{{ provider_info }}"
       register: output
-    
+
     - name: Output - Query config intent
       debug:
         var: output
@@ -99,22 +100,22 @@
     - name: Verify - Query config intent
       assert:
         that:
-          - output.changed is false 
+          - output.changed is false
           - output.failed is false
-          - output.object.id is defined 
+          - output.object.id is defined
           - output.object.inventory_config_profile_id == profile_id
           - output.object.inventory_filter_id == root_scope_id
 
-# ----- 
+    # -----
 
     - name: Test - Verify config intent created
       tetration_software_agent_config_intent:
-        profile_id: "{{ profile_id }}" 
+        profile_id: "{{ profile_id }}"
         filter_id: "{{ root_scope_id }}"
-        state: present 
+        state: present
         provider: "{{ provider_info }}"
       register: output
-    
+
     - name: Output - Verify config intent created
       debug:
         var: output
@@ -122,21 +123,21 @@
     - name: Verify - Verify config intent created
       assert:
         that:
-          - output.changed is false 
+          - output.changed is false
           - output.failed is false
-          - output.object.id is defined 
+          - output.object.id is defined
           - output.object.inventory_config_profile_id == profile_id
           - output.object.inventory_filter_id == root_scope_id
-# ----- 
+    # -----
 
     - name: Test - Delete config intent
       tetration_software_agent_config_intent:
-        profile_id: "{{ profile_id }}" 
+        profile_id: "{{ profile_id }}"
         filter_id: "{{ root_scope_id }}"
-        state: absent 
+        state: absent
         provider: "{{ provider_info }}"
       register: output
-    
+
     - name: Output - Delete config intent
       debug:
         var: output
@@ -144,19 +145,19 @@
     - name: Verify - Delete config intent
       assert:
         that:
-          - output.changed is true 
+          - output.changed is true
           - output.failed is false
           - output.object.success is true
-# ----- 
+    # -----
 
     - name: Test - Delete config intent already deleted
       tetration_software_agent_config_intent:
-        profile_id: "{{ profile_id }}" 
+        profile_id: "{{ profile_id }}"
         filter_id: "{{ root_scope_id }}"
-        state: absent 
+        state: absent
         provider: "{{ provider_info }}"
       register: output
-    
+
     - name: Output - Delete config intent already deleted
       debug:
         var: output
@@ -168,12 +169,12 @@
           - output.failed is false
           - output.object | length == 0
 
-# -----
+    # -----
 
     - name: Delete created agent config profile
       tetration_software_agent_config_profile:
         name: test_agent_config_profile
         root_app_scope_id: "{{ root_scope_id }}"
-        state: absent 
+        state: absent
         provider: "{{ provider_info }}"
       register: output
