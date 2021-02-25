@@ -13,7 +13,7 @@
         ansible_host: "{{ lookup('env', 'TETRATION_SERVER_ENDPOINT') }}"
         api_key: "{{ lookup('env', 'TETRATION_API_KEY') }}"
         api_secret: "{{ lookup('env', 'TETRATION_API_SECRET') }}"
-      no_log: True 
+      no_log: True
 
     - name: put the variables in the required format
       set_fact:
@@ -21,12 +21,13 @@
           api_key: "{{ api_key }}"
           api_secret: "{{ api_secret }}"
           server_endpoint: "{{ ansible_host }}"
-      no_log: True 
+      no_log: True
 
     - name: set test variables
       set_fact:
-        root_scope_id: 5ce71503497d4f2c23af85b7
-# -----
+        root_scope: "{{ lookup('env', 'TETRATION_ROOT_SCOPE_NAME') }}"
+        root_scope_id: "{{ lookup('env', 'TETRATION_ROOT_SCOPE_ID') }}"
+    # -----
 
     - name: Test - Module errors if missing required parameter
       tetration_scope_query:
@@ -48,9 +49,9 @@
         that:
           - output.failed == true
           - output.msg == expected_output
-# -----
+    # -----
 
-    - name: Test - Module errors if multiple mutually exclusive parameters present 
+    - name: Test - Module errors if multiple mutually exclusive parameters present
       tetration_scope_query:
         scope_id: fake_id
         short_name: fake_name
@@ -58,38 +59,38 @@
       ignore_errors: true
       register: output
 
-    - name: Output - Module errors if multiple mutually exclusive parameters present 
+    - name: Output - Module errors if multiple mutually exclusive parameters present
       debug:
         var: output
 
-    - name: Expected Output - Module errors if multiple mutually exclusive parameters present 
+    - name: Expected Output - Module errors if multiple mutually exclusive parameters present
       set_fact:
         expected_output: >-
           parameters are mutually exclusive: fully_qualified_name|scope_id|short_name
 
-    - name: Verify - Module errors if multiple mutually exclusive parameters present 
+    - name: Verify - Module errors if multiple mutually exclusive parameters present
       assert:
         that:
           - output.failed == true
           - output.msg == expected_output
-# -----
+    # -----
 
-    - name: Test - Search for the root scope 
+    - name: Test - Search for the root scope
       tetration_scope_query:
         scope_id: "{{ root_scope_id }}"
         provider: "{{ provider_info }}"
       register: output
 
-    - name: Output - Search for the root scope 
+    - name: Output - Search for the root scope
       debug:
         var: output
 
-    - name: Store Variables - Search for the root scope 
+    - name: Store Variables - Search for the root scope
       set_fact:
         found_name: "{{ output.object.name }}"
         found_short_name: "{{ output.object.short_name }}"
 
-    - name: Verify - Search for the root scope 
+    - name: Verify - Search for the root scope
       assert:
         that:
           - output.objects|length == 1
@@ -127,11 +128,11 @@
         that:
           - output.objects|length >= 1
           - output.qty_found >= 1
-# -----
+    # -----
 
     - name: Test - Create a scope then update to filter dirty
       tetration_scope:
-        short_name: Ignwpov 
+        short_name: integration-test-scope
         parent_app_scope_id: "{{ root_scope_id }}"
         query_single:
           type: eq
@@ -140,10 +141,10 @@
         provider: "{{ provider_info }}"
         state: present
       register: output
-    
+
     - name: Store Variables - Create a scope then update to filter dirty
       set_fact:
-        new_scope_id: "{{ output.object.id}}"
+        new_scope_id: "{{ output.object.id }}"
 
     - name: Update - Create a scope then update to filter dirty
       tetration_scope:
@@ -158,11 +159,11 @@
 
     - name: Query - Create a scope then update to filter dirty
       tetration_scope_query:
-        short_name: Ignwpov 
+        short_name: integration-test-scope
         only_dirty: true
         provider: "{{ provider_info }}"
       register: output
-    
+
     - name: Output - Create a scope then update to filter dirty
       debug:
         var: output
@@ -170,12 +171,12 @@
     - name: Verify - Create a scope then update to filter dirty
       assert:
         that:
-          - output.objects|length == 2 
-          - output.qty_found == 2
-    
+          - output.objects|length == 1
+          - output.qty_found == 1
+
     - name: Cleanup - Create a scope then update to filter dirty
       tetration_scope:
         scope_id: "{{ new_scope_id }}"
         provider: "{{ provider_info }}"
-        state: absent 
+        state: absent
       register: output

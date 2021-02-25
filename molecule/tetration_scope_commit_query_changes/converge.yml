@@ -13,7 +13,7 @@
         ansible_host: "{{ lookup('env', 'TETRATION_SERVER_ENDPOINT') }}"
         api_key: "{{ lookup('env', 'TETRATION_API_KEY') }}"
         api_secret: "{{ lookup('env', 'TETRATION_API_SECRET') }}"
-      no_log: True 
+      no_log: True
 
     - name: put the variables in the required format
       set_fact:
@@ -21,34 +21,35 @@
           api_key: "{{ api_key }}"
           api_secret: "{{ api_secret }}"
           server_endpoint: "{{ ansible_host }}"
-      no_log: True 
+      no_log: True
 
     - name: set test variables
       set_fact:
-        root_scope_id: 5ce71503497d4f2c23af85b7
-# -----
+        root_scope: "{{ lookup('env', 'TETRATION_ROOT_SCOPE_NAME') }}"
+        root_scope_id: "{{ lookup('env', 'TETRATION_ROOT_SCOPE_ID') }}"
+    # -----
 
-    - name: Test - module fails with invalid root scope 
+    - name: Test - module fails with invalid root scope
       tetration_scope_commit_query_changes:
-        root_app_scope_id: 123abc 
+        root_app_scope_id: 123abc
         provider: "{{ provider_info }}"
       ignore_errors: true
       register: output
-    
-    - name: Output - module fails with invalid root scope 
+
+    - name: Output - module fails with invalid root scope
       debug:
         var: output
 
-    - name: Verify - module fails with invalid root scope 
+    - name: Verify - module fails with invalid root scope
       assert:
         that:
           - output.failed == true
           - output.changed == false
-# -----
+    # -----
 
     - name: Test - no changes made async
       tetration_scope_commit_query_changes:
-        root_app_scope_id: "{{ root_scope_id }}" 
+        root_app_scope_id: "{{ root_scope_id }}"
         provider: "{{ provider_info }}"
       register: output
 
@@ -59,12 +60,12 @@
     - name: Verify - no changes made
       assert:
         that:
-          - output.object.success == true 
-# -----
+          - output.object.success == true
+    # -----
 
     - name: Test - no changes made sync
       tetration_scope_commit_query_changes:
-        root_app_scope_id: "{{ root_scope_id }}" 
+        root_app_scope_id: "{{ root_scope_id }}"
         sync: true
         provider: "{{ provider_info }}"
       register: output
@@ -76,10 +77,10 @@
     - name: Verify - no changes made sync
       assert:
         that:
-          - output.object.success == true 
-# -----
+          - output.object.success == true
+    # -----
 
-    - name: Test - Verify can commit query single changes 
+    - name: Test - Verify can commit query single changes
       tetration_scope:
         short_name: Scope Query CICD Test Scope
         parent_app_scope_id: "{{ root_scope_id }}"
@@ -91,15 +92,15 @@
         state: present
       register: output
 
-    - name: Output - Verify can commit query single changes 
+    - name: Output - Verify can commit query single changes
       debug:
         var: output
 
-    - name: Output - Verify short query is not dirty 
+    - name: Output - Verify short query is not dirty
       assert:
         that: output.object.dirty == false
 
-    - name: Test - Make query single dirty 
+    - name: Test - Make query single dirty
       tetration_scope:
         short_name: Scope Query CICD Test Scope
         parent_app_scope_id: "{{ root_scope_id }}"
@@ -111,26 +112,26 @@
         state: present
       register: output
 
-    - name: Output - Make query single dirty 
+    - name: Output - Make query single dirty
       debug:
         var: output
 
-    - name: Verify - Make query single dirty 
+    - name: Verify - Make query single dirty
       assert:
-        that: output.object.dirty == true 
+        that: output.object.dirty == true
 
     - name: Test - Commit short query changes
       tetration_scope_commit_query_changes:
-        root_app_scope_id: "{{ root_scope_id }}" 
+        root_app_scope_id: "{{ root_scope_id }}"
         provider: "{{ provider_info }}"
         sync: true
-      register: output 
-    
+      register: output
+
     - name: Verify - Commit short query changes
       assert:
-        that: output.object.success == true 
+        that: output.object.success == true
 
-    - name: Test - Check if scope not dirty 
+    - name: Test - Check if scope not dirty
       tetration_scope:
         short_name: Scope Query CICD Test Scope
         parent_app_scope_id: "{{ root_scope_id }}"
@@ -142,14 +143,14 @@
         state: present
       register: output
 
-    - name: Verify - Check if scope not dirty 
+    - name: Verify - Check if scope not dirty
       assert:
         that: output.object.dirty == false
 
-    - name: Cleanup - Check if scope not dirty 
+    - name: Cleanup - Check if scope not dirty
       tetration_scope:
         short_name: Scope Query CICD Test Scope
         parent_app_scope_id: "{{ root_scope_id }}"
         provider: "{{ provider_info }}"
-        state: absent 
+        state: absent
       register: output

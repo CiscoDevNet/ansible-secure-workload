@@ -13,7 +13,7 @@
         ansible_host: "{{ lookup('env', 'TETRATION_SERVER_ENDPOINT') }}"
         api_key: "{{ lookup('env', 'TETRATION_API_KEY') }}"
         api_secret: "{{ lookup('env', 'TETRATION_API_SECRET') }}"
-      no_log: True 
+      no_log: True
 
     - name: put the variables in the required format
       set_fact:
@@ -21,63 +21,64 @@
           api_key: "{{ api_key }}"
           api_secret: "{{ api_secret }}"
           server_endpoint: "{{ ansible_host }}"
-      no_log: True 
+      no_log: True
 
     - name: set test variables
       set_fact:
-        root_scope_id: 5ce71503497d4f2c23af85b7
-# -----
+        root_scope: "{{ lookup('env', 'TETRATION_ROOT_SCOPE_NAME') }}"
+        root_scope_id: "{{ lookup('env', 'TETRATION_ROOT_SCOPE_ID') }}"
+    # -----
 
-    - name: Test - Verify the Role errors when not passing correct parameters 
+    - name: Test - Verify the Role errors when not passing correct parameters
       tetration_scope:
-        short_name: test_scope 
+        short_name: test_scope
         provider: "{{ provider_info }}"
         state: present
       ignore_errors: True
       register: output
 
-    - name: Output - Verify the Role errors when not passing correct parameters 
+    - name: Output - Verify the Role errors when not passing correct parameters
       debug:
         var: output
-    
-    - name: Expected Output - Verify the Role errors when not passing correct parameters 
+
+    - name: Expected Output - Verify the Role errors when not passing correct parameters
       set_fact:
         expected_output: >-
           missing parameter(s) required by 'short_name': parent_app_scope_id
 
-    - name: Verify - Verify the Role errors when not passing correct parameters 
+    - name: Verify - Verify the Role errors when not passing correct parameters
       assert:
         that:
           - output is defined
           - output.failed is true
           - output.msg == expected_output
-# -----
+    # -----
 
-    - name: Test - Verify the Role errors when not passing any parameters 
+    - name: Test - Verify the Role errors when not passing any parameters
       tetration_scope:
         provider: "{{ provider_info }}"
         state: present
       ignore_errors: True
       register: output
 
-    - name: Output - Verify the Role errors when not passing any parameters 
+    - name: Output - Verify the Role errors when not passing any parameters
       debug:
         var: output
-    
-    - name: Expected Output - Verify the Role errors when not passing any parameters 
+
+    - name: Expected Output - Verify the Role errors when not passing any parameters
       set_fact:
         expected_output: >-
           one of the following is required: scope_id, short_name
 
-    - name: Verify - Verify the Role errors when not passing any parameters 
+    - name: Verify - Verify the Role errors when not passing any parameters
       assert:
         that:
           - output is defined
           - output.failed is true
           - output.msg == expected_output
-# -----
+    # -----
 
-    - name: Test - Verify the Role errors when passing invalid ID 
+    - name: Test - Verify the Role errors when passing invalid ID
       tetration_scope:
         scope_id: 1234abc
         provider: "{{ provider_info }}"
@@ -85,48 +86,48 @@
       ignore_errors: True
       register: output
 
-    - name: Output - Verify the Role errors when passing invalid ID 
+    - name: Output - Verify the Role errors when passing invalid ID
       debug:
         var: output
-    
-    - name: Expected Output - Verify the Role errors when passing invalid ID 
+
+    - name: Expected Output - Verify the Role errors when passing invalid ID
       set_fact:
         expected_output: >-
           `scope_id` passed into the module does not exist.
-    
-    - name: Verify - Verify the Role errors when passing invalid ID 
+
+    - name: Verify - Verify the Role errors when passing invalid ID
       assert:
         that:
           - output is defined
           - output.failed is true
           - output.msg == expected_output
-# -----
+    # -----
 
-    - name: Test - Verify the Role errors when passing invalid parent app scope id 
+    - name: Test - Verify the Role errors when passing invalid parent app scope id
       tetration_scope:
         short_name: Test Scope Name
-        parent_app_scope_id: 123abc 
+        parent_app_scope_id: 123abc
         provider: "{{ provider_info }}"
         state: present
       ignore_errors: True
       register: output
 
-    - name: Output - Verify the Role errors when passing invalid parent app scope id 
+    - name: Output - Verify the Role errors when passing invalid parent app scope id
       debug:
         var: output
 
-    - name: Expected Output - Verify the Role errors when passing invalid parent app scope id 
+    - name: Expected Output - Verify the Role errors when passing invalid parent app scope id
       set_fact:
         expected_output: >-
           `parent_app_scope_id` passed into the module does not exist.
 
-    - name: Verify - Verify the Role errors when passing invalid parent app scope id 
+    - name: Verify - Verify the Role errors when passing invalid parent app scope id
       assert:
         that:
           - output is defined
           - output.failed is true
           - output.msg == expected_output
-# ----- 
+    # -----
 
     - name: Test - Verify errors when query_single is missing
       tetration_scope:
@@ -145,14 +146,14 @@
       set_fact:
         expected_output: >-
           In order to create a new `scope` you must also add a query parameter.
-    
+
     - name: Verify - Verify errors when query_single is missing
       assert:
         that:
           - output is defined
           - output.failed is true
           - output.msg == expected_output
-# -----
+    # -----
 
     - name: Test - Verify error when not specifying correct short query
       tetration_scope:
@@ -174,47 +175,45 @@
           - output is defined
           - output.failed is true
           - output.msg == 'Failure when processing no_log parameters. Module invocation will be hidden. dictionary requested, could not parse JSON or key=value'
-# -----
+    # -----
 
-    - name: Test - Verify error when not specifying all required query single parameters 
+    - name: Test - Verify error when not specifying all required query single parameters
       tetration_scope:
         short_name: CICD_Test_Scope
         parent_app_scope_id: "{{ root_scope_id }}"
         query_single:
-          type: eq 
+          type: eq
         state: present
         provider: "{{ provider_info }}"
       ignore_errors: true
       register: output
 
-    - name: Output - Verify error when not specifying all required query single parameters 
+    - name: Output - Verify error when not specifying all required query single parameters
       debug:
         var: output
-    
-    - name: Expected Output - Verify error when not specifying all required query single parameters 
+
+    - name: Expected Output - Verify error when not specifying all required query single parameters
       set_fact:
         expected_output: >-
           missing required arguments: field, value found in query_single
- 
-    - name: debug
-      debug:
-        var:
-          output.msg
 
     - name: debug
       debug:
-        var:
-          expected_output
+        var: output.msg
 
-    - name: Verify - Verify error when not specifying all required query single parameters 
+    - name: debug
+      debug:
+        var: expected_output
+
+    - name: Verify - Verify error when not specifying all required query single parameters
       assert:
         that:
           - output is defined
           - output.failed is true
-          - output.msg == expected_output 
-# -----
+          - output.msg == expected_output
+    # -----
 
-    - name: Test - Verify can create a scope 
+    - name: Test - Verify can create a scope
       tetration_scope:
         short_name: CICD_Test_Scope
         parent_app_scope_id: "{{ root_scope_id }}"
@@ -226,18 +225,18 @@
         state: present
       register: output
 
-    - name: Output - Verify can create a scope 
+    - name: Output - Verify can create a scope
       debug:
         var: output
 
-    - name: Verify - Verify can create a scope 
+    - name: Verify - Verify can create a scope
       assert:
         that:
           - output is defined
-          - output.failed is false 
+          - output.failed is false
           - output.changed is true
-          - output.object is not none 
-# -----
+          - output.object is not none
+    # -----
 
     - name: Test - Verify can delete a scope by name
       tetration_scope:
@@ -247,18 +246,18 @@
         provider: "{{ provider_info }}"
       register: output
 
-    - name: Output - Verify can delete a scope 
+    - name: Output - Verify can delete a scope
       debug:
         var: output
 
-    - name: Verify - Verify can delete a scope 
+    - name: Verify - Verify can delete a scope
       assert:
         that:
           - output is defined
-          - output.failed is false 
+          - output.failed is false
           - output.changed is true
           - output.object.success is true
-# -----
+    # -----
 
     - name: Test - Verify can update a scope - create scope
       tetration_scope:
@@ -275,11 +274,11 @@
     - name: Save Data - Save scope_id of new scope
       set_fact:
         new_scope_id: "{{ output.object.id }}"
-  
+
     - debug:
         var: new_scope_id
 
-    - name: Test - Verify can update a scope - make no changes 
+    - name: Test - Verify can update a scope - make no changes
       tetration_scope:
         short_name: CICD_Test_Scope
         parent_app_scope_id: "{{ root_scope_id }}"
@@ -290,17 +289,16 @@
         provider: "{{ provider_info }}"
         state: present
       register: output
-    
-    - name: Output - Verify can update a scope - make no changes 
+
+    - name: Output - Verify can update a scope - make no changes
       debug:
         var: output
 
-    - name: Verify - Verify can update a scope - make no changes 
+    - name: Verify - Verify can update a scope - make no changes
       assert:
-        that:
-          output.changed == false
+        that: output.changed == false
 
-    - name: Test - Verify can update a scope - change description 
+    - name: Test - Verify can update a scope - change description
       tetration_scope:
         short_name: CICD_Test_Scope
         parent_app_scope_id: "{{ root_scope_id }}"
@@ -309,17 +307,17 @@
         state: present
       register: output
 
-    - name: Output - Verify can update a scope - change description 
+    - name: Output - Verify can update a scope - change description
       debug:
         var: output
-    
-    - name: Verify - Verify can update a scope - change description 
+
+    - name: Verify - Verify can update a scope - change description
       assert:
         that:
           - output.changed == true
           - output.object.dirty == false
 
-    - name: Test - Verify can update a scope by id - change short query 
+    - name: Test - Verify can update a scope by id - change short query
       tetration_scope:
         scope_id: "{{ new_scope_id }}"
         provider: "{{ provider_info }}"
@@ -332,11 +330,11 @@
 
     - debug:
         var: new_scope_id
-    - name: Output - Verify can update a scope by id - change short query 
+    - name: Output - Verify can update a scope by id - change short query
       debug:
         var: output
-    
-    - name: Verify - Verify can update a scope by id - change short query 
+
+    - name: Verify - Verify can update a scope by id - change short query
       assert:
         that:
           - output.changed == true
@@ -349,18 +347,18 @@
         provider: "{{ provider_info }}"
       register: output
 
-    - name: Output - Verify can delete a scope 
+    - name: Output - Verify can delete a scope
       debug:
         var: output
 
-    - name: Verify - Verify can delete a scope 
+    - name: Verify - Verify can delete a scope
       assert:
         that:
           - output is defined
-          - output.failed is false 
+          - output.failed is false
           - output.changed is true
           - output.object.success is true
-# -----
+    # -----
 
     - name: Test - Verify cannot delete a scope with dependents - create scope
       tetration_scope:
@@ -397,7 +395,7 @@
     - name: Save Data - Save scope_id of dependant scope
       set_fact:
         dependant_scope_id: "{{ output.object.id }}"
-    
+
     - name: Verify - Verify cannot delete a scope with dependents - verify test object
       assert:
         that:
@@ -408,7 +406,7 @@
       tetration_scope:
         scope_id: "{{ new_scope_id }}"
         provider: "{{ provider_info }}"
-        state: absent 
+        state: absent
       ignore_errors: true
       register: output
 
@@ -424,22 +422,22 @@
           - output.details[0].count == 1
           - output.msg == 'There are objects using this scope.  Review the `details` tag for more details.'
 
-    - name: Verify - Verify cannot delete a scope with dependents - cleanup dependent object 
+    - name: Verify - Verify cannot delete a scope with dependents - cleanup dependent object
       tetration_scope:
         scope_id: "{{ dependant_scope_id }}"
         provider: "{{ provider_info }}"
-        state: absent 
+        state: absent
       register: output
 
-    - name: Verify - Verify cannot delete a scope with dependents - cleanup object 
+    - name: Verify - Verify cannot delete a scope with dependents - cleanup object
       tetration_scope:
         scope_id: "{{ new_scope_id }}"
         provider: "{{ provider_info }}"
-        state: absent 
+        state: absent
       register: output
-# -----
+    # -----
 
-    - name: Test - Verify invalid structure caught for `query_multiple` 
+    - name: Test - Verify invalid structure caught for `query_multiple`
       tetration_scope:
         short_name: CICD_Test_Sub_Scope
         parent_app_scope_id: "{{ root_scope_id }}"
@@ -452,27 +450,27 @@
             - field: host_tags_cvss2
               value: 8
           type: greeting
-        state: absent 
+        state: absent
       ignore_errors: true
       register: output
 
-    - name: Output - Verify invalid structure caught for `query_multiple` 
+    - name: Output - Verify invalid structure caught for `query_multiple`
       debug:
         var: output
 
-    - name: Expected Output - Verify invalid structure caught for `query_multiple` 
+    - name: Expected Output - Verify invalid structure caught for `query_multiple`
       set_fact:
         expected_output: >-
           missing required arguments: type found in query_multiple -> filters
 
-    - name: Verify - Verify invalid structure caught for `query_multiple` 
+    - name: Verify - Verify invalid structure caught for `query_multiple`
       assert:
         that:
           - output.failed == true
           - output.msg == expected_output
-# -----
+    # -----
 
-    - name: Test - Verify invalid structure caught for `query_single` 
+    - name: Test - Verify invalid structure caught for `query_single`
       tetration_scope:
         short_name: CICD_Test_Sub_Scope
         parent_app_scope_id: "{{ root_scope_id }}"
@@ -480,27 +478,27 @@
         query_single:
           field: host_tags_cvss3
           value: 8
-        state: absent 
+        state: absent
       ignore_errors: true
       register: output
 
-    - name: Output - Verify invalid structure caught for `query_single` 
+    - name: Output - Verify invalid structure caught for `query_single`
       debug:
         var: output
 
-    - name: Expected Output - Verify invalid structure caught for `query_single` 
+    - name: Expected Output - Verify invalid structure caught for `query_single`
       set_fact:
         expected_output: >-
           missing required arguments: type found in query_single
 
-    - name: Verify - Verify invalid structure caught for `query_single` 
+    - name: Verify - Verify invalid structure caught for `query_single`
       assert:
         that:
           - output.failed == true
           - output.msg == expected_output
-# -----
+    # -----
 
-    - name: Test - Verify invalid structure caught for `query_raw` 
+    - name: Test - Verify invalid structure caught for `query_raw`
       tetration_scope:
         short_name: CICD_Test_Sub_Scope
         parent_app_scope_id: "{{ root_scope_id }}"
@@ -511,35 +509,35 @@
               type: gt
               value: 8
             - field: host_tags_cvss2
-              value: 
-        state: absent 
+              value:
+        state: absent
       ignore_errors: true
       register: output
 
-    - name: Output - Verify invalid structure caught for `query_raw` 
+    - name: Output - Verify invalid structure caught for `query_raw`
       debug:
         var: output
 
-    - name: Expected Output - Verify invalid structure caught for `query_raw` 
+    - name: Expected Output - Verify invalid structure caught for `query_raw`
       set_fact:
         expected_output: >-
           missing required arguments: type found in query_raw
 
-    - name: Verify - Verify invalid structure caught for `query_raw` 
+    - name: Verify - Verify invalid structure caught for `query_raw`
       assert:
         that:
           - output.failed == true
           - output.msg == expected_output
-# -----
+    # -----
     - name: Set Value - Verify can create a scope `query_multiple`
       set_fact:
         filter:
-            - field: os
-              type: contains
-              value: linux
-            - field: os
-              type: contains
-              value: window
+          - field: os
+            type: contains
+            value: linux
+          - field: os
+            type: contains
+            value: window
 
     - name: Test - Verify can create a scope `query_multiple`
       tetration_scope:
@@ -560,20 +558,20 @@
       assert:
         that:
           - output is defined
-          - output.failed is false 
+          - output.failed is false
           - output.changed is true
-          - output.object is not none 
+          - output.object is not none
           - output.object.short_query.filters == filter
-# -----
+    # -----
     - name: Set Value - Verify can update a scope no changes `query_multiple`
       set_fact:
         filter:
-            - field: os
-              type: contains
-              value: linux
-            - field: os
-              type: contains
-              value: window
+          - field: os
+            type: contains
+            value: linux
+          - field: os
+            type: contains
+            value: window
 
     - name: Test - Verify can update a scope no changes `query_multiple`
       tetration_scope:
@@ -594,11 +592,11 @@
       assert:
         that:
           - output is defined
-          - output.failed is false 
-          - output.changed is false 
-          - output.object is not none 
+          - output.failed is false
+          - output.changed is false
+          - output.object is not none
           - output.object.short_query.filters == filter
-# -----
+    # -----
     - name: Set Value - Verify can update a scope `query_multiple`
       set_fact:
         filter:
@@ -623,11 +621,11 @@
       assert:
         that:
           - output is defined
-          - output.failed is false 
+          - output.failed is false
           - output.changed is true
           - output.object is not none
           - output.object.dirty_short_query == filter
-# -----
+    # -----
     - name: Set Value - Verify can update a scope `query_raw`
       set_fact:
         filter:
@@ -665,13 +663,13 @@
       assert:
         that:
           - output is defined
-          - output.failed is false 
+          - output.failed is false
           - output.changed is true
-          - output.object is not none 
+          - output.object is not none
           - output.object.dirty_short_query.filters == filter
-# -----
+    # -----
 
-    - name: Test - Delete a scope - cleanup 
+    - name: Test - Delete a scope - cleanup
       tetration_scope:
         short_name: CICD_Test_Scope
         parent_app_scope_id: "{{ root_scope_id }}"
@@ -679,14 +677,14 @@
         provider: "{{ provider_info }}"
       register: output
 
-    - name: Output - Verify can delete a scope 
+    - name: Output - Verify can delete a scope
       debug:
         var: output
 
-    - name: Verify - Verify can delete a scope 
+    - name: Verify - Verify can delete a scope
       assert:
         that:
           - output is defined
-          - output.failed is false 
+          - output.failed is false
           - output.changed is true
           - output.object.success is true

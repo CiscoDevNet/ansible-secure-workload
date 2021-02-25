@@ -1,8 +1,6 @@
 ---
 dependency:
   name: galaxy
-driver:
-  name: docker
 platforms:
   - name: instance
     image: docker.io/pycontribs/centos:8
@@ -15,7 +13,7 @@ lint: |
   PATH=${PATH}
   yamllint molecule/
   ansible-lint molecule/
-  
+
 provisioner:
   name: ansible
   env:

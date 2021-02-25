@@ -13,7 +13,7 @@
         ansible_host: "{{ lookup('env', 'TETRATION_SERVER_ENDPOINT') }}"
         api_key: "{{ lookup('env', 'TETRATION_API_KEY') }}"
         api_secret: "{{ lookup('env', 'TETRATION_API_SECRET') }}"
-      no_log: True 
+      no_log: True
 
     - name: put the variables in the required format
       set_fact:
@@ -21,17 +21,18 @@
           api_key: "{{ api_key }}"
           api_secret: "{{ api_secret }}"
           server_endpoint: "{{ ansible_host }}"
-      no_log: True 
+      no_log: True
 
     - name: set test variables
       set_fact:
-        root_scope_id: 5ce71503497d4f2c23af85b7
-# -----
+        root_scope: "{{ lookup('env', 'TETRATION_ROOT_SCOPE_NAME') }}"
+        root_scope_id: "{{ lookup('env', 'TETRATION_ROOT_SCOPE_ID') }}"
+    # -----
 
     - name: Test - Verify error when not passing name or id
       tetration_inventory_filter:
         provider: "{{ provider_info }}"
-        state: query 
+        state: query
       ignore_errors: true
       register: output
 
@@ -49,13 +50,13 @@
         that:
           - output.failed == true
           - output.msg == expected_output
-# -----
+    # -----
 
     - name: Test - Verify error when passing name but not app_scope_id
       tetration_inventory_filter:
         name: Test Inventory Filter
         provider: "{{ provider_info }}"
-        state: query 
+        state: query
       ignore_errors: true
       register: output
 
@@ -73,9 +74,9 @@
         that:
           - output.failed == true
           - output.msg == expected_output
-# -----
+    # -----
 
-    - name: Test - Verify error when passing more than one query parameter 
+    - name: Test - Verify error when passing more than one query parameter
       tetration_inventory_filter:
         name: Test Inventory Filter
         app_scope_id: "{{ root_scope_id }}"
@@ -90,27 +91,27 @@
               type: goodbye
               value: greeting
           type: wassup
-        state: query 
+        state: query
       ignore_errors: true
       register: output
 
-    - name: Output - Verify error when passing more than one query parameter 
+    - name: Output - Verify error when passing more than one query parameter
       debug:
         var: output
 
-    - name: Expected Output - Verify error when passing more than one query parameter 
+    - name: Expected Output - Verify error when passing more than one query parameter
       set_fact:
         expected_output: >-
           parameters are mutually exclusive: query_multiple|query_raw|query_single
 
-    - name: Verify - Verify error when passing more than one query parameter 
+    - name: Verify - Verify error when passing more than one query parameter
       assert:
         that:
           - output.failed == true
           - output.msg == expected_output
-# -----
+    # -----
 
-    - name: Test - Verify invalid structure caught for `query_single` 
+    - name: Test - Verify invalid structure caught for `query_single`
       tetration_inventory_filter:
         name: Test Inventory Filter
         app_scope_id: "{{ root_scope_id }}"
@@ -118,27 +119,27 @@
         query_single:
           field: hello
           type: greeting
-        state: query 
+        state: query
       ignore_errors: true
       register: output
 
-    - name: Output - Verify invalid structure caught for `query_single` 
+    - name: Output - Verify invalid structure caught for `query_single`
       debug:
         var: output
 
-    - name: Expected Output - Verify invalid structure caught for `query_single` 
+    - name: Expected Output - Verify invalid structure caught for `query_single`
       set_fact:
         expected_output: >-
           missing required arguments: value found in query_single
 
-    - name: Verify - Verify invalid structure caught for `query_single` 
+    - name: Verify - Verify invalid structure caught for `query_single`
       assert:
         that:
           - output.failed == true
           - output.msg == expected_output
-# -----
+    # -----
 
-    - name: Test - Verify invalid structure caught for `query_multiple` 
+    - name: Test - Verify invalid structure caught for `query_multiple`
       tetration_inventory_filter:
         name: Test Inventory Filter
         app_scope_id: "{{ root_scope_id }}"
@@ -151,27 +152,27 @@
             - field: host_tags_cvss2
               value: 8
           type: greeting
-        state: query 
+        state: query
       ignore_errors: true
       register: output
 
-    - name: Output - Verify invalid structure caught for `query_multiple` 
+    - name: Output - Verify invalid structure caught for `query_multiple`
       debug:
         var: output
 
-    - name: Expected Output - Verify invalid structure caught for `query_multiple` 
+    - name: Expected Output - Verify invalid structure caught for `query_multiple`
       set_fact:
         expected_output: >-
           missing required arguments: type found in query_multiple -> filters
 
-    - name: Verify - Verify invalid structure caught for `query_multiple` 
+    - name: Verify - Verify invalid structure caught for `query_multiple`
       assert:
         that:
           - output.failed == true
           - output.msg == expected_output
-# -----
+    # -----
 
-    - name: Test - Verify invalid structure caught for `query_raw` 
+    - name: Test - Verify invalid structure caught for `query_raw`
       tetration_inventory_filter:
         name: Test Inventory Filter
         app_scope_id: "{{ root_scope_id }}"
@@ -183,25 +184,25 @@
               value: 8
             - field: host_tags_cvss2
               value: 8
-        state: query 
+        state: query
       ignore_errors: true
       register: output
 
-    - name: Output - Verify invalid structure caught for `query_raw` 
+    - name: Output - Verify invalid structure caught for `query_raw`
       debug:
         var: output
 
-    - name: Expected Output - Verify invalid structure caught for `query_raw` 
+    - name: Expected Output - Verify invalid structure caught for `query_raw`
       set_fact:
         expected_output: >-
           missing required arguments: type found in query_raw
 
-    - name: Verify - Verify invalid structure caught for `query_raw` 
+    - name: Verify - Verify invalid structure caught for `query_raw`
       assert:
         that:
           - output.failed == true
           - output.msg == expected_output
-# -----
+    # -----
 
     - name: Test - Add a new inventory filter
       tetration_inventory_filter:
@@ -212,7 +213,7 @@
           field: os
           type: contains
           value: linux
-        state: present 
+        state: present
       register: output
 
     - name: Output - Add a new inventory filter
@@ -230,7 +231,7 @@
           - output.object.name == 'Test Inventory Filter'
           - output.changed == true
 
-# -----
+    # -----
 
     - name: Test - Assert an inventory filter no changes
       tetration_inventory_filter:
@@ -240,7 +241,7 @@
           field: os
           type: contains
           value: linux
-        state: present 
+        state: present
       register: output
 
     - name: Output - Assert an inventory filter no changes
@@ -253,13 +254,13 @@
           - output.failed == false
           - output.object.name == 'Test Inventory Filter'
           - output.changed == false
-# -----
+    # -----
 
     - name: Test - Update inventory using query_multiple
       tetration_inventory_filter:
         id: "{{ new_inv_filter_id }}"
         name: New Inv Filter
-        app_scope_id: "{{ root_scope_id }}" 
+        app_scope_id: "{{ root_scope_id }}"
         provider: "{{ provider_info }}"
         query_multiple:
           filters:
@@ -270,7 +271,7 @@
               type: contains
               value: window
           type: or
-        state: present 
+        state: present
       register: output
 
     - name: Output - Update inventory using query_multiple
@@ -283,7 +284,7 @@
           - output.failed == false
           - output.object.name == 'New Inv Filter'
           - output.changed == true
-# -----
+    # -----
 
     - name: Test - Update inventory using query_multiple no change
       tetration_inventory_filter:
@@ -298,7 +299,7 @@
               type: contains
               value: window
           type: or
-        state: present 
+        state: present
       register: output
 
     - name: Output - Update inventory using query_multiple no change
@@ -311,7 +312,7 @@
           - output.failed == false
           - output.object.name == 'New Inv Filter'
           - output.changed == false
-# -----
+    # -----
 
     - name: Test - Update inventory using query_raw
       tetration_inventory_filter:
@@ -335,7 +336,7 @@
                   value: linux
               type: and
           type: or
-        state: present 
+        state: present
       register: output
 
     - name: Output - Update inventory using query_raw
@@ -348,7 +349,7 @@
           - output.failed == false
           - output.object.name == 'New Inv Filter'
           - output.changed == true
-# -----
+    # -----
 
     - name: Test - Update inventory using query_raw no change
       tetration_inventory_filter:
@@ -371,7 +372,7 @@
                   value: linux
               type: and
           type: or
-        state: present 
+        state: present
       register: output
 
     - name: Output - Update inventory using query_raw no change
@@ -384,18 +385,18 @@
           - output.failed == false
           - output.object.name == 'New Inv Filter'
           - output.changed == false
-# -----
+    # -----
 
     - name: Test - Delete a new inventory filter
       tetration_inventory_filter:
-        name: New Inv Filter 
+        name: New Inv Filter
         app_scope_id: "{{ root_scope_id }}"
         provider: "{{ provider_info }}"
         query_single:
           field: os
           type: contains
           value: linux
-        state: absent 
+        state: absent
       register: output
 
     - name: Output - Delete a new inventory filter
@@ -406,9 +407,9 @@
       assert:
         that:
           - output.failed == false
-          - output.changed == true 
+          - output.changed == true
           - output.object.name == 'New Inv Filter'
-# -----
+    # -----
 
     - name: Test - Add a new filter with other options
       tetration_inventory_filter:
@@ -421,7 +422,7 @@
           field: os
           type: contains
           value: linux
-        state: present 
+        state: present
       register: output
 
     - name: Output - Add a new filter with other options
@@ -437,24 +438,24 @@
         that:
           - output.failed == false
           - output.object.name == 'A New Test Inventory Filter'
-          - output.object.primary == true 
-          - output.object.public == true 
+          - output.object.primary == true
+          - output.object.public == true
           - output.changed == true
-# -----
+    # -----
 
     - name: Test - Update a new filter with other options
       tetration_inventory_filter:
         id: "{{ a_new_inv_filter_id }}"
-        name: Different 
+        name: Different
         app_scope_id: "{{ root_scope_id }}"
         provider: "{{ provider_info }}"
-        primary: false 
-        public: false 
+        primary: false
+        public: false
         query_single:
           field: os
           type: contains
           value: linux
-        state: present 
+        state: present
       register: output
 
     - name: Output - Update a new filter with other options
@@ -467,34 +468,34 @@
           - output.failed == false
           - output.object.name == 'Different'
           - output.object.primary == false
-          - output.object.public == false 
+          - output.object.public == false
           - output.changed == true
-# -----
+    # -----
 
-    - name: Test - Query a filter using ID 
+    - name: Test - Query a filter using ID
       tetration_inventory_filter:
         id: "{{ a_new_inv_filter_id }}"
         provider: "{{ provider_info }}"
         state: query
       register: output
 
-    - name: Output - Query a filter using ID 
+    - name: Output - Query a filter using ID
       debug:
         var: output
 
-    - name: Verify - Query a filter using ID 
+    - name: Verify - Query a filter using ID
       assert:
         that:
           - output.failed == false
           - output.object.name == 'Different'
           - output.object.primary == false
           - output.object.public == false
-          - output.changed == false 
-# -----
+          - output.changed == false
+    # -----
 
     - name: Test - Query a filter using Name
       tetration_inventory_filter:
-        name: Different 
+        name: Different
         app_scope_id: "{{ root_scope_id }}"
         provider: "{{ provider_info }}"
         state: query
@@ -511,12 +512,12 @@
           - output.object.name == 'Different'
           - output.object.primary == false
           - output.object.public == false
-          - output.changed == false 
-# -----
+          - output.changed == false
+    # -----
 
     - name: Cleanup - Query a filter using Name
       tetration_inventory_filter:
         id: "{{ a_new_inv_filter_id }}"
         provider: "{{ provider_info }}"
-        state: absent 
+        state: absent
       register: output

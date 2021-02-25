@@ -25,12 +25,13 @@
 
     - name: set test variables
       set_fact:
-        root_scope_id: 5ce71503497d4f2c23af85b7
+        root_scope: "{{ lookup('env', 'TETRATION_ROOT_SCOPE_NAME') }}"
+        root_scope_id: "{{ lookup('env', 'TETRATION_ROOT_SCOPE_ID') }}"
     # -----
 
     - name: Test - Can find matching hostnames
       tetration_software_agent_query:
-        host_name_contains: DC
+        host_name_contains: test-sensor
         provider: "{{ provider_info }}"
       register: output
 
@@ -41,12 +42,12 @@
     - name: Verify - Can find matching hostnames
       assert:
         that:
-          - output.items_found == 2
+          - output.items_found == 1
     # -----
 
     - name: Test - Can find exact hostname
       tetration_software_agent_query:
-        host_name_is_exactly: DC1
+        host_name_is_exactly: github-integration-test-sensor
         provider: "{{ provider_info }}"
       register: output
 
@@ -72,12 +73,12 @@
     - name: Verify - Can find all agents
       assert:
         that:
-          - output.items_found > 20
+          - output.items_found > 0
     # -----
 
     - name: Test - Can find an IPv4 Address
       tetration_software_agent_query:
-        interface_ip_is_exactly: "10.254.252.41"
+        interface_ip_is_exactly: "172.31.27.18"
         provider: "{{ provider_info }}"
       register: output
 
@@ -93,7 +94,7 @@
 
     - name: Test - Can find an IPv6 Address
       tetration_software_agent_query:
-        interface_ip_is_exactly: "fe80::5efe:afe:fc29"
+        interface_ip_is_exactly: "fe80::91:32ff:fef1:5de5"
         provider: "{{ provider_info }}"
       register: output
 
@@ -153,7 +154,7 @@
 
     - name: Test - Can find devices in IPv4 Network
       tetration_software_agent_query:
-        interface_ip_in_network: "10.254.252.0/24"
+        interface_ip_in_network: "172.31.27.0/24"
         provider: "{{ provider_info }}"
       register: output
 
@@ -164,7 +165,7 @@
     - name: Verify - Can find devices in IPv4 Network
       assert:
         that:
-          - output.items_found == 6
+          - output.items_found == 1
     # -----
 
     - name: Test - Can find devices in IPv6 Network
@@ -180,7 +181,7 @@
     - name: Verify - Can find devices in IPv6 Network
       assert:
         that:
-          - output.items_found == 19
+          - output.items_found == 1
     # -----
 
     - name: Test - Error on invalid IPv4 Network

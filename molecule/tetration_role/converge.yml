@@ -23,6 +23,12 @@
           server_endpoint: "{{ ansible_host }}"
       no_log: True
 
+    - name: set test variables
+      set_fact:
+        root_scope: "{{ lookup('env', 'TETRATION_ROOT_SCOPE_NAME') }}"
+        root_scope_id: "{{ lookup('env', 'TETRATION_ROOT_SCOPE_ID') }}"
+        test_role_id: "{{ lookup('env', 'TETRATION_TEST_ROLE_ID') }}"
+
     - name: Test - Verify the Role works when passing no required parameters to it
       tetration_role:
         state: query
@@ -122,9 +128,9 @@
 
     - name: Test - Verify module fails when passing id and name together
       tetration_role:
-        id: 5f48844c497d4f10af9c3f4e
+        id: "{{ test_role_id }}"
         name: Test
-        app_scope_id: 5ce71503497d4f2c23af85b7
+        app_scope_id: "{{ root_scope_id }}"
         state: query
         provider: "{{ provider_info }}"
       delegate_to: localhost
@@ -149,7 +155,7 @@
 
     - name: Test - Query Roles by Role ID and confirm correct response
       tetration_role:
-        id: 5f48844c497d4f10af9c3f4e
+        id: "{{ test_role_id }}"
         state: query
         provider: "{{ provider_info }}"
       delegate_to: localhost
@@ -164,13 +170,13 @@
         that:
           - output is defined
           - output.failed is false
-          - output.object.app_scope_id == '5ce71503497d4f2c23af85b7'
-          - output.object.name == 'Agent Installer'
+          - output.object.app_scope_id == '{{ root_scope_id }}'
+          - output.object.name == 'TEST_ROLE_1'
 
     - name: Test - Query Roles by Name and App Scope and confirm correct response
       tetration_role:
-        name: "Agent Installer"
-        app_scope_id: 5ce71503497d4f2c23af85b7
+        name: "TEST_ROLE_1"
+        app_scope_id: "{{ root_scope_id }}"
         state: query
         provider: "{{ provider_info }}"
       delegate_to: localhost
@@ -185,12 +191,12 @@
         that:
           - output is defined
           - output.failed is false
-          - output.object.id == '5f48844c497d4f10af9c3f4e'
+          - output.object.id == '{{ test_role_id }}'
 
     - name: Test - Create a new Role by Name and App Scope ID
       tetration_role:
         name: "Molecule Test Role"
-        app_scope_id: 5ce71503497d4f2c23af85b7
+        app_scope_id: "{{ root_scope_id }}"
         description: "Molecule Test Description"
         state: present
         provider: "{{ provider_info }}"
@@ -237,7 +243,7 @@
     - name: Test - Create a new Role by Name and App Scope ID to Delete by Name
       tetration_role:
         name: "Molecule Test Role 2"
-        app_scope_id: 5ce71503497d4f2c23af85b7
+        app_scope_id: "{{ root_scope_id }}"
         description: "Molecule Test Description 2"
         state: present
         provider: "{{ provider_info }}"
@@ -260,7 +266,7 @@
     - name: Test - Delete a new Role by Name and App Scope ID
       tetration_role:
         name: "Molecule Test Role 2"
-        app_scope_id: 5ce71503497d4f2c23af85b7
+        app_scope_id: "{{ root_scope_id }}"
         state: absent
         provider: "{{ provider_info }}"
       delegate_to: localhost
@@ -281,7 +287,7 @@
     - name: Test - Delete a Role that does not exist
       tetration_role:
         name: "Role Not Exist"
-        app_scope_id: 5ce71503497d4f2c23af85b7
+        app_scope_id: "{{ root_scope_id }}"
         state: absent
         provider: "{{ provider_info }}"
       delegate_to: localhost
@@ -310,7 +316,7 @@
       tetration_role:
         name: "{{ test_name }}"
         description: "{{ test_description }}"
-        app_scope_id: 5ce71503497d4f2c23af85b7
+        app_scope_id: "{{ root_scope_id }}"
         state: present
         provider: "{{ provider_info }}"
       delegate_to: localhost
@@ -343,7 +349,7 @@
         id: "{{ new_role_id }}"
         name: "{{ test_name }}"
         description: "{{ test_description }}"
-        app_scope_id: 5ce71503497d4f2c23af85b7
+        app_scope_id: "{{ root_scope_id }}"
         state: present
         provider: "{{ provider_info }}"
       delegate_to: localhost
@@ -361,7 +367,7 @@
         id: "{{ new_role_id }}"
         name: "Updated Role Name"
         description: "Updated Description"
-        app_scope_id: 5ce71503497d4f2c23af85b7
+        app_scope_id: "{{ root_scope_id }}"
         state: present
         provider: "{{ provider_info }}"
       delegate_to: localhost
@@ -397,8 +403,8 @@
       tetration_role:
         name: "Updated Role Name"
         description: "Updated Description"
-        app_scope_id: 5ce71503497d4f2c23af85b7
-        capability_app_scope_id: 5f0f2353497d4f1f59bf0aef
+        app_scope_id: "{{ root_scope_id }}"
+        capability_app_scope_id: "{{ root_scope_id }}"
         capability_ability: SCOPE_READ
         state: present
         provider: "{{ provider_info }}"
@@ -424,8 +430,8 @@
       tetration_role:
         name: "Updated Role Name"
         description: "Updated Description"
-        app_scope_id: 5ce71503497d4f2c23af85b7
-        capability_app_scope_id: 5f0f2353497d4f1f59bf0aef
+        app_scope_id: "{{ root_scope_id }}"
+        capability_app_scope_id: "{{ root_scope_id }}"
         capability_ability: SCOPE_READ
         state: absent
         provider: "{{ provider_info }}"

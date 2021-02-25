@@ -23,6 +23,12 @@
           server_endpoint: "{{ ansible_host }}"
       no_log: true
 
+    - name: set test variables
+      set_fact:
+        root_scope: "{{ lookup('env', 'TETRATION_ROOT_SCOPE_NAME') }}"
+        root_scope_id: "{{ lookup('env', 'TETRATION_ROOT_SCOPE_ID') }}"
+        test_role_id: "{{ lookup('env', 'TETRATION_TEST_ROLE_ID') }}"
+
     - name: Set expected return value for invalid parameters
       set_fact:
         expected_invalid_parameter_msg: "Check the `invalid parameters` object for the invalid parameters"
@@ -33,19 +39,19 @@
         email: test_user@test.com
         first_name: "Test"
         last_name: "CICD User"
-        app_scope_name: "Ignwpov"
+        app_scope_name: "{{ root_scope }}"
         role_names:
-          - Execute
-          - Enforce
-        state: present 
+          - TEST_ROLE_1
+          - TEST_ROLE_2
+        state: present
       delegate_to: localhost
       register: output
 
-    - name: Setup - Delete the test user in prep for further testing 
+    - name: Setup - Delete the test user in prep for further testing
       tetration_user:
         provider: "{{ provider_info }}"
         email: test_user@test.com
-        state: absent 
+        state: absent
       delegate_to: localhost
 
     - name: Test - Query if a fake user exists
@@ -142,7 +148,7 @@
         email: not_present_test_user@test.com
         first_name: "not present"
         last_name: "test user"
-        app_scope_name: "Ignwpov:Internet"
+        app_scope_name: "{{ root_scope }}"
         state: present
       delegate_to: localhost
       check_mode: True
@@ -159,14 +165,13 @@
           - output.failed is false
           - output.object.first_name == 'not present'
 
-
     - name: Test - Attempt to create a user with scope id using check mode
       tetration_user:
         provider: "{{ provider_info }}"
         email: not_present_test_user@test.com
         first_name: "not present"
         last_name: "test user"
-        app_scope_id: "5f0f2353497d4f1f59bf0aef"
+        app_scope_id: "{{ root_scope_id }}"
         state: present
       delegate_to: localhost
       check_mode: True
@@ -181,8 +186,7 @@
         that:
           - output is defined
           - output.failed is false
-          - output.object.app_scope_id == '5f0f2353497d4f1f59bf0aef'
-
+          - output.object.app_scope_id == '{{ root_scope_id }}'
 
     - name: Test - Attempt to create a user with invalid role names
       tetration_user:
@@ -217,8 +221,7 @@
         first_name: "not present"
         last_name: "test user"
         role_ids:
-          - 5ce7150a755f0267680224b3
-          - 5ce71509497d4f2c23af85cf
+          - "{{ test_role_id }}"
         state: present
       delegate_to: localhost
       check_mode: True
@@ -233,8 +236,7 @@
         that:
           - output is defined
           - output.failed is false
-          - output.object.role_ids == ['5ce7150a755f0267680224b3', '5ce71509497d4f2c23af85cf']
-
+          - output.object.role_ids == ["{{ test_role_id }}"]
 
     - name: Test - Attempt to create a user with a list of valid role names and app name in check mode
       tetration_user:
@@ -242,10 +244,9 @@
         email: not_present_test_user@test.com
         first_name: "not present"
         last_name: "test user"
-        app_scope_name: "Ignwpov:Internet"
+        app_scope_name: "{{ root_scope }}"
         role_names:
-          - Enforce
-          - Execute
+          - TEST_ROLE_1
         state: present
       delegate_to: localhost
       check_mode: True
@@ -260,8 +261,8 @@
         that:
           - output is defined
           - output.failed is false
-          - output.object.role_ids == ['5ce7150a755f0267680224b3', '5ce71509497d4f2c23af85cf']
-          - output.object.app_scope_id == '5f0f2353497d4f1f59bf0aef'
+          - output.object.role_ids == ["{{ test_role_id }}"]
+          - output.object.app_scope_id == "{{ root_scope_id }}"
 
     - name: Test - delete a user that does not exist
       tetration_user:
@@ -269,10 +270,9 @@
         email: not_present_test_user@test.com
         first_name: "Ansible"
         last_name: "CICD User"
-        app_scope_name: "Ignwpov"
+        app_scope_name: "{{ root_scope }}"
         role_names:
-          - Enforce
-          - Execute
+          - TEST_ROLE_1
         state: absent
       delegate_to: localhost
       register: output
@@ -292,7 +292,7 @@
       tetration_user:
         provider: "{{ provider_info }}"
         email: test_user@test.com
-        state: present 
+        state: present
       delegate_to: localhost
       check_mode: True
       register: output
@@ -306,13 +306,13 @@
         that:
           - output is defined
           - output.failed is false
-          - output.changed is true 
+          - output.changed is true
 
     - name: Test - Enable a Deleted User
       tetration_user:
         provider: "{{ provider_info }}"
         email: test_user@test.com
-        state: present 
+        state: present
       delegate_to: localhost
       register: output
 
@@ -325,18 +325,18 @@
         that:
           - output is defined
           - output.failed is false
-          - output.changed is true 
-  
+          - output.changed is true
+
     - name: Test - Update a user
       tetration_user:
         provider: "{{ provider_info }}"
         email: test_user@test.com
         first_name: "Ansible"
         last_name: "Ansible User"
-        app_scope_name: "Ignwpov"
+        app_scope_name: "{{ root_scope }}"
         role_names:
-          - GCP
-        state: present 
+          - TEST_ROLE_1
+        state: present
       delegate_to: localhost
       register: test_output
 
@@ -362,13 +362,9 @@
           - validation_output is defined
           - validation_output.object.first_name == "Ansible"
           - validation_output.object.last_name == "Ansible User"
-          - validation_output.object.app_scope_id == "5ce71503497d4f2c23af85b7"
-          - validation_output.object.role_ids[0] == "5d9cf7df755f0232a35cf84f"
-
-
-    
-
-    # - name: Test - delete a user 
+          - validation_output.object.app_scope_id == "{{ root_scope_id }}"
+          - validation_output.object.role_ids[0] == "{{ test_role_id }}"
+    # - name: Test - delete a user
     #   tetration_user:
     #     provider: "{{ provider_info }}"
     #     email: extremely_fake@test.com
@@ -378,17 +374,15 @@
     #     role_names:
     #       - Enforce
     #       - Execute
-    #     state: absent 
+    #     state: absent
     #   delegate_to: localhost
     #   register: output
-
     # - name: debug
     #   debug:
     #     var: output
-
     # - name: test results
     #   assert:
     #     that:
-    #       - output is defined 
+    #       - output is defined
     #       - output.failed is false
     #       - output.changed is true
