@@ -5,51 +5,54 @@ name: Python and Ansible Testing on Pull Request
 
 on:
   pull_request:
-    branches: [ master ]
-
+    branches: [master]
 
 jobs:
   build:
     env:
       TETRATION_API_KEY: ${{ secrets.TETRATION_API_KEY }}
-      TETRATION_API_SECRET: ${{ secrets.TETRATION_API_SECRET }} 
-      TETRATION_SERVER_ENDPOINT: ${{ secrets.TETRATION_ENDPOINT }} 
+      TETRATION_API_SECRET: ${{ secrets.TETRATION_API_SECRET }}
+      TETRATION_SERVER_ENDPOINT: ${{ secrets.TETRATION_ENDPOINT }}
+      TETRATION_ROOT_SCOPE_NAME: ${{ secrets.TETRATION_ROOT_SCOPE_NAME }}
+      TETRATION_ROOT_SCOPE_ID: ${{ secrets.TETRATION_ROOT_SCOPE_ID }}
+      TETRATION_STATIC_APP_ID: ${{ secrets.TETRATION_STATIC_APP_ID }}
+      TETRATION_TEST_ROLE_ID: ${{ secrets.TETRATION_TEST_ROLE_ID }}
 
     runs-on: ubuntu-latest
     continue-on-error: false
     strategy:
-      # Need max-parallel as the tests create and tear down 
+      # Need max-parallel as the tests create and tear down
       # Resourses in the Tetration Module.  If not run serially
       # The tests interfere with each other.
       max-parallel: 1
       matrix:
         python-version: [3.7, 3.8]
-        ansible-version: [2.9.*, 2.10.*]
+        ansible-version: [2.10.*]
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8 pytest
-        pip install 'ansible==${{ matrix.ansible-version }}'
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Verify docs will render
-      run: |
-        ./tests/test_docs.sh
-    - name: Test with pytest
-      run: |
-        pytest
-    - name: Test with molecule
-      run: |
-        molecule test --all
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest
+          pip install 'ansible==${{ matrix.ansible-version }}'
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      - name: Verify docs will render
+        run: |
+          ./tests/test_docs.sh
+      - name: Test with pytest
+        run: |
+          pytest
+      - name: Test with molecule
+        run: |
+          molecule test --all
