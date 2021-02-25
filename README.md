@@ -1,7 +1,7 @@
-Ansible Module
+Secure Workload (Tetration) Ansible Module
 =========
 
-An ansible role for administrating a tetration server.
+An ansible role for administrating Secure Workload (formerly known as Tetration).
 
 Requirements
 ------------
@@ -23,16 +23,16 @@ The following variables need to be explicitly imported in to the role OR can be 
   - TETRATION_API_KEY
   - TETRATION_API_SECRET
 
-The api key and secret can be obtained from the **Settings -> API Keys** menu in the Tetration Server
+The api key and secret can be obtained from the **Settings -> API Keys** menu in Tetration.
 
-The server endpoint is just the base URL of your tetration server.
+The server endpoint is just the base URL of your Tetration, e.g. "https://acme.tetrationcloud.com".
 
 Dependencies
 ------------
 
 `requests`
 
-This role uses the Python `requests` package to communicate via https with Tetration Server.
+This role uses the Python `requests` package to communicate via https with Tetration.
 
 Example Playbook
 ----------------
@@ -84,10 +84,10 @@ Python Testing is done via Pytest.
 Ansible Testing is done via Molecule
 - Create a Virtual Environment
 - Install Dependencies from `requirements.txt`
-- Run the command `molecule converge -s users` to run the Users scenario
-- Run the command `molecule converge --all` to run all the scenarios
+- Run the command `molecule test -s tetration_user` to run the users scenario (check the `molecule` directory for all scenarios)
+- Run the command `molecule test --all` to run all the scenarios
 
-The scenarios are in the **molecule** folder.  Each scenario is named after the module its tests are written for.  Molecule is designed to do stuff to a VM/Container and then test the state of the container.  Since this is not the case, instead we use the `converge.yml` file to exercize the role.  
+The scenarios are in the **molecule** folder.  Each scenario is named after the module its tests are written for.  Molecule is designed to do stuff to a VM/Container and then test the state of the container.  Since this is not the case, instead we use the `converge.yml` file to exercise the role.  
 
 Environmental variables are set in the `molecule.yml` file.  If you have an `.env.yml` file set in the project root, when molecule runs, it will set the contents of that file as environmental variables. This way you can test both local and remote.
 
@@ -123,7 +123,7 @@ An option to setting an environmental variable is to use `dotenv` to load them a
 ```
 TETRATION_API_KEY="my api key"
 TETRATION_API_SECRET="my apy password"
-TETRATION_SERVER_ENDPOINT="https://ignwpov.tetrationpreview.com"
+TETRATION_SERVER_ENDPOINT="https://acme.tetrationcloud.com"
 ```
 - Run the sample plays as follows
   - `dotenv run ansible-playbook sample_play.yml`
@@ -145,14 +145,15 @@ doc_fragment_plugins = ./plugins/doc_fragments
 stdout_callback = debug
 ```
 
-
-
 License
 -------
 
-TBD
+MIT
+
 
 Author Information
 ------------------
 
-TBD
+Cisco
+
+This module is provided as-is with community support only.
