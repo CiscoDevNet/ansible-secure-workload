@@ -5,5 +5,4 @@ __pycache__
 .vscode/
 .env*
 .cache
-ansible.cfg
 .venv
