@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Wait for push test to complete, avoiding interference and failing tests
         # yes, this is a kludge
-        run: sleep 7m
+        run: sleep 8m
 
   build:
     # force the build stage to only execute after the wait job is complete
