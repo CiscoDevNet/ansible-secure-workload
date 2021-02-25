@@ -220,7 +220,7 @@ def run_module():
 
     # Create an App Scope Name to ID Lookup Table
     all_app_scopes_response = tet_module.run_method('GET', TETRATION_API_SCOPES)
-    all_app_scopes_lookup = {r['name']: r['id'] for r in all_app_scopes_response}
+    all_app_scopes_lookup = {r['name'].upper(): r['id'] for r in all_app_scopes_response}
 
     # Create a Role Name to ID Lookup Table
     all_roles_response = tet_module.run_method('GET', TETRATION_API_ROLE)
@@ -235,7 +235,8 @@ def run_module():
             invalid_parameters['app_scope_id'] = scope_id
     if module.params['app_scope_name']:
         scope_name = module.params['app_scope_name']
-        if scope_name not in all_app_scopes_lookup.keys():
+        # case insensitive compare - all keys will be upper case.
+        if scope_name.upper() not in all_app_scopes_lookup.keys():
             invalid_parameters['app_scope_name'] = scope_name
     if module.params['role_ids']:
         invalid_role_ids = [id for id in module.params['role_ids'] if id not in all_roles_lookup.values()]
@@ -291,7 +292,7 @@ def run_module():
             # Deal with the `app_scope` parameters
             if module.params['app_scope_name']:
                 # Convert the name to a scope id
-                app_scope_id = all_app_scopes_lookup.get(module.params['app_scope_name'])
+                app_scope_id = all_app_scopes_lookup.get(module.params['app_scope_name'].upper())
                 req_payload['app_scope_id'] = app_scope_id
 
             elif module.params['app_scope_id']:
