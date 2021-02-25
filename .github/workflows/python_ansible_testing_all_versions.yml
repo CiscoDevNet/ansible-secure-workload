@@ -16,6 +16,9 @@ jobs:
         run: sleep 7m
 
   build:
+    # force the build stage to only execute after the wait job is complete
+    needs: wait
+
     env:
       TETRATION_API_KEY: ${{ secrets.TETRATION_API_KEY }}
       TETRATION_API_SECRET: ${{ secrets.TETRATION_API_SECRET }}
