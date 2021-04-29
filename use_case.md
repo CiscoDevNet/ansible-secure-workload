@@ -1,4 +1,4 @@
-Cisco Secure Workload (formerly Tetration) Asnible Module
+Cisco Secure Workload (formerly Tetration) Ansible Module
 =====================================
 
 Ansible’s simple automation framework paired with Cisco’s architectures and programmable platforms provide the optimal combination for open network automation. Cisco DevNet provides Ansible modules, use-case focused content, and Learning Labs to successfully deploy automation and implement DevOps into your network operations.
