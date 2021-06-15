@@ -1,7 +1,7 @@
 Secure Workload (Tetration) Ansible Module
 =========
 
-An ansible role for administrating Secure Workload (formerly known as Tetration). Find a guided walkthourgh of the [Ansible modules here](https://developer.cisco.com/learning/tracks/cisco-app-first-security/cisco-secure-workload-ansible/ansible-intro/step/1).
+An ansible role for administrating Secure Workload (formerly known as Tetration). Find a guided walkthrough of the [Ansible modules here](https://developer.cisco.com/learning/tracks/cisco-app-first-security/cisco-secure-workload-ansible/ansible-intro/step/1).
 
 Requirements
 ------------
