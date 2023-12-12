@@ -1,8 +1,9 @@
 namespace: cisco
-name: secure-workload
-version: 1.0.0
+name: ansible-secure-workload
+version: 1.0.4
 readme: README.md
 authors:
+  - Karmanya Dadhich
   - Jeroen Wittock
 description: A collection for automating Cisco Secure Workload
 license_file: "LICENSE"
