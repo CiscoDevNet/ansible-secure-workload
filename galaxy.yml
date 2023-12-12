@@ -1,5 +1,5 @@
 namespace: cisco
-name: ansible-secure-workload
+name: secureworkload
 version: 1.0.4
 readme: README.md
 authors:
