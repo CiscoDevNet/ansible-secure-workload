@@ -1,0 +1,33 @@
+namespace: cisco
+name: secure-workload
+version: 1.0.0
+readme: README.md
+authors:
+  - Jeroen Wittock
+description: A collection for automating Cisco Secure Workload
+license_file: "LICENSE"
+tags:
+  - cisco
+  - secure
+  - workload
+  - secure-workload
+  - tetration
+  - security
+build_ignore:
+  - "*tar.gz"
+  - "*.DS_Store"
+  - "*.json"
+  - "venv*"
+  - ".vscode"
+  - ".gitignore"
+  - ".env"
+  - ".github"
+  - "tests/output/"
+  - "galaxy.yml"
+  - "*.pyc"
+  - ".git"
+dependencies: {}
+repository: https://github.com/CiscoDevNet/ansible-secure-workload
+documentation: https://developer.cisco.com/learning/tracks/cisco-app-first-security/cisco-secure-workload-ansible/ansible-intro/step/1
+homepage: https://github.com/CiscoDevNet/ansible-secure-workload
+issues: https://github.com/CiscoDevNet/ansible-secure-workload/issues
