@@ -11,7 +11,7 @@ tags:
   - cisco
   - secure
   - workload
-  - secure-workload
+  - secure_workload
   - tetration
   - security
 build_ignore:
